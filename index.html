@@ -524,43 +524,107 @@
 
   <!-- PAGE 1 -->
   <section class="screen active" id="page-home">
-    <div class="hero-home">
-      <img src="assets/logo-breakpoint.png" alt="Breakpoint logo" class="home-logo" />
-      <div>
-        <p>Sélectionnez votre station</p>
+
+    <!-- HERO PHOTO -->
+    <div style="
+      position:relative;
+      min-height:280px;
+      background:url('assets/team-photo.jpg') center/cover no-repeat;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-end;
+      padding:0 20px 28px;
+      overflow:hidden;
+    ">
+      <!-- Dégradé sombre -->
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,40,32,.3) 0%,rgba(20,40,32,.82) 100%);"></div>
+
+      <!-- Logo + texte par-dessus le dégradé -->
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <img src="assets/logo-breakpoint.png" alt="logo" style="
+          width:72px;height:72px;
+          border-radius:50%;
+          object-fit:contain;
+          background:rgba(255,255,255,.15);
+          padding:7px;
+          box-shadow:0 6px 22px rgba(0,0,0,.35);
+        "/>
+        <div style="text-align:center;">
+          <div style="color:#fff;font-size:21px;font-weight:900;letter-spacing:-.2px;">Breakpoint OPS</div>
+          <div style="color:rgba(255,255,255,.7);font-size:12px;font-weight:600;margin-top:2px;">Sélectionnez votre station</div>
+        </div>
       </div>
     </div>
 
-    <div class="section">
-      <p class="section-sub">Vous ne verrez que les données de votre station.</p>
+    <!-- STATIONS -->
+    <div style="padding:18px 14px 36px;">
 
-      <button class="station-btn" onclick="selectStation('Evere')">
-        Evere
+      <!-- Grille 2 colonnes pour 6 stations -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+        <button onclick="selectStation('Evere')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Evere</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+        <button onclick="selectStation('Wemmel')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Wemmel</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+        <button onclick="selectStation('Molenbeek')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Molenbeek</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+        <button onclick="selectStation('Fort-Jaco')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Fort-Jaco</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+        <button onclick="selectStation('Uccle')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Uccle</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+        <button onclick="selectStation('Etterbeek')" style="background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.97)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#111827;">Etterbeek</div>
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Station</div>
+        </button>
+
+      </div>
+
+      <!-- Auderghem pleine largeur -->
+      <button onclick="selectStation('Auderghem')" style="width:100%;background:#fff;border:none;border-radius:16px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;align-items:center;gap:14px;font-family:inherit;transition:transform .1s;" onpointerdown="this.style.transform='scale(.99)'" onpointerup="this.style.transform=''" onpointerleave="this.style.transform=''">
+        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2d4a3e,#3d6354);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/></svg>
+        </div>
+        <div style="text-align:left;flex:1;">
+          <div style="font-size:14px;font-weight:800;color:#111827;">Auderghem</div>
+          <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:1px;">Station Breakpoint</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
 
-      <button class="station-btn" onclick="selectStation('Wemmel')">
-        Wemmel
-      </button>
-
-      <button class="station-btn" onclick="selectStation('Molenbeek')">
-        Molenbeek
-      </button>
-
-      <button class="station-btn" onclick="selectStation('Fort-Jaco')">
-        Fort-Jaco
-      </button>
-
-      <button class="station-btn" onclick="selectStation('Uccle')">
-        Uccle
-      </button>
-
-      <button class="station-btn" onclick="selectStation('Etterbeek')">
-        Etterbeek
-      </button>
-
-      <button class="station-btn" onclick="selectStation('Auderghem')">
-        Auderghem
-      </button>
     </div>
   </section>
 
@@ -769,7 +833,8 @@
       scanTimer: null,
       barcodeDetector: null,
       selectedLocations: [],
-      photoDataUrl: null
+      photoDataUrl: null,
+      quaggaRunning: false
     };
 
     function showPage(id){
@@ -1006,6 +1071,24 @@
       `).join("");
     }
 
+    function loadScript(src){
+      return new Promise((res,rej) => {
+        if (document.querySelector('script[src="' + src + '"]')) { res(); return; }
+        const s = document.createElement("script");
+        s.src = src; s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    function onScanSuccess(value){
+      if (!value) return;
+      document.getElementById("eanInput").value = value;
+      if (navigator.vibrate) navigator.vibrate(100);
+      stopInlineScanner();
+      loadProductByEAN(value);
+      showToast("✅ Code scanné : " + value);
+    }
+
     async function startInlineScanner(){
       const video = document.getElementById("scannerVideoInline");
       const placeholder = document.getElementById("scanPlaceholder");
@@ -1023,38 +1106,53 @@
         placeholder.style.display = "none";
         corners.style.display = "block";
         statusBadge.style.display = "block";
+        statusBadge.textContent = "Recherche...";
         stopBtn.style.display = "block";
 
         if ("BarcodeDetector" in window) {
-          state.barcodeDetector = new BarcodeDetector({
-            formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
-          });
+          // Chrome Android + desktop
+          state.barcodeDetector = new BarcodeDetector({ formats:["ean_13","ean_8","code_128","upc_a","upc_e"] });
           state.scanTimer = setInterval(async () => {
             try{
               const codes = await state.barcodeDetector.detect(video);
-              if (codes && codes.length > 0) {
-                const value = codes[0].rawValue || "";
-                if (value) {
-                  document.getElementById("eanInput").value = value;
-                  if (navigator.vibrate) navigator.vibrate(100);
-                  stopInlineScanner();
-                  loadProductByEAN(value);
-                  showToast("✅ Code scanné : " + value);
-                }
-              }
+              if (codes && codes.length > 0) onScanSuccess(codes[0].rawValue);
             }catch(e){}
           }, 500);
         } else {
-          statusBadge.textContent = "Scanner non supporté — saisir manuellement";
+          // iOS Safari — fallback Quagga
+          statusBadge.textContent = "Chargement scanner...";
+          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
+          statusBadge.textContent = "Pointez vers le code-barres";
+          Quagga.init({
+            inputStream: {
+              name: "Live",
+              type: "LiveStream",
+              target: video,
+              constraints: { facingMode: "environment" }
+            },
+            decoder: { readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"] },
+            locate: true,
+            frequency: 10
+          }, err => { if (!err) Quagga.start(); });
+          Quagga.onDetected(data => {
+            const c = data.codeResult.code;
+            if (c && /^[0-9]{8,14}$/.test(c)) onScanSuccess(c);
+          });
+          state.quaggaRunning = true;
         }
       }catch(err){
         showToast("⚠️ Caméra indisponible");
         placeholder.style.display = "flex";
+        video.style.display = "none";
+        corners.style.display = "none";
+        statusBadge.style.display = "none";
+        stopBtn.style.display = "none";
       }
     }
 
     function stopInlineScanner(){
       if (state.scanTimer) { clearInterval(state.scanTimer); state.scanTimer = null; }
+      if (state.quaggaRunning) { try { Quagga.stop(); } catch(e){} state.quaggaRunning = false; }
       if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
       const video = document.getElementById("scannerVideoInline");
       if (video) video.srcObject = null;
