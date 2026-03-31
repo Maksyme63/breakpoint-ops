@@ -1,235 +1,878 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breakpoint OPS</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Breakpoint OPS</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f0f2f5;
-}
+  <style>
+    :root{
+      --green:#2d4a3e;
+      --green-2:#3d6354;
+      --orange:#e8911a;
+      --gray:#f0f2f5;
+      --gray2:#dfe3e8;
+      --text:#111827;
+      --muted:#6b7280;
+      --white:#fff;
+      --red:#cc3333;
+      --ok:#16a34a;
+      --shadow:0 4px 18px rgba(0,0,0,.12);
+      --radius:14px;
+      --maxw:500px;
+    }
 
-/* SCREENS */
-.screen{display:none;}
-.screen.active{display:block;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--gray);
+      color:var(--text);
+      max-width:var(--maxw);
+      margin-inline:auto;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
 
-/* SPLASH (photo équipe) */
-.splash{
-  background:
-    linear-gradient(rgba(45,74,62,.75), rgba(45,74,62,.75)),
-    url("assets/team-photo.jpg") center/cover no-repeat;
-  padding:40px 20px;
-  color:white;
-  text-align:center;
-  font-size:18px;
-  font-weight:bold;
-}
+    .screen{display:none; min-height:100vh; background:var(--gray);}
+    .screen.active{display:block;}
 
-/* HERO MODULE */
-.hero{
-  height:180px;
-  background:
-    linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.4)),
-    url("assets/station-bag.jpg") center/cover no-repeat;
-}
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:var(--green);
+      color:#fff;
+      padding:12px 14px;
+      box-shadow:0 4px 16px rgba(0,0,0,.18);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
 
-/* BUTTONS */
-.btn{
-  width:90%;
-  margin:10px auto;
-  display:block;
-  padding:15px;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  background:white;
-  cursor:pointer;
-}
+    .back-btn{
+      border:none;
+      background:rgba(255,255,255,.14);
+      color:#fff;
+      width:40px;
+      height:40px;
+      border-radius:10px;
+      font-size:22px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
 
-.mod-btn{
-  background:#2d4a3e;
-  color:white;
-}
+    .topbar-title{
+      font-size:17px;
+      font-weight:700;
+      line-height:1.2;
+    }
 
-/* INPUT */
-input{
-  width:90%;
-  margin:10px;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:16px;
-}
-</style>
+    .topbar-sub{
+      font-size:11px;
+      opacity:.8;
+      margin-top:2px;
+    }
+
+    .hero-home{
+      min-height:220px;
+      background:
+        linear-gradient(rgba(45,74,62,.60), rgba(45,74,62,.72)),
+        url("assets/team-photo.jpg") center/cover no-repeat;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      text-align:center;
+      padding:28px 18px;
+      color:#fff;
+    }
+
+    .hero-home h1{
+      margin:0;
+      font-size:28px;
+      font-weight:800;
+      display:none; /* supprimé comme demandé */
+    }
+
+    .hero-home p{
+      margin:0;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .hero-station{
+      min-height:190px;
+      background:
+        linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.45)),
+        url("assets/station-bag.jpg") center/cover no-repeat;
+      display:flex;
+      align-items:flex-end;
+      padding:24px 18px;
+      color:#fff;
+    }
+
+    .hero-station-title{
+      font-size:25px;
+      font-weight:800;
+      margin:0 0 4px 0;
+    }
+
+    .hero-station-sub{
+      margin:0;
+      font-size:13px;
+      opacity:.92;
+      font-weight:600;
+    }
+
+    .section{
+      padding:18px 16px 28px;
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 6px;
+    }
+
+    .section-sub{
+      color:var(--muted);
+      font-size:13px;
+      margin:0 0 14px;
+    }
+
+    .station-btn,
+    .module-btn,
+    .action-btn,
+    .ghost-btn,
+    .save-btn{
+      width:100%;
+      border:none;
+      border-radius:var(--radius);
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      font-size:16px;
+    }
+
+    .station-btn{
+      background:#fff;
+      text-align:left;
+      padding:18px 16px;
+      margin-bottom:10px;
+      border:2px solid #e4e7eb;
+      font-weight:700;
+    }
+
+    .station-btn small{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .module-list{
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+
+    .module-btn{
+      min-height:82px;
+      padding:16px;
+      color:#fff;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:800;
+    }
+
+    .module-btn .sub{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      opacity:.88;
+      font-weight:600;
+    }
+
+    .module-btn.stock{background:linear-gradient(135deg,var(--green-2),var(--green))}
+    .module-btn.orange{background:linear-gradient(135deg,#f4a122,var(--orange))}
+    .module-btn.gray{background:linear-gradient(135deg,#9aa3af,#6b7280)}
+
+    .badge-soon{
+      font-size:11px;
+      background:rgba(255,255,255,.18);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      white-space:nowrap;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+
+    .scan-card{
+      background:#101828;
+      color:#fff;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+
+    .scan-visual{
+      min-height:180px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:14px;
+      background:linear-gradient(180deg,#243041,#111827);
+      cursor:pointer;
+    }
+
+    .scan-box{
+      width:220px;
+      height:90px;
+      border:3px solid rgba(255,255,255,.9);
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .scan-line{
+      position:absolute;
+      left:0;
+      right:0;
+      height:3px;
+      background:linear-gradient(90deg, transparent, #ff4d4d, transparent);
+      box-shadow:0 0 10px #ff4d4d;
+      animation:scanMove 1.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes scanMove{
+      from{top:8px}
+      to{top:calc(100% - 8px)}
+    }
+
+    .scan-controls{
+      display:flex;
+      gap:8px;
+      padding:10px;
+      background:rgba(255,255,255,.06);
+    }
+
+    .scan-controls input{
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .scan-controls button{
+      border:none;
+      border-radius:12px;
+      width:52px;
+      background:#1d4ed8;
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+    }
+
+    .form-group{margin-bottom:14px}
+    .form-label{
+      display:block;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      color:var(--muted);
+      font-weight:700;
+      margin-bottom:7px;
+    }
+
+    .input{
+      width:100%;
+      border:2px solid #e3e7ec;
+      border-radius:12px;
+      padding:13px 14px;
+      font-size:15px;
+      outline:none;
+      background:#fff;
+    }
+
+    .qty-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .qty-row button{
+      width:48px;
+      height:48px;
+      border:none;
+      border-radius:12px;
+      background:var(--green);
+      color:#fff;
+      font-size:24px;
+      cursor:pointer;
+    }
+
+    .qty-row input{
+      flex:1;
+      text-align:center;
+      font-size:18px;
+      font-weight:700;
+      border:2px solid #e3e7ec;
+      border-radius:12px;
+      padding:11px;
+      outline:none;
+      background:#fff;
+    }
+
+    .save-btn{
+      background:var(--ok);
+      color:#fff;
+      padding:16px;
+      font-weight:800;
+      margin-top:4px;
+    }
+
+    .actions{
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+
+    .action-btn{
+      background:#fff;
+      padding:18px 16px;
+      text-align:left;
+      border:2px solid #e4e7eb;
+      font-weight:800;
+    }
+
+    .action-btn small{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:4px;
+      font-weight:600;
+    }
+
+    .ghost-btn{
+      background:#fff;
+      padding:15px;
+      text-align:center;
+      border:2px dashed #cfd6dd;
+      font-weight:700;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%) translateY(20px);
+      background:#111827;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-size:14px;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:100;
+      white-space:nowrap;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.88);
+      display:none;
+      z-index:90;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .overlay.show{display:flex}
+
+    .overlay video{
+      width:100%;
+      max-width:420px;
+      border-radius:18px;
+      background:#000;
+    }
+
+    .overlay-tools{
+      width:100%;
+      max-width:420px;
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+    }
+
+    .overlay-tools input{
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .overlay-tools button{
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .overlay-close{background:#fff}
+    .overlay-confirm{background:var(--green); color:#fff}
+
+    .muted{
+      color:var(--muted);
+      font-size:13px;
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- ========================= -->
-<!-- PAGE 1 : STATIONS -->
-<!-- ========================= -->
-<div class="screen active" id="home">
+  <div class="toast" id="toast"></div>
 
-  <div class="splash">
-    👉 Sélectionnez votre station
+  <!-- PAGE 1 -->
+  <section class="screen active" id="page-home">
+    <div class="hero-home">
+      <div>
+        <p>Sélectionnez votre station</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-sub">Vous ne verrez que les données de votre station.</p>
+
+      <!-- SANS logo devant les noms -->
+      <button class="station-btn" onclick="selectStation('Evere')">
+        Evere
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Wemmel')">
+        Wemmel
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Molenbeek')">
+        Molenbeek
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Fort-Jaco')">
+        Fort-Jaco
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Uccle')">
+        Uccle
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Etterbeek')">
+        Etterbeek
+        <small>Station Break Point</small>
+      </button>
+
+      <button class="station-btn" onclick="selectStation('Auderghem')">
+        Auderghem
+        <small>Station Break Point</small>
+      </button>
+    </div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <section class="screen" id="page-modules">
+    <div class="topbar">
+      <button class="back-btn" onclick="goHome()">‹</button>
+      <div>
+        <div class="topbar-title" id="top-station-name">Station</div>
+        <div class="topbar-sub">Choisissez un module</div>
+      </div>
+    </div>
+
+    <div class="hero-station">
+      <div>
+        <h2 class="hero-station-title" id="hero-station-name">Station</h2>
+        <p class="hero-station-sub">Choisissez un module</p>
+      </div>
+    </div>
+
+    <div class="module-list">
+      <button class="module-btn stock" onclick="goStockHome()">
+        <span>
+          Gestion de stock
+          <span class="sub">DLC · Réception · Alertes · Inventaire</span>
+        </span>
+        <span>›</span>
+      </button>
+
+      <button class="module-btn orange" type="button">
+        <span>
+          Boulangerie
+          <span class="sub">Étiquettes · Suivi production</span>
+        </span>
+        <span class="badge-soon">Bientôt</span>
+      </button>
+
+      <button class="module-btn gray" type="button">
+        <span>
+          Maintenance
+          <span class="sub">Incidents · Photos · Envoi email</span>
+        </span>
+        <span class="badge-soon">Bientôt</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- PAGE 3 -->
+  <section class="screen" id="page-stock-home">
+    <div class="topbar">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div>
+        <div class="topbar-title">Gestion de stock</div>
+        <div class="topbar-sub" id="stock-station-name">Station</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="action-btn" onclick="goReception()">
+        Réception livraison
+        <small>Scanner · DLC · Quantité · Enregistrement</small>
+      </button>
+
+      <button class="action-btn" onclick="showToast('Module alertes à reconnecter ensuite')">
+        Alertes DLC
+        <small>Prochaine étape</small>
+      </button>
+
+      <button class="ghost-btn" type="button">Inventaire bientôt disponible</button>
+    </div>
+  </section>
+
+  <!-- PAGE 4 -->
+  <section class="screen" id="page-reception">
+    <div class="topbar">
+      <button class="back-btn" onclick="goStockHome()">‹</button>
+      <div>
+        <div class="topbar-title">Réception livraison</div>
+        <div class="topbar-sub" id="reception-station-name">Station</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="scan-card">
+        <div class="scan-visual" onclick="openScanner()">
+          <div style="font-weight:700">Scannez le code-barres</div>
+          <div class="scan-box">
+            <div class="scan-line"></div>
+          </div>
+        </div>
+
+        <div class="scan-controls">
+          <input
+            id="eanInput"
+            type="text"
+            inputmode="numeric"
+            placeholder="Saisir le code EAN manuellement..."
+            oninput="onManualEAN(this.value)"
+          />
+          <button onclick="openScanner()">📷</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Nom du produit</label>
+          <input class="input" id="nameInput" type="text" placeholder="Nom du produit" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date limite de consommation</label>
+          <input class="input" id="dlcInput" type="date" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quantité</label>
+          <div class="qty-row">
+            <button onclick="changeQty(-1)">−</button>
+            <input id="qtyInput" type="number" min="1" value="1" />
+            <button onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+
+        <button class="save-btn" onclick="saveProduct()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCANNER -->
+  <div class="overlay" id="scannerOverlay">
+    <video id="scannerVideo" autoplay muted playsinline></video>
+
+    <div class="overlay-tools">
+      <input id="scannerManualInput" placeholder="Code EAN..." inputmode="numeric" />
+    </div>
+
+    <div class="overlay-tools">
+      <button class="overlay-confirm" onclick="confirmManualScanner()">Confirmer</button>
+      <button class="overlay-close" onclick="closeScanner()">Fermer</button>
+    </div>
   </div>
 
-  <!-- 🔥 SANS LOGOS -->
-  <button class="btn" onclick="goStation('Evere')">Evere</button>
-  <button class="btn" onclick="goStation('Wemmel')">Wemmel</button>
-  <button class="btn" onclick="goStation('Uccle')">Uccle</button>
-  <button class="btn" onclick="goStation('Bruxelles')">Bruxelles</button>
+  <script>
+    const SUPABASE_URL = "https://hhsvazolktxqntyhuqqj.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-</div>
+    const state = {
+      station: null,
+      stream: null,
+      scanTimer: null,
+      barcodeDetector: null
+    };
 
-<!-- ========================= -->
-<!-- PAGE 2 : MODULES -->
-<!-- ========================= -->
-<div class="screen" id="modules">
+    function showPage(id){
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      window.scrollTo({top:0, behavior:"instant"});
+    }
 
-  <div class="hero"></div>
+    function selectStation(name){
+      state.station = name;
+      document.getElementById("top-station-name").textContent = name;
+      document.getElementById("hero-station-name").textContent = name;
+      document.getElementById("stock-station-name").textContent = name;
+      document.getElementById("reception-station-name").textContent = name;
+      showPage("page-modules");
+    }
 
-  <button class="btn mod-btn" onclick="show('stock')">📦 Gestion stock</button>
-  <button class="btn">🥐 Boulangerie (bientôt)</button>
-  <button class="btn">🛠 Maintenance (bientôt)</button>
+    function goHome(){ showPage("page-home"); }
+    function goModules(){ showPage("page-modules"); }
+    function goStockHome(){ showPage("page-stock-home"); }
+    function goReception(){ showPage("page-reception"); }
 
-</div>
+    function showToast(message){
+      const t = document.getElementById("toast");
+      t.textContent = message;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2400);
+    }
 
-<!-- ========================= -->
-<!-- PAGE 3 : STOCK -->
-<!-- ========================= -->
-<div class="screen" id="stock">
+    function changeQty(delta){
+      const input = document.getElementById("qtyInput");
+      const current = parseInt(input.value || "1", 10);
+      input.value = Math.max(1, current + delta);
+    }
 
-  <div class="splash">📦 Réception produit</div>
+    function setTodayMinDate(){
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("dlcInput").min = today;
+    }
+    setTodayMinDate();
 
-  <button class="btn mod-btn" onclick="openScanner()">📷 Scanner</button>
-
-  <input id="ean" placeholder="Code EAN">
-  <input id="name" placeholder="Nom produit">
-  <input id="dlc" type="date">
-
-  <button class="btn mod-btn" onclick="save()">✅ Enregistrer</button>
-
-</div>
-
-<!-- ========================= -->
-<!-- SCANNER -->
-<!-- ========================= -->
-<div id="scanner" style="
-display:none;
-position:fixed;
-inset:0;
-background:black;
-z-index:999;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-">
-
-  <video id="video" autoplay playsinline style="width:90%;border-radius:12px;"></video>
-
-  <button class="btn" onclick="closeScanner()">Fermer</button>
-
-</div>
-
-<script>
-
-/* SUPABASE */
-const supabase = window.supabase.createClient(
-  "https://hhsvazolktxqntyhuqqj.supabase.co",
-  "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9"
-);
-
-let currentStation = "";
-let stream = null;
-
-/* NAV */
-function show(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-function goStation(name){
-  currentStation = name;
-  show("modules");
-}
-
-/* SCANNER */
-async function openScanner(){
-  document.getElementById("scanner").style.display="flex";
-
-  stream = await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:"environment"}
-  });
-
-  const video = document.getElementById("video");
-  video.srcObject = stream;
-
-  if("BarcodeDetector" in window){
-    const detector = new BarcodeDetector({formats:["ean_13","code_128"]});
-
-    setInterval(async ()=>{
-      const codes = await detector.detect(video);
-      if(codes.length){
-        document.getElementById("ean").value = codes[0].rawValue;
-        closeScanner();
-        loadProduct(codes[0].rawValue);
+    function onManualEAN(value){
+      const ean = String(value || "").trim();
+      if (ean.length >= 8) {
+        loadProductByEAN(ean);
       }
-    },500);
-  }
-}
+    }
 
-function closeScanner(){
-  document.getElementById("scanner").style.display="none";
-  if(stream) stream.getTracks().forEach(t=>t.stop());
-}
+    async function loadProductByEAN(ean){
+      try{
+        const { data, error } = await supabaseClient
+          .from("produits")
+          .select("*")
+          .eq("ean", ean)
+          .maybeSingle();
 
-/* LOAD PRODUIT */
-async function loadProduct(ean){
-  const {data} = await supabase
-    .from("produits")
-    .select("*")
-    .eq("ean",ean)
-    .single();
+        if (error) {
+          console.error(error);
+          return;
+        }
 
-  if(data){
-    document.getElementById("name").value = data.nom;
-  }
-}
+        if (data && data.nom) {
+          document.getElementById("nameInput").value = data.nom;
+          showToast("Produit trouvé");
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
 
-/* SAVE */
-async function save(){
-  const ean = document.getElementById("ean").value;
-  const name = document.getElementById("name").value;
-  const dlc = document.getElementById("dlc").value;
+    async function saveProduct(){
+      const ean = document.getElementById("eanInput").value.trim();
+      const nom = document.getElementById("nameInput").value.trim();
+      const dlc = document.getElementById("dlcInput").value;
+      const quantite = parseInt(document.getElementById("qtyInput").value || "1", 10);
 
-  if(!ean || !name || !dlc){
-    alert("Remplis tous les champs");
-    return;
-  }
+      if (!state.station) {
+        showToast("Aucune station sélectionnée");
+        return;
+      }
+      if (!ean) {
+        showToast("Code EAN requis");
+        return;
+      }
+      if (!nom) {
+        showToast("Nom produit requis");
+        return;
+      }
+      if (!dlc) {
+        showToast("DLC requise");
+        return;
+      }
 
-  await supabase.from("produits").upsert({
-    ean:ean,
-    nom:name
-  });
+      try{
+        const { error: pError } = await supabaseClient
+          .from("produits")
+          .upsert([{ ean, nom }], { onConflict: "ean" });
 
-  await supabase.from("lots").insert({
-    ean:ean,
-    station:currentStation,
-    dlc:dlc,
-    quantite:1,
-    statut:"actif"
-  });
+        if (pError) {
+          console.error(pError);
+          showToast("Erreur produits");
+          return;
+        }
 
-  alert("✅ Produit enregistré");
-}
+        const lotPayload = {
+          ean,
+          station: state.station,
+          dlc,
+          quantite,
+          statut: "actif"
+        };
 
-</script>
+        const { error: lError } = await supabaseClient
+          .from("lots")
+          .insert([lotPayload]);
 
+        if (lError) {
+          console.error(lError);
+          showToast("Erreur lots");
+          return;
+        }
+
+        document.getElementById("eanInput").value = "";
+        document.getElementById("nameInput").value = "";
+        document.getElementById("qtyInput").value = "1";
+
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
+
+        showToast("Produit enregistré");
+      }catch(err){
+        console.error(err);
+        showToast("Erreur d'enregistrement");
+      }
+    }
+
+    async function openScanner(){
+      const overlay = document.getElementById("scannerOverlay");
+      const video = document.getElementById("scannerVideo");
+
+      overlay.classList.add("show");
+
+      try{
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" }
+          },
+          audio: false
+        });
+
+        video.srcObject = state.stream;
+
+        if ("BarcodeDetector" in window) {
+          state.barcodeDetector = new BarcodeDetector({
+            formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
+          });
+
+          state.scanTimer = setInterval(async () => {
+            try{
+              const codes = await state.barcodeDetector.detect(video);
+              if (codes && codes.length > 0) {
+                const value = codes[0].rawValue || "";
+                if (value) {
+                  document.getElementById("eanInput").value = value;
+                  closeScanner();
+                  loadProductByEAN(value);
+                  showToast("Code scanné");
+                }
+              }
+            }catch(e){
+              console.error(e);
+            }
+          }, 650);
+        } else {
+          showToast("Scanner auto non supporté ici");
+        }
+      }catch(err){
+        console.error(err);
+        showToast("Caméra indisponible");
+      }
+    }
+
+    function closeScanner(){
+      const overlay = document.getElementById("scannerOverlay");
+      overlay.classList.remove("show");
+
+      if (state.scanTimer) {
+        clearInterval(state.scanTimer);
+        state.scanTimer = null;
+      }
+
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+        state.stream = null;
+      }
+
+      const video = document.getElementById("scannerVideo");
+      video.srcObject = null;
+    }
+
+    function confirmManualScanner(){
+      const value = document.getElementById("scannerManualInput").value.trim();
+      if (!value) return;
+      document.getElementById("eanInput").value = value;
+      closeScanner();
+      loadProductByEAN(value);
+      showToast("Code ajouté");
+      document.getElementById("scannerManualInput").value = "";
+    }
+
+    (function initDefaultDate(){
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
+    })();
+  </script>
 </body>
 </html>
