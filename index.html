@@ -988,9 +988,20 @@
       }
 
       try{
+        let photoUrl = null;
+        if (state.photoDataUrl) {
+          const fileName = `${ean}-${Date.now()}.jpg`;
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
+            .from("produits")
+            .upload(fileName, dataURLtoBlob(state.photoDataUrl));
+          if (!uploadError) {
+            photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
+          }
+        }
+
         const { error: pError } = await supabaseClient
           .from("produits")
-          .upsert([{ ean, nom }], { onConflict: "ean" });
+          .upsert([{ ean, nom, photo: photoUrl }], { onConflict: "ean" });
 
         if (pError) {
           console.error(pError);
@@ -1171,6 +1182,16 @@
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
+    }
+
+    function dataURLtoBlob(dataurl) {
+      const arr = dataurl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+      return new Blob([u8arr], { type: mime });
     }
   </script>
 </body>
