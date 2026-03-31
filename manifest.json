@@ -1,0 +1,20 @@
+{
+  "name": "Breakpoint OPS",
+  "short_name": "Breakpoint",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#2d4a3e",
+  "theme_color": "#2d4a3e",
+  "icons": [
+    {
+      "src": "assets/logo-breakpoint.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/logo-breakpoint.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
