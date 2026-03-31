@@ -79,7 +79,7 @@
     }
 
     .hero-home{
-      min-height:220px;
+      min-height:240px;
       background:
         linear-gradient(rgba(45,74,62,.60), rgba(45,74,62,.72)),
         url("assets/team-photo.jpg") center/cover no-repeat;
@@ -89,13 +89,28 @@
       text-align:center;
       padding:28px 18px;
       color:#fff;
+      position:relative;
+    }
+
+    .home-logo{
+      position:absolute;
+      top:22px;
+      left:50%;
+      transform:translateX(-50%);
+      width:86px;
+      height:86px;
+      object-fit:contain;
+      border-radius:50%;
+      background:rgba(255,255,255,.12);
+      padding:6px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
     }
 
     .hero-home h1{
       margin:0;
       font-size:28px;
       font-weight:800;
-      display:none; /* supprimé comme demandé */
+      display:none;
     }
 
     .hero-home p{
@@ -167,11 +182,7 @@
     }
 
     .station-btn small{
-      display:block;
-      margin-top:4px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:600;
+      display:none;
     }
 
     .module-list{
@@ -349,24 +360,50 @@
 
     .actions{
       padding:16px;
+    }
+
+    .stock-grid{
       display:grid;
+      grid-template-columns:1fr 1fr;
       gap:12px;
+      margin-bottom:8px;
     }
 
-    .action-btn{
+    .stock-square{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
       background:#fff;
-      padding:18px 16px;
-      text-align:left;
       border:2px solid #e4e7eb;
+      border-radius:16px;
+      padding:22px 12px;
+      min-height:132px;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      text-align:center;
       font-weight:800;
+      font-size:14px;
     }
 
-    .action-btn small{
-      display:block;
+    .stock-square.disabled{
+      opacity:.6;
+      cursor:default;
+      background:#f8f9fa;
+    }
+
+    .stock-emoji{
+      font-size:34px;
+      margin-bottom:10px;
+    }
+
+    .stock-soon{
+      margin-top:6px;
       color:var(--muted);
-      font-size:12px;
-      margin-top:4px;
-      font-weight:600;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-weight:700;
     }
 
     .ghost-btn{
@@ -462,6 +499,7 @@
   <!-- PAGE 1 -->
   <section class="screen active" id="page-home">
     <div class="hero-home">
+      <img src="assets/logo-breakpoint.png" alt="Breakpoint logo" class="home-logo" />
       <div>
         <p>Sélectionnez votre station</p>
       </div>
@@ -470,40 +508,32 @@
     <div class="section">
       <p class="section-sub">Vous ne verrez que les données de votre station.</p>
 
-      <!-- SANS logo devant les noms -->
       <button class="station-btn" onclick="selectStation('Evere')">
         Evere
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Wemmel')">
         Wemmel
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Molenbeek')">
         Molenbeek
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Fort-Jaco')">
         Fort-Jaco
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Uccle')">
         Uccle
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Etterbeek')">
         Etterbeek
-        <small>Station Break Point</small>
       </button>
 
       <button class="station-btn" onclick="selectStation('Auderghem')">
         Auderghem
-        <small>Station Break Point</small>
       </button>
     </div>
   </section>
@@ -563,17 +593,31 @@
     </div>
 
     <div class="actions">
-      <button class="action-btn" onclick="goReception()">
-        Réception livraison
-        <small>Scanner · DLC · Quantité · Enregistrement</small>
-      </button>
+      <div class="stock-grid">
+        <button class="stock-square" onclick="goReception()">
+          <div class="stock-emoji">📦</div>
+          <div>Réception livraison</div>
+        </button>
 
-      <button class="action-btn" onclick="showToast('Module alertes à reconnecter ensuite')">
-        Alertes DLC
-        <small>Prochaine étape</small>
-      </button>
+        <button class="stock-square" onclick="showToast('Module alertes à reconnecter ensuite')">
+          <div class="stock-emoji">⚠️</div>
+          <div>Alertes DLC</div>
+        </button>
+      </div>
 
-      <button class="ghost-btn" type="button">Inventaire bientôt disponible</button>
+      <div class="stock-grid">
+        <button class="stock-square disabled" type="button">
+          <div class="stock-emoji">🗂️</div>
+          <div>Inventaire</div>
+          <div class="stock-soon">Bientôt</div>
+        </button>
+
+        <button class="stock-square disabled" type="button">
+          <div class="stock-emoji">🔍</div>
+          <div>Rechercher un produit</div>
+          <div class="stock-soon">Bientôt</div>
+        </button>
+      </div>
     </div>
   </section>
 
