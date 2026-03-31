@@ -559,7 +559,7 @@
       <button class="module-btn stock" onclick="goStockHome()">
         <span>
           Gestion de stock
-          <span class="sub">DLC · Réception · Alertes · Inventaire</span>
+          <span class="sub">DLC · Réception · Alertes · Transferts</span>
         </span>
         <span>›</span>
       </button>
@@ -622,60 +622,90 @@
   </section>
 
   <!-- PAGE 4 -->
-  <section class="screen" id="page-reception">
-    <div class="topbar">
-      <button class="back-btn" onclick="goStockHome()">‹</button>
-      <div>
-        <div class="topbar-title">Réception livraison</div>
-        <div class="topbar-sub" id="reception-station-name">Station</div>
+<section class="screen" id="page-reception">
+  <div class="topbar">
+    <button class="back-btn" onclick="goStockHome()">‹</button>
+    <div>
+      <div class="topbar-title">Réception livraison</div>
+      <div class="topbar-sub" id="reception-station-name">Station</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="scan-card">
+      <div class="scan-visual" onclick="openScanner()">
+        <div style="font-weight:700">Scannez le code-barres</div>
+        <div class="scan-box">
+          <div class="scan-line"></div>
+        </div>
+      </div>
+
+      <div class="scan-controls">
+        <input
+          id="eanInput"
+          type="text"
+          inputmode="numeric"
+          placeholder="Saisir le code EAN manuellement..."
+          oninput="onManualEAN(this.value)"
+        />
+        <button onclick="openScanner()">📷</button>
       </div>
     </div>
 
-    <div class="section">
-      <div class="scan-card">
-        <div class="scan-visual" onclick="openScanner()">
-          <div style="font-weight:700">Scannez le code-barres</div>
-          <div class="scan-box">
-            <div class="scan-line"></div>
-          </div>
-        </div>
+    <div class="card">
+      <div style="display:flex; gap:14px; align-items:flex-start; margin-bottom:16px;">
+        <div
+          id="productPhotoBox"
+          onclick="document.getElementById('photoInput').click()"
+          style="
+            width:78px;
+            height:78px;
+            border-radius:14px;
+            border:2px dashed #d6dbe1;
+            background:#f8fafc;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            font-size:30px;
+            flex-shrink:0;
+            cursor:pointer;
+          "
+        >📦</div>
 
-        <div class="scan-controls">
-          <input
-            id="eanInput"
-            type="text"
-            inputmode="numeric"
-            placeholder="Saisir le code EAN manuellement..."
-            oninput="onManualEAN(this.value)"
-          />
-          <button onclick="openScanner()">📷</button>
+        <div style="flex:1;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Nom du produit</label>
+            <input class="input" id="nameInput" type="text" placeholder="Nom du produit" />
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="form-group">
-          <label class="form-label">Nom du produit</label>
-          <input class="input" id="nameInput" type="text" placeholder="Nom du produit" />
-        </div>
+      <input id="photoInput" type="file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
 
-        <div class="form-group">
-          <label class="form-label">Date limite de consommation</label>
-          <input class="input" id="dlcInput" type="date" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Quantité</label>
-          <div class="qty-row">
-            <button onclick="changeQty(-1)">−</button>
-            <input id="qtyInput" type="number" min="1" value="1" />
-            <button onclick="changeQty(1)">+</button>
-          </div>
-        </div>
-
-        <button class="save-btn" onclick="saveProduct()">✅ Enregistrer</button>
+      <div class="form-group">
+        <label class="form-label">Date limite de consommation</label>
+        <input class="input" id="dlcInput" type="date" />
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Quantité</label>
+        <div class="qty-row">
+          <button onclick="changeQty(-1)">−</button>
+          <input id="qtyInput" type="number" min="1" value="1" />
+          <button onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Emplacement(s)</label>
+        <div id="locationGrid" style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px;"></div>
+      </div>
+
+      <button class="save-btn" onclick="saveProduct()">✅ Enregistrer</button>
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- SCANNER -->
   <div class="overlay" id="scannerOverlay">
