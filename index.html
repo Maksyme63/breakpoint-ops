@@ -1135,7 +1135,7 @@
     }
 
     async function marquerTraite(id){
-      const { error } = await supabaseClient.rpc("marquer_lot_traite", { lot_id: id });
+      const { error } = await supabaseClient.rpc("marquer_lot_traite", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("✅ Lot marqué comme traité");
       loadAlerts();
@@ -1143,7 +1143,7 @@
 
     async function supprimerLot(id){
       if (!confirm("Supprimer ce lot définitivement ?")) return;
-      const { error } = await supabaseClient.rpc("supprimer_lot", { lot_id: id });
+      const { error } = await supabaseClient.rpc("supprimer_lot", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("🗑 Lot supprimé");
       loadAlerts();
@@ -1156,7 +1156,7 @@
       if (isNaN(newQty) || newQty < 0){ showToast("⚠️ Quantité invalide"); return; }
       showToast("⏳ Correction...");
       console.log("corrigerQuantite → id:", id, "newQty:", newQty);
-      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { lot_id: id, quantite: newQty });
+      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { p_lot_id: Number(id), p_quantite: newQty });
       console.log("corrigerQuantite → data:", data, "error:", error);
       if (error){ showToast("❌ " + JSON.stringify(error)); return; }
       showToast(`✅ Quantité corrigée : ${newQty}`);
