@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="fr">
 <head>
  <link rel="manifest" href="manifest.json">
 
@@ -623,7 +625,7 @@
           <div>Réception livraison</div>
         </button>
 
-        <button class="stock-square" onclick="showToast('Module alertes à reconnecter ensuite')">
+        <button class="stock-square" onclick="goAlerts()">
           <div class="stock-emoji">⚠️</div>
           <div>Alertes DLC</div>
         </button>
@@ -731,6 +733,20 @@
     </div>
   </section>
 
+  <!-- PAGE 5 — ALERTES DLC -->
+  <section class="screen" id="page-alerts">
+    <div class="topbar">
+      <button class="back-btn" onclick="goStockHome()">‹</button>
+      <div>
+        <div class="topbar-title">Alertes DLC</div>
+        <div class="topbar-sub" id="alerts-station-name">Station</div>
+      </div>
+    </div>
+    <div class="section">
+      <div id="alertsList" style="display:grid; gap:12px;"></div>
+    </div>
+  </section>
+
   <!-- SCANNER -->
   <div class="overlay" id="scannerOverlay">
     <video id="scannerVideo" autoplay muted playsinline></video>
@@ -778,6 +794,12 @@
     function goModules(){ showPage("page-modules"); }
     function goStockHome(){ showPage("page-stock-home"); }
     function goReception(){ showPage("page-reception"); }
+
+    function goAlerts(){
+      document.getElementById("alerts-station-name").textContent = state.station || "Station";
+      showPage("page-alerts");
+      loadAlerts();
+    }
 
     function showToast(message){
       const t = document.getElementById("toast");
@@ -951,6 +973,42 @@
       }
     }
 
+    async function loadAlerts(){
+      const list = document.getElementById("alertsList");
+      list.innerHTML = `<div class="muted">Chargement...</div>`;
+      if (!state.station) {
+        list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
+        return;
+      }
+      const today = new Date();
+      const limit = new Date();
+      limit.setDate(limit.getDate() + 5);
+      const todayStr = today.toISOString().split("T")[0];
+      const limitStr = limit.toISOString().split("T")[0];
+      const { data, error } = await supabaseClient
+        .from("lots")
+        .select("*")
+        .eq("station", state.station)
+        .eq("statut", "actif")
+        .lte("dlc", limitStr)
+        .gte("dlc", todayStr);
+      if (error || !data) {
+        list.innerHTML = `<div class="card"><div class="muted">Erreur chargement</div></div>`;
+        return;
+      }
+      if (data.length === 0) {
+        list.innerHTML = `<div class="card">Aucune alerte</div>`;
+        return;
+      }
+      list.innerHTML = data.map(item => `
+        <div class="card">
+          <b>${item.ean}</b><br>
+          DLC : ${item.dlc}<br>
+          Quantité : ${item.quantite}
+        </div>
+      `).join("");
+    }
+
     async function openScanner(){
       const overlay = document.getElementById("scannerOverlay");
       const video = document.getElementById("scannerVideo");
@@ -1031,9 +1089,10 @@
       document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
       buildLocationGrid();
     })();
+
     if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
+      navigator.serviceWorker.register('sw.js');
+    }
   </script>
 </body>
 </html>
