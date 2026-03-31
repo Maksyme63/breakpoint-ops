@@ -817,8 +817,25 @@
       </div>
       <div id="alertsBadge" style="background:#ef4444;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px;display:none;"></div>
     </div>
-    <div style="padding:14px 14px 32px;">
+    <div style="padding:14px 14px 8px;display:flex;justify-content:flex-end;">
+      <button onclick="goHistory()" style="border:none;background:#f3f4f6;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;font-family:inherit;">📋 Historique</button>
+    </div>
+    <div style="padding:4px 14px 32px;">
       <div id="alertsList" style="display:grid;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 6 — HISTORIQUE DLC -->
+  <section class="screen" id="page-history">
+    <div class="topbar">
+      <button class="back-btn" onclick="goAlerts()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Historique DLC</div>
+        <div class="topbar-sub" id="history-station-name">Station</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 32px;">
+      <div id="historyList" style="display:grid;gap:11px;"></div>
     </div>
   </section>
 
@@ -834,9 +851,11 @@
       barcodeDetector: null,
       selectedLocations: [],
       photoDataUrl: null,
-      quaggaRunning: false
+      quaggaRunning: false,
+      saving: false
     };
 
+    /* ══ NAVIGATION ══ */
     function showPage(id){
       document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
       document.getElementById(id).classList.add("active");
@@ -845,17 +864,17 @@
 
     function selectStation(name){
       state.station = name;
-      document.getElementById("top-station-name").textContent = name;
-      document.getElementById("hero-station-name").textContent = name;
-      document.getElementById("stock-station-name").textContent = name;
+      document.getElementById("top-station-name").textContent    = name;
+      document.getElementById("hero-station-name").textContent   = name;
+      document.getElementById("stock-station-name").textContent  = name;
       document.getElementById("reception-station-name").textContent = name;
       showPage("page-modules");
     }
 
-    function goHome(){ showPage("page-home"); }
-    function goModules(){ showPage("page-modules"); }
-    function goStockHome(){ showPage("page-stock-home"); }
-    function goReception(){ showPage("page-reception"); }
+    function goHome()      { showPage("page-home"); }
+    function goModules()   { showPage("page-modules"); }
+    function goStockHome() { showPage("page-stock-home"); }
+    function goReception() { showPage("page-reception"); }
 
     function goAlerts(){
       document.getElementById("alerts-station-name").textContent = state.station || "Station";
@@ -863,22 +882,28 @@
       loadAlerts();
     }
 
+    function goHistory(){
+      document.getElementById("history-station-name").textContent = state.station || "Station";
+      showPage("page-history");
+      loadHistory();
+    }
+
+    /* ══ TOAST ══ */
     function showToast(message){
       const t = document.getElementById("toast");
       t.textContent = message;
       t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2400);
+      setTimeout(() => t.classList.remove("show"), 2600);
     }
 
+    /* ══ FORMULAIRE RECEPTION ══ */
     function changeQty(delta){
       const input = document.getElementById("qtyInput");
-      const current = parseInt(input.value || "1", 10);
-      input.value = Math.max(1, current + delta);
+      input.value = Math.max(1, (parseInt(input.value || "1", 10)) + delta);
     }
 
     function setTodayMinDate(){
-      const today = new Date().toISOString().split("T")[0];
-      document.getElementById("dlcInput").min = today;
+      document.getElementById("dlcInput").min = new Date().toISOString().split("T")[0];
     }
     setTodayMinDate();
 
@@ -886,15 +911,13 @@
       const grid = document.getElementById("locationGrid");
       if (!grid) return;
       grid.innerHTML = "";
-
       "ABCDEFGHIJKL".split("").forEach(letter => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "location-btn";
         btn.textContent = letter;
-
         btn.onclick = () => {
-          if (state.selectedLocations.includes(letter)) {
+          if (state.selectedLocations.includes(letter)){
             state.selectedLocations = state.selectedLocations.filter(l => l !== letter);
             btn.classList.remove("active");
           } else {
@@ -902,250 +925,210 @@
             btn.classList.add("active");
           }
         };
-
         grid.appendChild(btn);
       });
     }
 
     function resetLocationGrid(){
       state.selectedLocations = [];
-      document.querySelectorAll(".location-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".location-btn").forEach(b => b.classList.remove("active"));
     }
 
     function handlePhotoUpload(event){
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function(e){
+      reader.onload = e => {
         state.photoDataUrl = e.target.result;
-        const box = document.getElementById("productPhotoBox");
-        box.innerHTML = `<img src="${state.photoDataUrl}" alt="Produit" style="width:100%;height:100%;object-fit:cover;">`;
+        document.getElementById("productPhotoBox").innerHTML =
+          `<img src="${state.photoDataUrl}" alt="Produit" style="width:100%;height:100%;object-fit:cover;">`;
       };
       reader.readAsDataURL(file);
     }
 
     function resetPhotoBox(){
       state.photoDataUrl = null;
-      const box = document.getElementById("productPhotoBox");
-      box.innerHTML = "📦";
+      document.getElementById("productPhotoBox").innerHTML = "📦";
       document.getElementById("photoInput").value = "";
     }
 
     function onManualEAN(value){
       const ean = String(value || "").trim();
-      if (ean.length >= 8) {
-        loadProductByEAN(ean);
-      }
+      if (ean.length >= 8) loadProductByEAN(ean);
     }
 
     async function loadProductByEAN(ean){
-      try{
-        const { data, error } = await supabaseClient
-          .from("produits")
-          .select("*")
-          .eq("ean", ean)
-          .maybeSingle();
-
-        if (error) {
-          console.error(error);
-          return;
-        }
-
-        if (data && data.nom) {
+      try {
+        const { data } = await supabaseClient
+          .from("produits").select("*").eq("ean", ean).maybeSingle();
+        if (data && data.nom){
           document.getElementById("nameInput").value = data.nom;
-          showToast("Produit trouvé");
+          if (data.photo){
+            state.photoDataUrl = null; // produit déjà connu
+            document.getElementById("productPhotoBox").innerHTML =
+              `<img src="${data.photo}" style="width:100%;height:100%;object-fit:cover;">`;
+          }
+          showToast("✅ Produit trouvé");
         }
-      }catch(err){
-        console.error(err);
-      }
+      } catch(e){ console.error(e); }
     }
 
+    /* ══ SAVE PRODUCT ══ */
     async function saveProduct(){
+      if (state.saving) return;
+
       const ean      = document.getElementById("eanInput").value.trim();
       const nom      = document.getElementById("nameInput").value.trim();
       const dlc      = document.getElementById("dlcInput").value;
       const quantite = parseInt(document.getElementById("qtyInput").value || "1", 10);
       const station  = state.station;
 
-      if (!station)               { showToast("Aucune station sélectionnée"); return; }
-      if (!ean)                   { showToast("Code EAN requis");             return; }
-      if (!nom)                   { showToast("Nom produit requis");          return; }
-      if (!dlc)                   { showToast("DLC requise");                 return; }
-      if (!state.selectedLocations.length) { showToast("Choisis au moins un emplacement"); return; }
+      if (!station)                      { showToast("Aucune station sélectionnée"); return; }
+      if (!ean)                          { showToast("⚠️ Code EAN requis");          return; }
+      if (!nom)                          { showToast("⚠️ Nom produit requis");       return; }
+      if (!dlc)                          { showToast("⚠️ DLC requise");              return; }
+      if (!state.selectedLocations.length){ showToast("⚠️ Choisis un emplacement"); return; }
 
-      try{
-        /* ── 1. Produit : créer seulement s'il n'existe pas ── */
+      state.saving = true;
+      const btn = document.querySelector(".save-btn");
+      if (btn){ btn.disabled = true; btn.textContent = "⏳ Enregistrement..."; }
+
+      try {
+        /* 1. Produit */
         const { data: existingProd } = await supabaseClient
-          .from("produits")
-          .select("ean, photo")
-          .eq("ean", ean)
-          .maybeSingle();
+          .from("produits").select("ean,photo").eq("ean", ean).maybeSingle();
 
-        if (!existingProd) {
-          // Nouveau produit → upload photo si présente, puis insert
+        if (!existingProd){
           let photoUrl = null;
-          if (state.photoDataUrl) {
+          if (state.photoDataUrl){
             const fileName = `${ean}-${Date.now()}.jpg`;
             const { error: upErr } = await supabaseClient.storage
-              .from("produits")
-              .upload(fileName, dataURLtoBlob(state.photoDataUrl));
-            if (!upErr) {
-              photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
-            }
+              .from("produits").upload(fileName, dataURLtoBlob(state.photoDataUrl));
+            if (!upErr)
+              photoUrl = `${SUPABASE_URL}/storage/v1/object/public/produits/${fileName}`;
           }
           const { error: pErr } = await supabaseClient
-            .from("produits")
-            .insert([{ ean, nom, photo: photoUrl }]);
-          if (pErr) { showToast("Erreur produit : " + pErr.message); return; }
+            .from("produits").insert([{ ean, nom, photo: photoUrl }]);
+          if (pErr){ showToast("❌ Erreur produit : " + pErr.message); return; }
 
-        } else if (!existingProd.photo && state.photoDataUrl) {
-          // Produit existant SANS photo → on complète uniquement la photo
+        } else if (!existingProd.photo && state.photoDataUrl){
           const fileName = `${ean}-${Date.now()}.jpg`;
           const { error: upErr } = await supabaseClient.storage
-            .from("produits")
-            .upload(fileName, dataURLtoBlob(state.photoDataUrl));
-          if (!upErr) {
-            const photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
+            .from("produits").upload(fileName, dataURLtoBlob(state.photoDataUrl));
+          if (!upErr){
+            const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/produits/${fileName}`;
             await supabaseClient.from("produits").update({ photo: photoUrl }).eq("ean", ean);
           }
-          // nom et reste : on ne touche pas
         }
-        // Si produit existant avec photo → on ne fait rien
 
-        /* ── 2. Lot : update quantité si doublon, sinon insert ── */
+        /* 2. Lot */
         const { data: existingLot } = await supabaseClient
-          .from("lots")
-          .select("id, quantite")
-          .eq("ean", ean)
-          .eq("station", station)
-          .eq("dlc", dlc)
-          .eq("statut", "actif")
+          .from("lots").select("id,quantite")
+          .eq("ean", ean).eq("station", station).eq("dlc", dlc).eq("statut", "actif")
           .maybeSingle();
 
-        if (existingLot) {
-          // Même EAN + même station + même DLC → additionner la quantité
+        if (existingLot){
           const newQty = existingLot.quantite + quantite;
           const { error: lErr } = await supabaseClient
-            .from("lots")
-            .update({ quantite: newQty })
-            .eq("id", existingLot.id);
-          if (lErr) { showToast("Erreur mise à jour lot : " + lErr.message); return; }
-          showToast("✅ Quantité mise à jour (" + newQty + " unités)");
-
+            .from("lots").update({ quantite: newQty }).eq("id", existingLot.id);
+          if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
+          showToast(`✅ Quantité mise à jour (${newQty} unités)`);
         } else {
-          // Nouveau lot
           const { error: lErr } = await supabaseClient
-            .from("lots")
-            .insert([{ ean, station, dlc, quantite, statut: "actif" }]);
-          if (lErr) { showToast("Erreur lot : " + lErr.message); return; }
+            .from("lots").insert([{
+              ean, station, dlc, quantite,
+              statut: "actif",
+              emplacements: [...state.selectedLocations]
+            }]);
+          if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
           showToast("✅ Lot enregistré");
         }
 
-        /* ── 3. Reset formulaire ── */
-        document.getElementById("eanInput").value = "";
+        /* 3. Reset */
+        document.getElementById("eanInput").value  = "";
         document.getElementById("nameInput").value = "";
-        document.getElementById("qtyInput").value = "1";
+        document.getElementById("qtyInput").value  = "1";
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
         resetPhotoBox();
         resetLocationGrid();
 
-      }catch(err){
+      } catch(err){
         console.error(err);
-        showToast("Erreur : " + err.message);
+        showToast("❌ " + err.message);
+      } finally {
+        state.saving = false;
+        if (btn){ btn.disabled = false; btn.textContent = "✅ Enregistrer"; }
       }
     }
 
+    /* ══ ALERTES DLC ══ */
     async function loadAlerts(){
-      const list = document.getElementById("alertsList");
+      const list  = document.getElementById("alertsList");
       const badge = document.getElementById("alertsBadge");
-      list.innerHTML = `<div style="text-align:center;padding:28px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
-
-      if (!state.station) {
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+      if (!state.station){
         list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
         return;
       }
-
       const { data, error } = await supabaseClient
         .from("v_alertes_dlc")
         .select("id,ean,nom,photo,station,dlc,quantite,statut,created_at,jours_restants")
         .eq("station", state.station)
         .order("jours_restants", { ascending: true });
 
-      if (error) {
-        list.innerHTML = `<div class="card"><div class="muted">❌ Erreur : ${error.message}</div></div>`;
+      if (error){
+        list.innerHTML = `<div class="card"><div class="muted">❌ ${error.message}</div></div>`;
         return;
       }
-
-      if (!data || data.length === 0) {
-        if (badge) { badge.style.display = "none"; }
+      if (!data || data.length === 0){
+        if (badge) badge.style.display = "none";
         list.innerHTML = `
-          <div style="text-align:center;padding:48px 20px;">
+          <div style="text-align:center;padding:52px 20px;">
             <div style="font-size:52px;margin-bottom:12px;">🎉</div>
             <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucune alerte !</div>
             <div style="font-size:13px;color:#9ca3af;">Tous les produits sont dans les délais.</div>
           </div>`;
         return;
       }
+      if (badge){ badge.textContent = data.length; badge.style.display = "inline"; }
+      list.innerHTML = data.map(item => renderAlertCard(item)).join("");
+    }
 
-      if (badge) { badge.textContent = data.length; badge.style.display = "inline"; }
-
-      list.innerHTML = data.map(item => {
-        const j = item.jours_restants;
-        const isExpired = j <= 0;
-        const isUrgent  = j === 1;
-        const isWarning = j >= 2 && j <= 5;
-
-        const pillColor = isExpired ? "#ef4444" : isUrgent ? "#f97316" : "#f59e0b";
-        const pillBg    = isExpired ? "#fef2f2" : isUrgent ? "#fff7ed" : "#fffbeb";
-        const pillText  = isExpired ? "⛔ EXPIRÉ" : isUrgent ? "⚠️ Expire demain" : `⚠️ ${j} jours restants`;
-        const borderColor = isExpired ? "#fca5a5" : isUrgent ? "#fdba74" : "#fcd34d";
-
-        const dlcFmt = new Date(item.dlc).toLocaleDateString("fr-BE", { day:"2-digit", month:"2-digit", year:"numeric" });
-        const photoHtml = item.photo
-          ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
-          : `<div style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
-
-        return `
-          <div id="alert-card-${item.id}" style="
-            background:#fff;
-            border-radius:16px;
-            box-shadow:0 2px 12px rgba(0,0,0,.08);
-            border-left:4px solid ${borderColor};
-            padding:14px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-          ">
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:62px;height:62px;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">
-                ${photoHtml}
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
-                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${item.quantite} unité${item.quantite > 1 ? "s" : ""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
-                <span style="display:inline-block;background:${pillBg};color:${pillColor};border:1px solid ${borderColor};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">${pillText}</span>
-              </div>
+    function renderAlertCard(item){
+      const j = item.jours_restants;
+      const isExpired = j <= 0;
+      const isUrgent  = j === 1;
+      const pillColor = isExpired ? "#ef4444" : isUrgent ? "#f97316" : "#f59e0b";
+      const pillBg    = isExpired ? "#fef2f2" : isUrgent ? "#fff7ed" : "#fffbeb";
+      const pillText  = isExpired ? "⛔ EXPIRÉ" : isUrgent ? "⚠️ Expire demain" : `⚠️ ${j} jours restants`;
+      const border    = isExpired ? "#fca5a5" : isUrgent ? "#fdba74" : "#fcd34d";
+      const dlcFmt    = new Date(item.dlc).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"});
+      const photoHtml = item.photo
+        ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+        : `<div style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
+      return `
+        <div id="alert-card-${item.id}" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);border-left:4px solid ${border};padding:14px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:62px;height:62px;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">${photoHtml}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${item.quantite} unité${item.quantite>1?"s":""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
+              <span style="display:inline-block;background:${pillBg};color:${pillColor};border:1px solid ${border};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">${pillText}</span>
             </div>
-            <div style="display:flex;gap:8px;border-top:1px solid #f3f4f6;padding-top:10px;">
-              <button onclick="marquerTraite(${item.id})" style="
-                flex:1;border:none;border-radius:10px;padding:10px 0;
-                background:#dcfce7;color:#16a34a;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;
-              ">✅ Marquer traité</button>
-              <button onclick="supprimerLot(${item.id})" style="
-                width:42px;border:none;border-radius:10px;
-                background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;
-              ">🗑</button>
-            </div>
-          </div>`;
-      }).join("");
+          </div>
+          <div style="display:flex;gap:7px;border-top:1px solid #f3f4f6;padding-top:10px;flex-wrap:wrap;">
+            <button onclick="marquerTraite(${item.id})" style="flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 0;background:#dcfce7;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✅ Marquer traité</button>
+            <button onclick="corrigerQuantite(${item.id},${item.quantite})" style="flex:1;min-width:100px;border:none;border-radius:10px;padding:10px 0;background:#eff6ff;color:#2563eb;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✏️ Corriger qté</button>
+            <button onclick="supprimerLot(${item.id})" style="width:42px;border:none;border-radius:10px;background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;">🗑</button>
+          </div>
+        </div>`;
     }
 
     async function marquerTraite(id){
       const { error } = await supabaseClient.rpc("marquer_lot_traite", { lot_id: id });
-      if (error) { showToast("❌ Erreur : " + error.message); return; }
+      if (error){ showToast("❌ " + error.message); return; }
       showToast("✅ Lot marqué comme traité");
       loadAlerts();
     }
@@ -1153,14 +1136,84 @@
     async function supprimerLot(id){
       if (!confirm("Supprimer ce lot définitivement ?")) return;
       const { error } = await supabaseClient.rpc("supprimer_lot", { lot_id: id });
-      if (error) { showToast("❌ Erreur : " + error.message); return; }
+      if (error){ showToast("❌ " + error.message); return; }
       showToast("🗑 Lot supprimé");
       loadAlerts();
     }
 
+    async function corrigerQuantite(id, qteActuelle){
+      const val = prompt(`Nouvelle quantité (actuelle : ${qteActuelle})`, qteActuelle);
+      if (val === null) return;
+      const newQty = parseInt(val, 10);
+      if (isNaN(newQty) || newQty < 0){ showToast("⚠️ Quantité invalide"); return; }
+      const { error } = await supabaseClient.rpc("corriger_quantite_lot", { lot_id: id, nouvelle_quantite: newQty });
+      if (error){ showToast("❌ " + error.message); return; }
+      showToast(`✅ Quantité corrigée : ${newQty}`);
+      loadAlerts();
+    }
+
+    /* ══ HISTORIQUE DLC ══ */
+    async function loadHistory(){
+      const list = document.getElementById("historyList");
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+      if (!state.station){
+        list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
+        return;
+      }
+      const { data, error } = await supabaseClient
+        .from("v_alertes_dlc_historique")
+        .select("*")
+        .eq("station", state.station)
+        .order("created_at", { ascending: false });
+
+      if (error){
+        list.innerHTML = `<div class="card"><div class="muted">❌ ${error.message}</div></div>`;
+        return;
+      }
+      if (!data || data.length === 0){
+        list.innerHTML = `
+          <div style="text-align:center;padding:52px 20px;">
+            <div style="font-size:48px;margin-bottom:12px;">📋</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucun historique</div>
+            <div style="font-size:13px;color:#9ca3af;">Aucun historique sur les 10 derniers jours</div>
+          </div>`;
+        return;
+      }
+      list.innerHTML = data.map(item => {
+        const dlcFmt = new Date(item.dlc).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"});
+        const isTraite   = item.statut === "traite";
+        const isSupp     = item.statut === "supprime" || item.statut === "deleted";
+        const isExpire   = item.statut === "expire";
+        const badgeBg    = isTraite ? "#dcfce7" : isSupp ? "#fee2e2" : "#fef9c3";
+        const badgeColor = isTraite ? "#16a34a" : isSupp ? "#ef4444" : "#92400e";
+        const badgeText  = isTraite ? "✅ Traité" : isSupp ? "🗑 Supprimé" : "⛔ Expiré";
+        const border     = isTraite ? "#86efac" : isSupp ? "#fca5a5" : "#fde68a";
+        const actionDate = item.traite_at || item.deleted_at || item.updated_at || item.created_at;
+        const dateFmt    = actionDate
+          ? new Date(actionDate).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"})
+          : "—";
+        const photoHtml = item.photo
+          ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+          : `<div style="font-size:24px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
+        return `
+          <div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);border-left:4px solid ${border};padding:13px;display:flex;gap:12px;align-items:flex-start;opacity:${isSupp?".7":"1"};">
+            <div style="width:52px;height:52px;border-radius:10px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">${photoHtml}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap;">
+                <div style="font-size:14px;font-weight:800;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
+                <span style="background:${badgeBg};color:${badgeColor};border-radius:999px;padding:2px 9px;font-size:10px;font-weight:800;white-space:nowrap;">${badgeText}</span>
+              </div>
+              <div style="font-size:11px;color:#6b7280;">${item.quantite} unité${item.quantite>1?"s":""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">Le ${dateFmt}</div>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    /* ══ SCANNER INLINE ══ */
     function loadScript(src){
       return new Promise((res,rej) => {
-        if (document.querySelector('script[src="' + src + '"]')) { res(); return; }
+        if (document.querySelector(`script[src="${src}"]`)){ res(); return; }
         const s = document.createElement("script");
         s.src = src; s.onload = res; s.onerror = rej;
         document.head.appendChild(s);
@@ -1177,15 +1230,14 @@
     }
 
     async function startInlineScanner(){
-      const video = document.getElementById("scannerVideoInline");
+      const video       = document.getElementById("scannerVideoInline");
       const placeholder = document.getElementById("scanPlaceholder");
-      const corners = document.getElementById("scanCorners");
+      const corners     = document.getElementById("scanCorners");
       const statusBadge = document.getElementById("scanStatusBadge");
-      const stopBtn = document.getElementById("scanStopBtn");
-
-      try{
+      const stopBtn     = document.getElementById("scanStopBtn");
+      try {
         state.stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width:{ideal:1280}, height:{ideal:720} },
+          video: { facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720} },
           audio: false
         });
         video.srcObject = state.stream;
@@ -1196,30 +1248,22 @@
         statusBadge.textContent = "Recherche...";
         stopBtn.style.display = "block";
 
-        if ("BarcodeDetector" in window) {
-          // Chrome Android + desktop
+        if ("BarcodeDetector" in window){
           state.barcodeDetector = new BarcodeDetector({ formats:["ean_13","ean_8","code_128","upc_a","upc_e"] });
           state.scanTimer = setInterval(async () => {
-            try{
+            try {
               const codes = await state.barcodeDetector.detect(video);
               if (codes && codes.length > 0) onScanSuccess(codes[0].rawValue);
-            }catch(e){}
+            } catch(e){}
           }, 500);
         } else {
-          // iOS Safari — fallback Quagga
           statusBadge.textContent = "Chargement scanner...";
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
           statusBadge.textContent = "Pointez vers le code-barres";
           Quagga.init({
-            inputStream: {
-              name: "Live",
-              type: "LiveStream",
-              target: video,
-              constraints: { facingMode: "environment" }
-            },
-            decoder: { readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"] },
-            locate: true,
-            frequency: 10
+            inputStream:{ name:"Live", type:"LiveStream", target:video, constraints:{facingMode:"environment"} },
+            decoder:{ readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"] },
+            locate:true, frequency:10
           }, err => { if (!err) Quagga.start(); });
           Quagga.onDetected(data => {
             const c = data.codeResult.code;
@@ -1227,7 +1271,7 @@
           });
           state.quaggaRunning = true;
         }
-      }catch(err){
+      } catch(err){
         showToast("⚠️ Caméra indisponible");
         placeholder.style.display = "flex";
         video.style.display = "none";
@@ -1238,9 +1282,9 @@
     }
 
     function stopInlineScanner(){
-      if (state.scanTimer) { clearInterval(state.scanTimer); state.scanTimer = null; }
-      if (state.quaggaRunning) { try { Quagga.stop(); } catch(e){} state.quaggaRunning = false; }
-      if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
+      if (state.scanTimer){ clearInterval(state.scanTimer); state.scanTimer = null; }
+      if (state.quaggaRunning){ try{ Quagga.stop(); }catch(e){} state.quaggaRunning = false; }
+      if (state.stream){ state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
       const video = document.getElementById("scannerVideoInline");
       if (video) video.srcObject = null;
       video.style.display = "none";
@@ -1250,6 +1294,7 @@
       document.getElementById("scanStopBtn").style.display = "none";
     }
 
+    /* ══ INIT ══ */
     (function initDefaultDate(){
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1257,12 +1302,12 @@
       buildLocationGrid();
     })();
 
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator){
       navigator.serviceWorker.register('sw.js');
     }
 
-    function dataURLtoBlob(dataurl) {
-      const arr = dataurl.split(',');
+    function dataURLtoBlob(dataurl){
+      const arr  = dataurl.split(',');
       const mime = arr[0].match(/:(.*?);/)[1];
       const bstr = atob(arr[1]);
       let n = bstr.length;
