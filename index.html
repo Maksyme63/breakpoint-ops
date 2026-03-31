@@ -2,645 +2,234 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Breakpoint OPS</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-/* ─────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────── */
-:root {
-  --green:    #2d4a3e;
-  --green-lt: #3d6354;
-  --blue:     #1e4db7;
-  --blue-dk:  #163a9e;
-  --blue-lt:  #e8f0fe;
-  --orange:   #e8911a;
-  --red:      #cc3333;
-  --red-lt:   #fee2e2;
-  --ok:       #22c55e;
-  --ok-dk:    #16a34a;
-  --gold:     #c9922a;
-  --gray:     #f0f2f5;
-  --gray-bd:  #e2e5ea;
-  --gray-tx:  #6b7280;
-  --white:    #ffffff;
-  --text:     #111827;
-  --r:        14px;
-  --sh:       0 3px 14px rgba(0,0,0,.10);
-  --sh-lg:    0 6px 28px rgba(0,0,0,.16);
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f0f2f5;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--gray);color:var(--text);font-family:"Nunito",sans-serif;
-     min-height:100dvh;max-width:500px;margin:0 auto;overflow-x:hidden;}
-.hdr{background:var(--green);padding:12px 16px;position:sticky;top:0;z-index:200;
-     box-shadow:0 3px 16px rgba(0,0,0,.28);}
-.hdr-row{display:flex;align-items:center;gap:10px;}
-.hdr-btn{background:rgba(255,255,255,.15);border:none;border-radius:10px;
-         width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-         cursor:pointer;font-size:20px;color:#fff;flex-shrink:0;}
-.hdr-btn:active{background:rgba(255,255,255,.28);}
-.hdr-logo{width:40px;height:40px;border-radius:50%;object-fit:cover;
-          border:2px solid rgba(255,255,255,.35);flex-shrink:0;}
-.hdr-text{flex:1;min-width:0;}
-.hdr-title{font-size:17px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hdr-sub{font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(255,255,255,.6);text-transform:uppercase;}
-.hdr-alert{background:var(--red);color:#fff;border-radius:20px;padding:3px 10px;
-           font-size:12px;font-weight:900;display:none;}
-.sub-tabs{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
-.sub-tabs.show{display:grid;}
-.stab{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.2);
-      border-radius:11px;padding:9px 8px;color:rgba(255,255,255,.8);
-      font-family:"Nunito",sans-serif;font-size:13px;font-weight:800;
-      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;}
-.stab.active{background:#fff;border-color:#fff;color:var(--green);}
-.stab .bdg{background:var(--red);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:900;}
-.breadcrumb{display:none;align-items:center;gap:6px;margin-top:8px;overflow:hidden;}
-.breadcrumb.show{display:flex;}
-.bc-item{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);white-space:nowrap;}
-.bc-item.active{color:rgba(255,255,255,.9);}
-.bc-sep{color:rgba(255,255,255,.3);font-size:11px;}
-.screen{display:none;animation:fadeIn .18s ease;}
+
+/* SCREENS */
+.screen{display:none;}
 .screen.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.splash{background:var(--green);padding:36px 20px 28px;text-align:center;}
-.splash-logo{width:88px;height:88px;border-radius:50%;object-fit:cover;
-             border:3px solid rgba(255,255,255,.4);margin:0 auto 14px;display:block;
-             box-shadow:0 4px 20px rgba(0,0,0,.3);}
-.splash-title{color:#fff;font-size:26px;font-weight:900;margin-bottom:2px;}
-.splash-sub{color:rgba(255,255,255,.65);font-size:12px;font-weight:600;}
-.picker-body{padding:20px 16px 60px;}
-.picker-label{font-size:15px;font-weight:900;text-align:center;margin-bottom:4px;}
-.picker-hint{font-size:12px;color:var(--gray-tx);font-weight:600;text-align:center;margin-bottom:16px;}
-.station-btn{width:100%;display:flex;align-items:center;gap:14px;
-             background:var(--white);border:2px solid var(--gray-bd);border-radius:var(--r);
-             padding:14px 16px;margin-bottom:10px;cursor:pointer;
-             font-family:"Nunito",sans-serif;box-shadow:var(--sh);transition:all .15s;}
-.station-btn:active{border-color:var(--green);background:#f0f7f4;transform:scale(.99);}
-.st-icon{width:46px;height:46px;background:var(--green);border-radius:11px;
-         display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
-.st-name{font-size:16px;font-weight:900;color:var(--text);text-align:left;}
-.st-sub{font-size:11px;color:var(--gray-tx);font-weight:600;margin-top:1px;text-align:left;}
-.st-arr{margin-left:auto;font-size:22px;color:var(--gray-tx);}
-.hero{position:relative;overflow:hidden;padding:28px 20px;text-align:center;}
-.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
-.hero-overlay{position:absolute;inset:0;background:rgba(0,0,0,.50);}
-.hero>*{position:relative;z-index:1;}
-.hero-logo{width:72px;height:72px;border-radius:50%;object-fit:cover;
-           border:3px solid rgba(255,255,255,.4);margin:0 auto 10px;display:block;}
-.hero-title{color:#fff;font-size:22px;font-weight:900;margin-bottom:3px;}
-.hero-sub{color:rgba(255,255,255,.7);font-size:12px;font-weight:600;}
-.modules-grid{padding:16px;display:flex;flex-direction:column;gap:12px;}
-.mod-card{display:flex;align-items:center;border:none;border-radius:var(--r);
-          cursor:pointer;font-family:"Nunito",sans-serif;color:#fff;overflow:hidden;
-          height:88px;box-shadow:var(--sh-lg);transition:transform .13s,opacity .13s;width:100%;}
-.mod-card:active:not(.disabled){transform:scale(.983);opacity:.93;}
-.mod-card.green{background:linear-gradient(135deg,#3d6354,#2d4a3e);}
-.mod-card.orange{background:linear-gradient(135deg,#f5a623,#e8911a);}
-.mod-card.disabled{background:linear-gradient(135deg,#9ca3af,#6b7280);cursor:default;opacity:.72;}
-.mod-icon{width:88px;height:88px;flex-shrink:0;display:flex;align-items:center;
-          justify-content:center;background:rgba(0,0,0,.14);font-size:36px;}
-.mod-body{flex:1;text-align:left;padding:0 16px;}
-.mod-title{font-size:18px;font-weight:900;display:block;line-height:1.2;}
-.mod-sub{font-size:11px;font-weight:600;opacity:.8;display:block;margin-top:3px;}
-.mod-tag{margin-right:14px;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.35);
-         border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;white-space:nowrap;}
-.mod-arr{padding-right:16px;font-size:24px;opacity:.65;font-weight:900;}
-.stock-home{padding:16px 16px 60px;}
-.sh-header{margin-bottom:18px;}
-.sh-title{font-size:20px;font-weight:900;margin-bottom:2px;}
-.sh-station{font-size:13px;font-weight:700;color:var(--gray-tx);}
-.func-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
-.func-card{display:flex;flex-direction:column;align-items:center;justify-content:center;
-           background:var(--white);border:2px solid var(--gray-bd);border-radius:var(--r);
-           padding:22px 12px;cursor:pointer;font-family:"Nunito",sans-serif;
-           box-shadow:var(--sh);transition:all .15s;gap:10px;min-height:130px;}
-.func-card:active:not(.disabled){transform:scale(.97);border-color:var(--green);}
-.func-card.disabled{opacity:.6;cursor:default;background:#f8f9fa;}
-.func-card.active-card{border-color:var(--green);background:#f0f7f4;}
-.func-icon{font-size:36px;}
-.func-label{font-size:14px;font-weight:900;text-align:center;color:var(--text);}
-.func-badge{background:var(--red);color:#fff;border-radius:20px;
-            padding:2px 10px;font-size:11px;font-weight:900;}
-.func-soon{font-size:10px;font-weight:800;color:var(--gray-tx);text-transform:uppercase;letter-spacing:.5px;}
-.recep-wrap{padding:0 0 80px;}
-.cam-zone{background:#1a1a2e;cursor:pointer;user-select:none;}
-.cam-bg{background:linear-gradient(180deg,#2a2a3e,#1a1a2e);height:200px;
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        position:relative;overflow:hidden;}
-.cam-label{color:#fff;font-size:15px;font-weight:800;margin-bottom:14px;text-shadow:0 2px 8px rgba(0,0,0,.5);}
-.cam-frame{position:relative;width:210px;height:80px;}
-.cf{position:absolute;width:20px;height:20px;border-color:#fff;border-style:solid;}
-.cf.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
-.cf.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
-.cf.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
-.cf.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
-.cam-bc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-        background:#fff;border-radius:5px;padding:6px 8px;overflow:hidden;}
-.cam-line{position:absolute;left:0;right:0;height:2.5px;
-          background:linear-gradient(90deg,transparent,#e53e3e,transparent);
-          box-shadow:0 0 10px #e53e3e;animation:scanH 1.8s ease-in-out infinite alternate;top:6px;}
-@keyframes scanH{to{top:calc(100% - 6px);}}
-.cam-ean{display:flex;gap:8px;padding:10px 12px;background:rgba(0,0,0,.6);}
-.cam-ean input{flex:1;background:rgba(255,255,255,.95);border:none;border-radius:10px;
-               padding:11px 13px;font-family:"Nunito",sans-serif;font-size:14px;
-               font-weight:700;color:var(--text);outline:none;}
-.cam-ean button{background:var(--blue);border:none;border-radius:10px;width:46px;
-                color:#fff;font-size:19px;cursor:pointer;display:flex;
-                align-items:center;justify-content:center;flex-shrink:0;}
-.form-card{background:var(--white);border-radius:20px 20px 0 0;padding:20px 18px;
-           margin-top:-2px;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
-.f-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;
-         color:var(--gray-tx);margin-bottom:8px;display:block;}
-.f-input{width:100%;background:var(--gray);border:2px solid var(--gray-bd);
-         border-radius:10px;padding:12px 14px;color:var(--text);
-         font-family:"Nunito",sans-serif;font-size:15px;font-weight:600;
-         outline:none;transition:border-color .2s;appearance:none;}
-.f-input:focus{border-color:var(--green);background:#fff;}
-.divider{height:1px;background:var(--gray-bd);margin:16px 0;}
-.prod-row{display:flex;gap:14px;align-items:flex-start;}
-.prod-photo{width:72px;height:72px;border-radius:12px;background:var(--gray);
-            border:2px dashed var(--gray-bd);display:flex;align-items:center;
-            justify-content:center;font-size:28px;overflow:hidden;
-            flex-shrink:0;cursor:pointer;transition:border-color .2s;}
-.prod-photo:active{border-color:var(--green);}
-.prod-photo img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
-.prod-name{width:100%;border:none;border-bottom:2px solid var(--gray-bd);
-           padding:4px 0 8px;font-family:"Nunito",sans-serif;font-size:17px;
-           font-weight:900;color:var(--text);outline:none;background:transparent;}
-.prod-name:focus{border-bottom-color:var(--green);}
-.qty-row{display:flex;border:2px solid var(--gray-bd);border-radius:10px;
-         overflow:hidden;background:var(--gray);}
-.qty-row button{width:50px;height:50px;background:var(--green);border:none;
-               color:#fff;font-size:24px;font-weight:900;cursor:pointer;flex-shrink:0;}
-.qty-row button:active{background:var(--green-lt);}
-.qty-row input{flex:1;background:none;border:none;font-family:"Nunito",sans-serif;
-               font-size:20px;font-weight:900;text-align:center;color:var(--text);outline:none;}
-.emp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
-.emp-btn{padding:11px 0;border:2px solid var(--gray-bd);border-radius:10px;
-         background:var(--gray);color:var(--gray-tx);font-family:"Nunito",sans-serif;
-         font-size:15px;font-weight:800;cursor:pointer;text-align:center;transition:all .15s;}
-.emp-btn.sel{background:var(--green);border-color:var(--green);color:#fff;}
-.btn-valider{width:100%;background:var(--ok);color:#fff;border:none;border-radius:var(--r);
-             padding:17px;font-family:"Nunito",sans-serif;font-size:20px;font-weight:900;
-             cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.3);
-             transition:all .2s;margin-top:6px;}
-.btn-valider:active{background:var(--ok-dk);transform:scale(.99);}
-.alerts-wrap{padding:16px 16px 60px;}
-.page-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.page-top h2{font-size:20px;font-weight:900;}
-.count-pill{background:var(--red);color:#fff;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:800;}
-.chips{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
-.chips::-webkit-scrollbar{display:none;}
-.chip{padding:6px 14px;border-radius:20px;border:2px solid var(--gray-bd);
-      background:var(--white);color:var(--gray-tx);font-family:"Nunito",sans-serif;
-      font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;}
-.chip.active{background:var(--green);border-color:var(--green);color:#fff;}
-.alert-card{background:var(--white);border-radius:var(--r);margin-bottom:12px;
-            box-shadow:var(--sh);overflow:hidden;}
-.ac-top{display:flex;align-items:center;gap:13px;padding:14px 14px 10px;}
-.ac-photo{width:62px;height:62px;border-radius:12px;background:var(--gray);
-          border:2px solid var(--gray-bd);overflow:hidden;display:flex;
-          align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
-.ac-photo img{width:100%;height:100%;object-fit:cover;}
-.ac-info{flex:1;min-width:0;}
-.ac-name{font-size:16px;font-weight:800;margin-bottom:3px;white-space:nowrap;
-         overflow:hidden;text-overflow:ellipsis;}
-.ac-meta{font-size:12px;color:var(--gray-tx);font-weight:600;margin-bottom:7px;}
-.days-pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;
-           padding:4px 12px;font-size:13px;font-weight:800;}
-.days-pill.expired{background:#fee2e2;color:#991b1b;}
-.days-pill.urgent{background:#fee2e2;color:var(--red);}
-.days-pill.warning{background:#fef3c7;color:#92400e;}
-.days-pill.safe{background:#dcfce7;color:var(--ok-dk);}
-.ac-chips{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 12px;}
-.ac-chip{background:var(--blue-lt);color:var(--blue);border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;}
-.ac-chip.g{background:var(--gray);color:var(--gray-tx);}
-.ac-line{height:1px;background:var(--gray-bd);margin:0 14px;}
-.ac-actions{display:flex;gap:8px;padding:10px 14px 14px;}
-.btn-traite{flex:1;background:var(--ok);border:none;border-radius:10px;padding:11px;
-            color:#fff;font-family:"Nunito",sans-serif;font-size:14px;font-weight:800;
-            cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
-.btn-traite:active{background:var(--ok-dk);}
-.btn-del{background:var(--gray);border:2px solid var(--gray-bd);border-radius:10px;
-         padding:11px 14px;color:var(--red);font-size:17px;cursor:pointer;
-         display:flex;align-items:center;justify-content:center;}
-.btn-del:active{background:var(--red-lt);}
-.bp-footer{display:flex;align-items:center;justify-content:center;gap:8px;
-           padding:16px;border-top:1px solid var(--gray-bd);margin-top:8px;}
-.bp-footer img{width:26px;height:26px;border-radius:50%;object-fit:cover;opacity:.5;}
-.bp-footer span{font-size:11px;font-weight:700;color:var(--gray-tx);}
-.empty{text-align:center;padding:60px 20px;}
-.empty .ei{font-size:56px;margin-bottom:14px;}
-.empty h3{font-size:18px;font-weight:800;margin-bottom:8px;}
-.empty p{font-size:13px;color:var(--gray-tx);font-weight:600;}
-.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
-       background:var(--text);color:#fff;border-radius:30px;padding:12px 20px;
-       font-size:14px;font-weight:700;opacity:0;transition:all .3s;z-index:999;
-       white-space:nowrap;pointer-events:none;box-shadow:var(--sh-lg);}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.scan-ov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;
-         display:none;flex-direction:column;align-items:center;justify-content:center;
-         padding:20px;backdrop-filter:blur(6px);}
-.scan-ov.show{display:flex;}
-.scan-title{color:#fff;font-size:18px;font-weight:900;margin-bottom:14px;}
-.scan-vid-wrap{position:relative;width:100%;max-width:400px;border-radius:16px;
-               overflow:hidden;margin-bottom:14px;background:#000;}
-#scanVideo{width:100%;display:block;border-radius:16px;min-height:200px;}
-.scan-frame{position:absolute;inset:0;display:flex;align-items:center;
-            justify-content:center;pointer-events:none;}
-.scan-corners{width:220px;height:110px;position:relative;}
-.sc{position:absolute;width:22px;height:22px;border-color:#fff;border-style:solid;}
-.sc.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
-.sc.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
-.sc.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
-.sc.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
-.scan-redline{position:absolute;left:4px;right:4px;height:2.5px;
-              background:linear-gradient(90deg,transparent,#e53e3e,transparent);
-              box-shadow:0 0 8px #e53e3e;top:0;animation:scanH 1.8s ease-in-out infinite alternate;}
-#scanStatus{position:absolute;bottom:10px;left:0;right:0;text-align:center;
-            color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);}
-.scan-manual{background:#fff;border-radius:14px;padding:14px;width:100%;max-width:400px;margin-bottom:12px;}
-.scan-manual-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-                 color:var(--gray-tx);margin-bottom:8px;}
-.scan-inp{width:100%;background:var(--gray);border:2px solid var(--gray-bd);border-radius:10px;
-          padding:12px;font-family:"Nunito",sans-serif;font-size:16px;font-weight:700;
-          text-align:center;outline:none;color:var(--text);}
-.scan-inp:focus{border-color:var(--green);}
-.scan-btns{display:flex;gap:10px;width:100%;max-width:400px;}
-.btn-confirm{flex:1;background:var(--green);color:#fff;border:none;border-radius:12px;
-             padding:13px;font-family:"Nunito",sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
-.btn-close-scan{background:rgba(255,255,255,.14);color:#fff;border:2px solid rgba(255,255,255,.28);
-                border-radius:12px;padding:13px 18px;font-family:"Nunito",sans-serif;
-                font-size:15px;font-weight:700;cursor:pointer;}
-.cs-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;
-          display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.cs-modal.show{display:flex;}
-.cs-box{background:#fff;border-radius:20px;padding:28px 24px;text-align:center;
-        max-width:300px;margin:20px;box-shadow:var(--sh-lg);}
-.cs-icon{font-size:48px;margin-bottom:12px;}
-.cs-title{font-size:20px;font-weight:900;margin-bottom:8px;}
-.cs-text{font-size:14px;color:var(--gray-tx);font-weight:600;margin-bottom:20px;line-height:1.5;}
-.cs-btn{background:var(--green);color:#fff;border:none;border-radius:12px;
-        padding:13px 28px;font-family:"Nunito",sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
-@keyframes slideOut{to{transform:translateX(110%);opacity:0;}}
-.slide-out{animation:slideOut .35s ease forwards;}
+
+/* SPLASH (photo équipe) */
+.splash{
+  background:
+    linear-gradient(rgba(45,74,62,.75), rgba(45,74,62,.75)),
+    url("assets/team-photo.jpg") center/cover no-repeat;
+  padding:40px 20px;
+  color:white;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* HERO MODULE */
+.hero{
+  height:180px;
+  background:
+    linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.4)),
+    url("assets/station-bag.jpg") center/cover no-repeat;
+}
+
+/* BUTTONS */
+.btn{
+  width:90%;
+  margin:10px auto;
+  display:block;
+  padding:15px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  background:white;
+  cursor:pointer;
+}
+
+.mod-btn{
+  background:#2d4a3e;
+  color:white;
+}
+
+/* INPUT */
+input{
+  width:90%;
+  margin:10px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
 </style>
 </head>
+
 <body>
-<header class="hdr">
-  <div class="hdr-row">
-    <button class="hdr-btn" id="btnBack" onclick="goBack()" style="display:none">‹</button>
-    <button class="hdr-btn" id="btnMenu" style="display:flex">☰</button>
-    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA4KCw0LCQ4NDA0QDw4RFiQXFhQUFiwgIRokNC43NjMuMjI6QVNGOj1OPjIySGJJTlZYXV5dOEVmbWVabFNbXVn/2wBDAQ8QEBYTFioXFypZOzI7WVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVn/wAARCADIAMgDASIAAhEBAxEB/8QAGwABAAIDAQEAAAAAAAAAAAAAAAMEAQIFBgf/xABEEAACAQMBBAYGBwcCBQUAAAABAgMABBEFEiExQQYTUWFxgRQiMpGhsSMzQlJywdEHFSQ0U2LhQ6IlRJKy8FRjc5PC/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAIBA//EAB0RAQEAAgIDAQAAAAAAAAAAAAABAhEhIjFBURL/2gAMAwEAAhEDEQA/APpNKUoFKUoFKUoFKVFPcRW6hpXCg7hnifAc6CWlVOvuZvqIOrX7827/AGjf78U9Ed989zK/9qHYX4b/AI0Fh5EjGXdVHaxxUB1C0H/MxE/2tn5VlLG1Q5EEe194rk+81YAAGBuFBV/eNr/UP/Q36VkajaHjOi/iOPnVmlBpHPFL9VKj/hYGt6hktLeU5kgjY9pUZqP0JU+ommh7g+0Pc2RQW6VU2ryH2kS4XtT1G9x3H3it4buKZtgErIN5jcbLDyNBYpSlApSlApSlApSlApSlApSlArVmVFLMQqgZJJwBWk86W8e3ITxwABksewDmagS3e5YSXgGBvSDOQve3afgPjQY66a6/lh1cX9ZxvP4V/M/GpYLSKFi4BeU8ZHOWPn+Q3VYpQKVXu72CzCdc5DOcIiqWZj3AbzVaTUln067m08h54Eb6ORSCGAyAynBFB0axXF0e/murvZW6W8t2hEhkWPZEbZGFyNxyCd3EYrPSOPrFsPo4pf4oLsSn1DlWG+g7G0pGcjHbmtq4WpQoOjUkASCPbZI2W3OFBZwN3vqO3ln/AH5Z2V0S01skrdZ/VQ7IVvHiD3jvoPQ0riSXjW0mqXYUylZI7eKPONpsDA7vWepZZ9QsFjnu5LeaFnVJBHGUMe0QAQSTkZI40HWqKeCK4XZlQMBvGeI7weVFuI2uZIAfpI1VmGORzj5GpaCli5td6lrmH7p+sXwP2vPf3mrMM8c8e3E20ucHtB7CORqSq09rtP10DdVP97G5u5hzHxFBZpVe3uetZo5F6udPaQnPmDzHfVigUpSgUpSgUpSgVFPMkERkfOBuAAySeQHfUhIAJJwBVO3Bu5RdP9Wv1Kns+/4nl3eNBtbwO0npFyB1uMKnERjsHf2n8qt0pQK419qF0t1FEkbWts0vVNdOoPrcgq9hO7aPPlW+orefvCGSO3luYETKJHMIwJM8X37xjGOPPdUkLjVbe7s723CMh6uRVfaU5AIIOB2jwNBFes1nrEV7JG8ls0JhLIpYxHazkgb8HtHYKzZA3WrzX0cbx25hWLLqVMpBJzg78AHGT2mujbRvDbxxyStM6KAZGGC3ealoKun2gsbKO2Vy6x5CkjGBkkDyG7yqW4t4bqPq7iJJUznZdQRnzqWlBDHa28MXVRQRJHna2VQAZ7cVu0aM4copcAgNjeAeO/yFb0oKL6XbtYyWg21R22ywYltrOQ2TzyB7qhOn3dxJCL68SWCJw+xHFsGRhvBY5PA78DG+upSg4s0Fxd65P1E0ltCkCRyyKvrOclgFJ4YB3nfxqxDN1V/Hp1ou1FCm1O7sWK59kZPFjvO/kO+ujXMlsJYrdreydlNzKzz3DN64B4kd+MKOzyoL8FxFcBzDIsgRyjFeTDiKlrzWkM6TT6dp4EUcN07SvjIjTIwozxZvgMnsrvw3VvO7JDPFIye0EcEjxxQYubcThSGKSpvSQcVP5jtFYtZzLtRyqEnj3OvLuI7jViq11Az7M0OBPH7OeDDmp7j8Dg0FmlRQTLPCsiZAPEHiDzB7xUtApSlApStJHWKNpHOFUEk9gFBWuv4iZbQewRtTfh5L5n4A1b4VXso2WIyyDEsx23HZ2DyGBVmgVwX15lkFx/DrYC49GbbciQHgWxyHcd+N9W7/AFJba/t7dpY4lKtNI0n3ByXtOfcAahmtLe7ura9t29E1Bk2120BLpuyHXzAzxFB0Yp7a/t36mZJojlS0b5+I4Gtra2htIRFbxhEBzgcz2k8z31KAFGAAPCs0ClKUClKUClKUClKUClKUHK1mBY9LnEKFEeRXn6oYYoWG2d3PZzVeJLC7uOo05YoZbTq5I5oVBXZPEZHaMjB7jXdqOKGKAEQxpGGJYhFAyTxPjQSUrAIOcHhxrNBTf+FvBIPqZyFf+1+R8+HjirlRzxLPC8T+ywwccqjs5WlgxJ9ahKP+Ic/Pj50FilKUCql79K8Nvykbaf8ACu8/HA86t1Ui+k1Cd+UarGPH2j8191BarNKq3jQuUtJHkRp87PVsVO7ed44UFKQx3Mz6dq8EbiQloGI9WQdg7HH+R3WbDTks5JJDNNO7AKGmbaZUHBQezJJ376rnRrGcRlprmVch02rp2GRvBG+utQKgnvLW3YLPcwxMd4DuFz76nrwf7RrkGWytBjKhpT57h+dB7eC5guVJt5o5gpwTG4bHuqWvKdDntNM6PxNc3EMD3LtJ67hSRwHHuFepVldQykMpGQQcg0G1Krpe2sk5gS5haYcYw4LDyqcMCxUEZHEUGaVpJIkSF5HVEHFmOAKhgv7S4k6uC6hkfGdlXBOO2gs0rDEKpLEADeSeVVl1CyZGdbu3KIcMwkXA8d9BZqqdTsFJDX1sCOIMqjHxqSG7t7gkQXEUpHEI4bHur5Rff8X6TyhACLi52F8M4+QoPrqsGUMpBBGQRzrNaLsRhUGFGMKPCt6CjMPRdQjnG6O4xFJ3N9k//nzFXqgu4Bc2skJONtcA9h5HyODWLKc3NpFKRhmX1h2NwI9+aCxVT6nUf7bhf9y/qP8Atq3VTUPVgWbnC4k8uB+BNBbpWKUCqun4aF5P6kjt5bRA+AFWicAk8qr6cMadbd8an3jNBZrlalai6uVaHUPRblI2TACtubGdx38hvFdWvOa2wmuzB+7fVx6949p12O5QAcnvO4d9Bc07T7qC5ha6e3aK2g6mHqlI44ySDnG5Rz7a69c3Q7eytrHZsBJ1e0doyBgxbnkED9K6VBivlHSy5N70kutjeEYQqPDd8819Xr5ZBp0sXTOG2vAVzdF8tuDjJYEducUHoOlltFpvRC2swAW6yNcniSAST8Ki6FySzaFeQyystrFJkkEghdnLAHl/k1X6XTy65rEOnaahuPR87RTeNs8cngMD866l7aL0c6EXEAcGaRdl2H2ncgHHl8qDx3RqKSbpDaC3Oy+0zKTywp413NH0vUtFvZ9Y1XKR26Mz/SBmmJGMbu/t7q1/Z5a9ZqdzdEboYwg8WP6CvX9JbKXUNBureAZlZQyjtIIOPhQeJ0p7jpV0iVtRfatogZWiz6igcFx443+Nde/t5tY6W2cmnKRbWQUPcAYTc2SFPPs3dprl9BRAmrXUN2qLJ1XqrKMHIO8YPOvfLMZm2LbHVKCDJjdnkF7fGg+f9J9ZuNZ1X922jkWwkEQAP1j5xk9ozV3prBb6do2m6dAqjZYnhvIA3k+JOa4OhhLHpRbLqBEPUynb292GwcfHFWum9xLNrYaRWWLql6naGMrv3+Z/Kg6vRMDTui+p6mcBmDBTj7owP9xridEViXXY57lwkVsjSszcAcYHzrs6tOtn0Cs7WLOJthckY2vtt8d1c/Qke26Ma3fIpLMggUjkD7R/3Cgtz6Vf630le7trmKW1EoZZ45gRGo4AAHINfQq+b9AMLqtxKGziIIEB3sSw+WDX0mgVSsfUuLyDksu2vgwz89qrtU1BXVpDsnZeBd+N2QzfrQXKjmjEsEkZ4OpX3ipKxQQ2UhlsoHPFkUnxxStNOGLQL913X3MRSgnl+qfwNRWH8hbf/EvyFTkZGDVbTjnT7fujAPkMUFqsVmq93M0CRsoBDSojZ5AnH5igsUrFZoFRyQxzACWNHA3gMoNSV5/pPrs+k2u3aQLIdsI0jn1UJGQMcSflQdyKKOFdmKNEXsUACt2UMMMAR3ivI6B0h1PV7K7Cx24uIRkSFSEwQdxGeO6s9FelUuq3Rs71I1lKlo3jGA2OII7aD1iqq+yoHgK2rymu9LfRbz0DTYlnutoIWb2VY7sbuJrGv67eaBcWKtIl0JEJmRlC8CN6kcOJ45oPSzw25zNNFGxUZ2mQEgCvM6P0wOp60lmlnsQSZ2H2ssMDOSOHKulq+rGLo6dUs3QqUV1WRchtogY499eb6F3vpGsSiOxsrdBEzySRoQQMjABJOBn5UHumgheQSNEjOODFQSPOsyRRy46yNH2d42lBxXjOkHS2/sb8QW1vFHHsh1aUbRcHgcA7vnV/UOkN0OjiajaRwo2yhcyZI2m+yo5kd9B6ZkVvaUHHaKxsoqEYULzGN1ea6I6/daytzFdKgkhAKyIuAc54jyrzWv69qN/fz6bFPi363qQI12S+/G8+NB9DsfRpIFmtY0RJN4KqBtDO47u2rVV7O3NrbJDthljUKuFxgAYqxQKUqpH1jSu0Lxqmd6k7WT27uFTbpsm1ulKxVMV7LHUvj+rJ/wB5pWNOObNW+8zN72JpQWarWHqxyx4x1crjyJyPgRVqqkf0eoyrvxKgceI3H4bNBbqrqUbSafOE9sLtL4jePiKtVig1ikWWJJEOVdQw8DW9UtN+jSW1PG3cqPwHevwOPKrtArw37RbkBbO0XdtFpmA9w+Zr3NfK+md0brpJcKpyIQsS+IGT8SaDt6GRpfQO9vG3PPtlT259RfjXE6JQTC9ub2IHFnbSODj7RUhR8/dXrbjo1cXulWWnyXohtYFUsiResxxzOcdvKu1pml2ul2YtrWPCcWLby57T20HzTojbm76SWhfLBCZmJ7hn5kVY6b3JuukbxJ63UIsQA5nifia9bYdGRpOrS3thIvVyIyCGUH1MkHcRy3cK30voxBaX76hdym7vHcvtFcKpPMD9aDz/AEnD6b0U0rTHP0rYZx+EZI97fCrf7O7QCzvLplB6xxEM9gGT866vSXo2NcaCRbgwSRArvXaBBqfQdDbSLUQtdyTqrFguyFUE8dw3nzNB8+6Uzm96S3exvw4hQeG755ru9NilhpGm6XFgKvrED+0Y+ZJq/bdCUh1OO8lv2lKy9aVMQG0c5457au9JejQ1ySGZLjqZY1K712lIzmg5nQuP0Do1fagRvYs47wg/XNea6KW5veklpt79ljMx8N/zxX0DSdE9B00WdzcG5QI0YAXZAVuPie81Q0bopJo+oyXFvfBkZCgDRZYAkHjnGd3ZQenrNaouwgXJOBjJOSa2oME4B4DxqjFHtXStL1UjjeCjY2fL/JqW+mVI9h1Rg4OQ5wCBy8a2tYeqDcMNggkb+HA1yy7Za+LnE2sVFcSdTbyy/cUt7hUtVL/1444P60gU+A3n4A11QltIzDaQxniiBT7qVLSgzVS++jEVyP8ARbLfhO5v18qt1qyh1KsAVIwQedBms1UsWKo1u5y8B2cn7S/ZPu+INW6Cjefw11Fd8Iz9FN3KT6reR+DGrtYkRZI2R1DIwIIPAiqdlI0LmymYl4xmNz/qJyPiOB8jzoLteDh6Hai+tJeXcls0Zn62QKxJI2s44V72lBis0pQKUpQKUpQKUpQKUpQKUqrcSqWUGQiMMQ7KcYPIE8qy3UbJtBLKJpQYXkP2HRoyV8xV6NBHGFAAA5DhUFsis7ODthThHPEjG8Z5jNWqjCe6rK+iqi/TaizfZgXYH4m3n3DHvqa5mEEDyEE4G5RxY8h5ndWtpCYLdVYgyHLORzY7zXRCelKUClKUFS7UxOt2gJMYxIB9pOfmOPv7asqwdQykFSMgjnW1Uo/4KcRH+XkP0Z+4x+z4Hl7uygu1Xu7YXCLssY5UO1HIBvU/mORHMVYpQVbS6MxaKZRHcx+2mfiO0Ht/OrVVrq1W4CsGMcyb45V4qfzHaKjhvGSRYL1RFMxwjD2JPA8j3Hf40F2lKUClKUClKUClKUClYLBcZIGdwzVaa6KIjxgMpYqwOQc793juqblJ5bJanaRRIqHILDce2oIkmREh2VVV4uDxHh2moorVZC26RUJ2gCxBU9mKvVM3lzW3U4hWaVVupXZxbQHErjLN/TXt8ez/AAa6Jaj+KvM/6NucD+5/8fM91XK0hiSGJY4xhFGAK3o" class="hdr-logo" alt="BP">
-    <div class="hdr-text">
-      <div class="hdr-title" id="hdrTitle">Breakpoint OPS</div>
-      <div class="hdr-sub" id="hdrSub">Break Point</div>
-    </div>
-    <span class="hdr-alert" id="hdrAlert">0</span>
-  </div>
-  <div class="breadcrumb" id="breadcrumb">
-    <span class="bc-item" id="bc0"></span>
-    <span class="bc-sep" id="bcS1" style="display:none">›</span>
-    <span class="bc-item" id="bc1" style="display:none"></span>
-    <span class="bc-sep" id="bcS2" style="display:none">›</span>
-    <span class="bc-item active" id="bc2" style="display:none"></span>
-  </div>
-  <div class="sub-tabs" id="subTabs">
-    <button class="stab active" id="tab-recep" onclick="gotoRecep()">📦 Réception</button>
-    <button class="stab" id="tab-alerts" onclick="gotoAlerts()">⚠️ Alertes <span class="bdg" id="tabBadge">0</span></button>
-  </div>
-</header>
-<div class="screen active" id="s-station">
+
+<!-- ========================= -->
+<!-- PAGE 1 : STATIONS -->
+<!-- ========================= -->
+<div class="screen active" id="home">
+
   <div class="splash">
-    <img src="https://maksyme63.github.io/breakpoint-ops/assets/team-photo.jpg" class="splash-logo" alt="Équipe Breakpoint" onerror="this.style.display='none'">
-    <div class="splash-sub">Break Point – Never Stop Enjoying</div>
+    👉 Sélectionnez votre station
   </div>
-  <div class="picker-body">
-    <div class="picker-label">Sélectionnez votre station</div>
-    <div class="picker-hint">Vous ne verrez que les données de votre station</div>
-    <div id="stationList"></div>
-  </div>
+
+  <!-- 🔥 SANS LOGOS -->
+  <button class="btn" onclick="goStation('Evere')">Evere</button>
+  <button class="btn" onclick="goStation('Wemmel')">Wemmel</button>
+  <button class="btn" onclick="goStation('Uccle')">Uccle</button>
+  <button class="btn" onclick="goStation('Bruxelles')">Bruxelles</button>
+
 </div>
-<div class="screen" id="s-modules">
-  <div class="hero">
-    <div class="hero-bg" id="heroBg" style="background-image:url('https://maksyme63.github.io/breakpoint-ops/assets/station-bag.jpg')"></div>
-    <div class="hero-overlay"></div>
-    <div class="hero-title" id="heroStation">—</div>
-    <div class="hero-sub">Choisissez un module</div>
-  </div>
-  <div class="modules-grid">
-    <button class="mod-card green" onclick="gotoStockHome()">
-      <div class="mod-icon">📦</div>
-      <div class="mod-body">
-        <span class="mod-title">Gestion de stock</span>
-        <span class="mod-sub">DLC · Réception · Alertes · Inventaire</span>
-      </div>
-      <span class="mod-arr">›</span>
-    </button>
-    <button class="mod-card orange disabled" onclick="showCS('Boulangerie')">
-      <div class="mod-icon">🥐</div>
-      <div class="mod-body">
-        <span class="mod-title">Boulangerie</span>
-        <span class="mod-sub">Étiquettes · Suivi production</span>
-      </div>
-      <span class="mod-tag">Bientôt</span>
-    </button>
-    <button class="mod-card disabled" style="background:linear-gradient(135deg,#9ca3af,#6b7280)" onclick="showCS('Maintenance')">
-      <div class="mod-icon">🔧</div>
-      <div class="mod-body">
-        <span class="mod-title">Maintenance</span>
-        <span class="mod-sub">Incidents · Photos · Envoi email</span>
-      </div>
-      <span class="mod-tag">Bientôt</span>
-    </button>
-  </div>
+
+<!-- ========================= -->
+<!-- PAGE 2 : MODULES -->
+<!-- ========================= -->
+<div class="screen" id="modules">
+
+  <div class="hero"></div>
+
+  <button class="btn mod-btn" onclick="show('stock')">📦 Gestion stock</button>
+  <button class="btn">🥐 Boulangerie (bientôt)</button>
+  <button class="btn">🛠 Maintenance (bientôt)</button>
+
 </div>
-<div class="screen" id="s-stock-home">
-  <div class="stock-home">
-    <div class="sh-header">
-      <div class="sh-title">Gestion de stock</div>
-      <div class="sh-station" id="shStation">—</div>
-    </div>
-    <div class="f-label" style="margin-bottom:10px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-tx);">Fonctions disponibles</div>
-    <div class="func-grid">
-      <button class="func-card active-card" onclick="gotoRecepDirect()">
-        <span class="func-icon">📦</span>
-        <span class="func-label">Réception livraison</span>
-      </button>
-      <button class="func-card active-card" onclick="gotoAlertsDirect()">
-        <span class="func-icon">⚠️</span>
-        <span class="func-label">Alertes DLC</span>
-        <span class="func-badge" id="homeBadge">0</span>
-      </button>
-    </div>
-    <div class="f-label" style="margin:16px 0 10px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-tx);">Bientôt disponible</div>
-    <div class="func-grid">
-      <button class="func-card disabled" onclick="showCS('Gestion des stocks (inventaire)')">
-        <span class="func-icon">🗂️</span>
-        <span class="func-label">Inventaire</span>
-        <span class="func-soon">Bientôt</span>
-      </button>
-      <button class="func-card disabled" onclick="showCS('Recherche produit')">
-        <span class="func-icon">🔍</span>
-        <span class="func-label">Rechercher un produit</span>
-        <span class="func-soon">Bientôt</span>
-      </button>
-    </div>
-  </div>
+
+<!-- ========================= -->
+<!-- PAGE 3 : STOCK -->
+<!-- ========================= -->
+<div class="screen" id="stock">
+
+  <div class="splash">📦 Réception produit</div>
+
+  <button class="btn mod-btn" onclick="openScanner()">📷 Scanner</button>
+
+  <input id="ean" placeholder="Code EAN">
+  <input id="name" placeholder="Nom produit">
+  <input id="dlc" type="date">
+
+  <button class="btn mod-btn" onclick="save()">✅ Enregistrer</button>
+
 </div>
-<div class="screen" id="s-recep" style="padding-bottom:0;">
-<div class="recep-wrap">
-  <div class="cam-zone" onclick="openScanner()">
-    <div class="cam-bg">
-      <div class="cam-label">Scannez le code-barres</div>
-      <div class="cam-frame">
-        <div class="cf tl"></div><div class="cf tr"></div><div class="cf bl"></div><div class="cf br"></div>
-        <div class="cam-bc"><div style="width:164px;height:36px;background:repeating-linear-gradient(90deg,#000 0 2px,#fff 2px 4px);"></div><div class="cam-line"></div></div>
-      </div>
-    </div>
-    <div class="cam-ean">
-      <input type="text" id="eanInput" placeholder="Saisir le code EAN manuellement..." inputmode="numeric" oninput="onEan(this.value)" onclick="event.stopPropagation()">
-      <button onclick="event.stopPropagation();openScanner()">📷</button>
-    </div>
-  </div>
-  <div class="form-card">
-    <div class="prod-row" style="margin-bottom:4px;">
-      <div class="prod-photo" id="prodPhoto" onclick="document.getElementById('photoFile').click()">📦</div>
-      <div style="flex:1;padding-top:4px;">
-        <input type="text" id="prodName" class="prod-name" placeholder="Nom du produit">
-        <div style="display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--gray-tx);">
-          <span>📅</span>
-          <span style="font-size:13px;font-weight:700;" id="dlcDisplay">—</span>
-        </div>
-      </div>
-    </div>
-    <input type="file" id="photoFile" accept="image/*" onchange="onPhoto(event)" style="display:none;">
-    <div class="divider"></div>
-    <label class="f-label">Date limite de consommation</label>
-    <input type="date" id="dlcInput" class="f-input" onchange="updateDlcDisplay()">
-    <div class="divider"></div>
-    <label class="f-label">Quantité reçue</label>
-    <div class="qty-row"><button onclick="chgQty(-1)">−</button><input type="number" id="qtyInput" value="1" min="1"><button onclick="chgQty(1)">+</button></div>
-    <div class="divider"></div>
-    <label class="f-label">Emplacement(s)</label>
-    <div class="emp-grid" id="empGrid"></div>
-    <input type="hidden" id="stationHidden">
-    <button class="btn-valider" onclick="submitLot()">✅ Valider la réception</button>
-  </div>
+
+<!-- ========================= -->
+<!-- SCANNER -->
+<!-- ========================= -->
+<div id="scanner" style="
+display:none;
+position:fixed;
+inset:0;
+background:black;
+z-index:999;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+">
+
+  <video id="video" autoplay playsinline style="width:90%;border-radius:12px;"></video>
+
+  <button class="btn" onclick="closeScanner()">Fermer</button>
+
 </div>
-</div>
-<div class="screen" id="s-alerts">
-<div class="alerts-wrap">
-  <div class="page-top"><h2>⚠️ Alertes DLC</h2><span class="count-pill" id="alertCount">0 alerte</span></div>
-  <div class="chips">
-    <button class="chip active" onclick="setSort('days',this)">⏱ Urgence</button>
-    <button class="chip" onclick="setSort('name',this)">🔤 Nom</button>
-    <button class="chip" onclick="setSort('qty',this)">📦 Quantité</button>
-  </div>
-  <div id="alertsList"></div>
-</div>
-</div>
-<div class="toast" id="toast"></div>
-<div class="scan-ov" id="scanOv">
-  <div class="scan-title">📷 Scanner le code-barres</div>
-  <div class="scan-vid-wrap">
-    <video id="scanVideo" autoplay muted playsinline></video>
-    <div class="scan-frame"><div class="scan-corners"><div class="sc tl"></div><div class="sc tr"></div><div class="sc bl"></div><div class="sc br"></div><div class="scan-redline"></div></div></div>
-    <div id="scanStatus">Initialisation caméra...</div>
-  </div>
-  <div class="scan-manual"><div class="scan-manual-lbl">Ou saisir manuellement</div><input class="scan-inp" id="scanInp" placeholder="Code EAN..." inputmode="numeric"></div>
-  <div class="scan-btns"><button class="btn-confirm" onclick="confirmScan()">✓ Confirmer</button><button class="btn-close-scan" onclick="closeScanner()">✕ Fermer</button></div>
-</div>
-<div class="cs-modal" id="csModal" onclick="this.classList.remove('show')">
-  <div class="cs-box" onclick="event.stopPropagation()">
-    <div class="cs-icon">🚧</div>
-    <div class="cs-title">Bientôt disponible</div>
-    <div class="cs-text">Le module <strong id="csName"></strong> est en cours de développement et sera disponible prochainement.</div>
-    <button class="cs-btn" onclick="document.getElementById('csModal').classList.remove('show')">Compris</button>
-  </div>
-</div>
+
 <script>
-"use strict";
-const SUPABASE_URL = "https://hhsvazolktxqntyhuqqj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9";
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
-const DB = {
-  _products: [],
-  _lots: [],
-  getProduct(ean) { return this._products.find(p => p.ean === ean) ?? null; },
-  upsertProduct({ ean, name, photo }) {
-    const i = this._products.findIndex(p => p.ean === ean);
-    if (i >= 0) Object.assign(this._products[i], { name, photo });
-    else this._products.push({ ean, name, photo: photo ?? null });
-    return this.getProduct(ean);
-  },
-  getLots({ station, alertOnly } = {}) {
-    let r = [...this._lots];
-    if (station) r = r.filter(l => l.station === station);
-    if (alertOnly) r = r.filter(l => this.daysLeft(l.dlc) <= 5 && l.quantite > 0 && l.statut === 'actif');
-    return r;
-  },
-  addLot(lot) {
-    const rec = { id: `lot_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, ...lot };
-    this._lots.push(rec); return rec;
-  },
-  updateLot(id, changes) { const i = this._lots.findIndex(l => l.id === id); if (i >= 0) Object.assign(this._lots[i], changes); },
-  deleteLot(id) { this._lots = this._lots.filter(l => l.id !== id); },
-  daysLeft(dlcStr) {
-    const dlc = new Date(dlcStr), now = new Date();
-    now.setHours(0,0,0,0); dlc.setHours(0,0,0,0);
-    return Math.ceil((dlc - now) / 86400000);
-  }
-};
-const App = { station:null, empSel:[], photo:null, sort:'days', scanStr:null, scanRdr:null, scanLoop:null };
-const STATIONS = [
-  { id:'evere', name:'Evere', sub:'Station Break Point' },
-  { id:'wemmel', name:'Wemmel', sub:'Station Break Point' },
-  { id:'molenbeek', name:'Molenbeek', sub:'Station Break Point' },
-  { id:'fort-jaco', name:'Fort-Jaco', sub:'Station Break Point' },
-  { id:'uccle', name:'Uccle', sub:'Station Break Point' },
-  { id:'etterbeek', name:'Etterbeek', sub:'Station Break Point' },
-  { id:'auderghem', name:'Auderghem', sub:'Station Break Point' },
-];
-(function init() { buildStationList(); buildEmpGrid(); setDlcDefault(); loadDemo(); })();
-function buildStationList() {
-  document.getElementById('stationList').innerHTML = STATIONS.map(s => `
-    <button class="station-btn" onclick="selectStation('${s.name}')">
-      <div class="st-icon">⛽</div>
-      <div><div class="st-name">${s.name}</div><div class="st-sub">${s.sub}</div></div>
-      <span class="st-arr">›</span>
-    </button>`).join('');
+
+/* SUPABASE */
+const supabase = window.supabase.createClient(
+  "https://hhsvazolktxqntyhuqqj.supabase.co",
+  "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9"
+);
+
+let currentStation = "";
+let stream = null;
+
+/* NAV */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
-function buildEmpGrid() {
-  const g = document.getElementById('empGrid');
-  'ABCDEFGHIJKL'.split('').forEach(l => {
-    const b = document.createElement('button'); b.className='emp-btn'; b.textContent=l;
-    b.onclick = () => { if (App.empSel.includes(l)) { App.empSel = App.empSel.filter(e => e !== l); b.classList.remove('sel'); } else { App.empSel.push(l); b.classList.add('sel'); } };
-    g.appendChild(b);
+
+function goStation(name){
+  currentStation = name;
+  show("modules");
+}
+
+/* SCANNER */
+async function openScanner(){
+  document.getElementById("scanner").style.display="flex";
+
+  stream = await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
   });
-}
-function setDlcDefault() {
-  const t = new Date(); t.setDate(t.getDate() + 1);
-  document.getElementById('dlcInput').value = t.toISOString().split('T')[0];
-  document.getElementById('dlcInput').min = new Date().toISOString().split('T')[0];
-  updateDlcDisplay();
-}
-const SCREENS = ['s-station','s-modules','s-stock-home','s-recep','s-alerts'];
-function show(id) { SCREENS.forEach(s => document.getElementById(s).classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function updateHeader({ title, sub, back, tabs, bc }) {
-  document.getElementById('hdrTitle').textContent = title || 'Breakpoint OPS';
-  document.getElementById('hdrSub').textContent = sub || 'Break Point';
-  document.getElementById('btnBack').style.display = back ? 'flex' : 'none';
-  document.getElementById('btnMenu').style.display = back ? 'none' : 'flex';
-  document.getElementById('subTabs').classList.toggle('show', !!tabs);
-  const bcEl = document.getElementById('breadcrumb');
-  if (bc && bc.length) {
-    bcEl.classList.add('show');
-    const ids=['bc0','bc1','bc2']; const seps=['bcS1','bcS2'];
-    ids.forEach((id,i)=>{ document.getElementById(id).textContent = bc[i] || ''; document.getElementById(id).style.display = bc[i] ? '' : 'none'; });
-    seps.forEach((id,i)=>{ document.getElementById(id).style.display = (bc[i+1]) ? '' : 'none'; });
-  } else bcEl.classList.remove('show');
-}
-function goBack() {
-  const active = document.querySelector('.screen.active').id;
-  if (active === 's-modules') { show('s-station'); updateHeader({ title:'Breakpoint OPS', sub:'Break Point' }); }
-  else if (active === 's-stock-home') { show('s-modules'); updateHeader({ title:App.station, sub:'Choisir un module', back:true, bc:[App.station] }); }
-  else if (active === 's-recep' || active === 's-alerts') { show('s-stock-home'); updateHeader({ title:App.station, sub:'Gestion de stock', back:true, bc:[App.station,'Gestion de stock'] }); document.getElementById('subTabs').classList.remove('show'); }
-  updateBadge();
-}
-function selectStation(name) {
-  App.station = name; document.getElementById('stationHidden').value = name; document.getElementById('heroStation').textContent = name; document.getElementById('shStation').textContent = name;
-  show('s-modules'); updateHeader({ title:name, sub:'Choisir un module', back:true, bc:[name] }); updateBadge();
-}
-function gotoStockHome() { show('s-stock-home'); updateHeader({ title:App.station, sub:'Gestion de stock', back:true, bc:[App.station, 'Gestion de stock'] }); updateBadge(); }
-function gotoRecep() { show('s-recep'); setActiveTab('tab-recep'); updateHeader({ title:App.station, sub:'Réception livraison', back:true, tabs:true, bc:[App.station,'Stock','Réception'] }); }
-function gotoAlerts() { show('s-alerts'); setActiveTab('tab-alerts'); updateHeader({ title:App.station, sub:'Alertes DLC', back:true, tabs:true, bc:[App.station,'Stock','Alertes'] }); renderAlerts(); }
-function gotoRecepDirect() { gotoRecep(); }
-function gotoAlertsDirect() { gotoAlerts(); }
-function setActiveTab(id) { ['tab-recep','tab-alerts'].forEach(t => document.getElementById(t).classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function showCS(name) { document.getElementById('csName').textContent = name; document.getElementById('csModal').classList.add('show'); }
-async function openScanner() {
-  document.getElementById('scanOv').classList.add('show');
-  document.getElementById('scanStatus').textContent = 'Démarrage de la caméra...';
-  try {
-    const video = document.getElementById('scanVideo');
-    App.scanStr = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} } });
-    video.srcObject = App.scanStr; await video.play();
-    document.getElementById('scanStatus').textContent = 'Pointez vers le code-barres';
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats:['ean_13','code_128','qr_code'] });
-      App.scanLoop = setInterval(async () => {
-        try {
-          const codes = await detector.detect(video);
-          if (codes && codes.length) {
-            const code = codes[0].rawValue;
-            document.getElementById('eanInput').value = code; onEan(code); showToast('✅ Code scanné : ' + code); closeScanner();
-          }
-        } catch(e) {}
-      }, 500);
-    } else {
-      document.getElementById('scanStatus').textContent = 'Scanner non supporté ici – saisie manuelle';
-    }
-  } catch(e) {
-    document.getElementById('scanStatus').textContent = '⚠️ Caméra indisponible – saisir manuellement';
+
+  const video = document.getElementById("video");
+  video.srcObject = stream;
+
+  if("BarcodeDetector" in window){
+    const detector = new BarcodeDetector({formats:["ean_13","code_128"]});
+
+    setInterval(async ()=>{
+      const codes = await detector.detect(video);
+      if(codes.length){
+        document.getElementById("ean").value = codes[0].rawValue;
+        closeScanner();
+        loadProduct(codes[0].rawValue);
+      }
+    },500);
   }
-  setTimeout(() => document.getElementById('scanInp').focus(), 200);
 }
-function closeScanner() {
-  if (App.scanLoop) { clearInterval(App.scanLoop); App.scanLoop = null; }
-  if (App.scanStr) { App.scanStr.getTracks().forEach(t => t.stop()); App.scanStr = null; }
-  document.getElementById('scanVideo').srcObject = null; document.getElementById('scanOv').classList.remove('show'); document.getElementById('scanInp').value = '';
+
+function closeScanner(){
+  document.getElementById("scanner").style.display="none";
+  if(stream) stream.getTracks().forEach(t=>t.stop());
 }
-function confirmScan() { const v = document.getElementById('scanInp').value.trim(); if (v) { document.getElementById('eanInput').value = v; onEan(v); } closeScanner(); }
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('scanOv').classList.contains('show')) confirmScan(); });
-function onEan(ean) { if (ean.length < 8) return; const p = DB.getProduct(ean); if (!p) return; document.getElementById('prodName').value = p.name; if (p.photo) { App.photo = p.photo; document.getElementById('prodPhoto').innerHTML = `<img src="${p.photo}">`; } }
-function onPhoto(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { App.photo = ev.target.result; document.getElementById('prodPhoto').innerHTML = `<img src="${ev.target.result}">`; }; r.readAsDataURL(f); }
-function updateDlcDisplay() { const v = document.getElementById('dlcInput').value; document.getElementById('dlcDisplay').textContent = v ? new Date(v).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; }
-function chgQty(d) { const i = document.getElementById('qtyInput'); i.value = Math.max(1, (parseInt(i.value)||1) + d); }
-async function submitLot() {
-  const ean = document.getElementById('eanInput').value.trim(); const name = document.getElementById('prodName').value.trim(); const dlc = document.getElementById('dlcInput').value; const qty = parseInt(document.getElementById('qtyInput').value) || 1; const station = App.station;
-  if (!ean) { showToast('⚠️ Code EAN requis'); return; }
-  if (!name) { showToast('⚠️ Nom du produit requis'); return; }
-  if (!dlc) { showToast('⚠️ DLC requise'); return; }
-  if (!App.empSel.length) { showToast('⚠️ Choisir un emplacement'); return; }
-  DB.upsertProduct({ ean, name, photo: App.photo });
-  DB.addLot({ ean, station, dlc, quantite: qty, emplacements:[...App.empSel], dateEntree:new Date().toISOString().split('T')[0], statut:'actif' });
-  updateBadge(); resetForm(); showToast('✅ Lot enregistré avec succès !');
+
+/* LOAD PRODUIT */
+async function loadProduct(ean){
+  const {data} = await supabase
+    .from("produits")
+    .select("*")
+    .eq("ean",ean)
+    .single();
+
+  if(data){
+    document.getElementById("name").value = data.nom;
+  }
 }
-function resetForm() {
-  ['eanInput','prodName'].forEach(id => document.getElementById(id).value = ''); document.getElementById('qtyInput').value = '1'; document.getElementById('prodPhoto').innerHTML = '📦'; document.getElementById('photoFile').value = ''; App.photo = null; App.empSel = []; document.querySelectorAll('.emp-btn').forEach(b => b.classList.remove('sel')); setDlcDefault();
+
+/* SAVE */
+async function save(){
+  const ean = document.getElementById("ean").value;
+  const name = document.getElementById("name").value;
+  const dlc = document.getElementById("dlc").value;
+
+  if(!ean || !name || !dlc){
+    alert("Remplis tous les champs");
+    return;
+  }
+
+  await supabase.from("produits").upsert({
+    ean:ean,
+    nom:name
+  });
+
+  await supabase.from("lots").insert({
+    ean:ean,
+    station:currentStation,
+    dlc:dlc,
+    quantite:1,
+    statut:"actif"
+  });
+
+  alert("✅ Produit enregistré");
 }
-function renderAlerts() {
-  const lots = DB.getLots({ station:App.station, alertOnly:true });
-  if (App.sort === 'days') lots.sort((a,b) => DB.daysLeft(a.dlc) - DB.daysLeft(b.dlc));
-  else if (App.sort === 'name') lots.sort((a,b) => (DB.getProduct(a.ean)?.name||'').localeCompare(DB.getProduct(b.ean)?.name||''));
-  else lots.sort((a,b) => b.quantite - a.quantite);
-  const n = lots.length; document.getElementById('alertCount').textContent = n + (n <= 1 ? ' alerte' : ' alertes');
-  const list = document.getElementById('alertsList');
-  if (!n) { list.innerHTML = `<div class="empty"><div class="ei">🎉</div><h3>Aucune alerte !</h3><p>Tous les produits sont dans les délais.</p></div>`; return; }
-  list.innerHTML = lots.map(lot => { const p = DB.getProduct(lot.ean); const name = p?.name || 'Produit inconnu'; const photo = p?.photo ? `<img src="${p.photo}">` : '📦'; const days = DB.daysLeft(lot.dlc); const cls = days <= 0 ? 'expired' : days <= 2 ? 'urgent' : days <= 4 ? 'warning' : 'safe'; const label = days <= 0 ? '⛔ EXPIRÉ' : days === 1 ? '⚠️ Expire demain' : `⚠️ ${days} jours restants`; const dlcFmt = new Date(lot.dlc).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'numeric'}); return `<div class="alert-card" id="card-${lot.id}"><div class="ac-top"><div class="ac-photo">${photo}</div><div class="ac-info"><div class="ac-name">${name}</div><div class="ac-meta">${lot.quantite} unité${lot.quantite>1?'s':''} · DLC : ${dlcFmt}</div><span class="days-pill ${cls}">${label}</span></div></div><div class="ac-chips"><span class="ac-chip">🏪 ${lot.station}</span><span class="ac-chip">📍 ${lot.emplacements.join(', ')}</span><span class="ac-chip g">📅 ${lot.dateEntree}</span></div><div class="ac-line"></div><div class="ac-actions"><button class="btn-traite" onclick="markTraite('${lot.id}')">✅ Marquer traité</button><button class="btn-del" onclick="delLot('${lot.id}')">🗑</button></div></div>`; }).join('');
-}
-function markTraite(id) { const card = document.getElementById('card-' + id); if (card) { card.classList.add('slide-out'); setTimeout(() => { DB.updateLot(id, { statut:'traité' }); updateBadge(); renderAlerts(); }, 350); } showToast('✅ Produit marqué comme traité'); }
-function delLot(id) { DB.deleteLot(id); updateBadge(); renderAlerts(); showToast('🗑 Lot supprimé'); }
-function setSort(mode, btn) { App.sort = mode; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); btn.classList.add('active'); renderAlerts(); }
-function updateBadge() { if (!App.station) return; const n = DB.getLots({ station:App.station, alertOnly:true }).length; document.getElementById('tabBadge').textContent = n; document.getElementById('homeBadge').textContent = n; const ha = document.getElementById('hdrAlert'); ha.textContent = n; ha.style.display = n > 0 ? 'inline' : 'none'; }
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-function loadDemo() {
-  const d = n => { const x = new Date(); x.setDate(x.getDate()+n); return x.toISOString().split('T')[0]; };
-  const now = new Date().toISOString().split('T')[0];
-  DB.upsertProduct({ ean:'3017620422003', name:'Yaourt Fraise', photo:null });
-  DB.upsertProduct({ ean:'5000159407236', name:'Sandwich Jambon', photo:null });
-  DB.upsertProduct({ ean:'3228857000166', name:'Saucisson Sec', photo:null });
-  DB.upsertProduct({ ean:'3046920022651', name:'Croissant au beurre', photo:null });
-  DB.upsertProduct({ ean:'7611612010074', name:'Barre chocolatée', photo:null });
-  DB.addLot({ ean:'3017620422003', station:'Evere', dlc:d(3), quantite:12, emplacements:['A','B'], dateEntree:now, statut:'actif' });
-  DB.addLot({ ean:'5000159407236', station:'Evere', dlc:d(0), quantite:6, emplacements:['C'], dateEntree:now, statut:'actif' });
-  DB.addLot({ ean:'3228857000166', station:'Wemmel', dlc:d(4), quantite:8, emplacements:['D'], dateEntree:now, statut:'actif' });
-  DB.addLot({ ean:'3046920022651', station:'Uccle', dlc:d(1), quantite:3, emplacements:['E','F'], dateEntree:now, statut:'actif' });
-  DB.addLot({ ean:'7611612010074', station:'Fort-Jaco', dlc:d(5), quantite:20, emplacements:['G'], dateEntree:now, statut:'actif' });
-}
+
 </script>
+
 </body>
 </html>
