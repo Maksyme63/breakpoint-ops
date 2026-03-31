@@ -738,6 +738,14 @@
           </div>
           <div id="scanStatusBadge" style="display:none;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:5px 12px;border-radius:999px;">Recherche...</div>
           <button id="scanStopBtn" onclick="stopInlineScanner()" style="display:none;position:absolute;top:10px;right:10px;border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">✕ Stop</button>
+          <!-- Panneau confirmation scan douteux -->
+          <div id="scanConfirmPanel" style="display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(17,24,39,.92);padding:12px 14px;text-align:center;">
+            <div id="scanConfirmCode" style="color:#fff;font-size:13px;font-weight:700;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;justify-content:center;">
+              <button onclick="confirmScanCode()" style="border:none;border-radius:10px;padding:9px 18px;background:#22c55e;color:#fff;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;">✅ Confirmer</button>
+              <button onclick="dismissScanConfirm()" style="border:none;border-radius:10px;padding:9px 18px;background:rgba(255,255,255,.18);color:#fff;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;">🔄 Scanner encore</button>
+            </div>
+          </div>
         </div>
 
         <div class="scan-controls">
@@ -1220,13 +1228,60 @@
       });
     }
 
-    function onScanSuccess(value){
-      if (!value) return;
+    /* ── Logique scan fiable : même code 2 fois de suite, chiffres uniquement, 8 ou 13 digits ── */
+    function isValidEAN(code){
+      return /^[0-9]{8}$|^[0-9]{13}$/.test(code);
+    }
+
+    function acceptScanCode(value){
       document.getElementById("eanInput").value = value;
       if (navigator.vibrate) navigator.vibrate(100);
       stopInlineScanner();
       loadProductByEAN(value);
       showToast("✅ Code scanné : " + value);
+    }
+
+    function showScanConfirm(value){
+      const panel = document.getElementById("scanConfirmPanel");
+      const label = document.getElementById("scanConfirmCode");
+      label.textContent = "Code détecté : " + value;
+      panel.dataset.code = value;
+      panel.style.display = "block";
+      document.getElementById("scanStatusBadge").style.display = "none";
+    }
+
+    function confirmScanCode(){
+      const panel = document.getElementById("scanConfirmPanel");
+      const value = panel.dataset.code;
+      if (value) acceptScanCode(value);
+    }
+
+    function dismissScanConfirm(){
+      const panel = document.getElementById("scanConfirmPanel");
+      panel.style.display = "none";
+      panel.dataset.code = "";
+      document.getElementById("scanStatusBadge").style.display = "block";
+      document.getElementById("scanStatusBadge").textContent = "Recherche...";
+      state.lastScanCode = null;
+    }
+
+    function processScanResult(code){
+      if (!code) return;
+      // Format valide EAN8 ou EAN13 uniquement chiffres
+      if (!isValidEAN(code)){
+        // format douteux → confirmation
+        showScanConfirm(code);
+        return;
+      }
+      // Fiabilité : même code détecté 2 fois consécutives
+      if (state.lastScanCode === code){
+        // Confirmé 2x → auto
+        state.lastScanCode = null;
+        acceptScanCode(code);
+      } else {
+        state.lastScanCode = code;
+        document.getElementById("scanStatusBadge").textContent = "Code détecté, vérification...";
+      }
     }
 
     async function startInlineScanner(){
@@ -1235,6 +1290,9 @@
       const corners     = document.getElementById("scanCorners");
       const statusBadge = document.getElementById("scanStatusBadge");
       const stopBtn     = document.getElementById("scanStopBtn");
+      state.lastScanCode = null;
+      document.getElementById("scanConfirmPanel").style.display = "none";
+
       try {
         state.stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720} },
@@ -1253,7 +1311,7 @@
           state.scanTimer = setInterval(async () => {
             try {
               const codes = await state.barcodeDetector.detect(video);
-              if (codes && codes.length > 0) onScanSuccess(codes[0].rawValue);
+              if (codes && codes.length > 0) processScanResult(codes[0].rawValue);
             } catch(e){}
           }, 500);
         } else {
@@ -1266,8 +1324,8 @@
             locate:true, frequency:10
           }, err => { if (!err) Quagga.start(); });
           Quagga.onDetected(data => {
-            const c = data.codeResult.code;
-            if (c && /^[0-9]{8,14}$/.test(c)) onScanSuccess(c);
+            const raw = data.codeResult.code;
+            processScanResult(raw);
           });
           state.quaggaRunning = true;
         }
