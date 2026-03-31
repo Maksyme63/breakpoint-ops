@@ -1366,8 +1366,11 @@
       buildLocationGrid();
     })();
 
+    // Désactiver le Service Worker pour éviter les problèmes de cache
     if ('serviceWorker' in navigator){
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => reg.unregister());
+      });
     }
 
     function dataURLtoBlob(dataurl){
