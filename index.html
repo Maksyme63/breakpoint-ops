@@ -1127,9 +1127,9 @@
             </div>
           </div>
           <div style="display:flex;gap:7px;border-top:1px solid #f3f4f6;padding-top:10px;flex-wrap:wrap;">
-            <button onclick="marquerTraite(${item.id})" style="flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 0;background:#dcfce7;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✅ Marquer traité</button>
-            <button onclick="corrigerQuantite(${item.id},${item.quantite})" style="flex:1;min-width:100px;border:none;border-radius:10px;padding:10px 0;background:#eff6ff;color:#2563eb;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✏️ Corriger qté</button>
-            <button onclick="supprimerLot(${item.id})" style="width:42px;border:none;border-radius:10px;background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;">🗑</button>
+            <button onclick="marquerTraite('${item.id}')" style="flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 0;background:#dcfce7;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✅ Marquer traité</button>
+            <button onclick="corrigerQuantite('${item.id}',${item.quantite})" style="flex:1;min-width:100px;border:none;border-radius:10px;padding:10px 0;background:#eff6ff;color:#2563eb;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✏️ Corriger qté</button>
+            <button onclick="supprimerLot('${item.id}')" style="width:42px;border:none;border-radius:10px;background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;">🗑</button>
           </div>
         </div>`;
     }
@@ -1155,9 +1155,8 @@
       const newQty = parseInt(val, 10);
       if (isNaN(newQty) || newQty < 0){ showToast("⚠️ Quantité invalide"); return; }
       showToast("⏳ Correction...");
-      const idInt = parseInt(id, 10);
-      console.log("corrigerQuantite → idInt:", idInt, "newQty:", newQty);
-      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { p_lot_id: idInt, p_quantite: newQty });
+      console.log("corrigerQuantite → id:", id, "newQty:", newQty);
+      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { p_lot_id: id, p_quantite: newQty });
       console.log("corrigerQuantite → data:", data, "error:", error);
       if (error){ showToast("❌ " + JSON.stringify(error)); return; }
       showToast(`✅ Quantité corrigée : ${newQty}`);
