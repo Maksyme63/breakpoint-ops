@@ -1080,11 +1080,14 @@
         list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
         return;
       }
+      // Force cache bust
+      const _ts = Date.now();
       const { data, error } = await supabaseClient
         .from("v_alertes_dlc")
         .select("id,ean,nom,photo,station,dlc,quantite,statut,created_at,jours_restants")
         .eq("station", state.station)
-        .order("jours_restants", { ascending: true });
+        .order("jours_restants", { ascending: true })
+        .limit(1000);
 
       if (error){
         list.innerHTML = `<div class="card"><div class="muted">❌ ${error.message}</div></div>`;
@@ -1138,7 +1141,7 @@
       const { error } = await supabaseClient.rpc("marquer_lot_traite", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("✅ Lot marqué comme traité");
-      setTimeout(loadAlerts, 600);
+      setTimeout(loadAlerts, 1000);
     }
 
     async function supprimerLot(id){
@@ -1146,7 +1149,7 @@
       const { error } = await supabaseClient.rpc("supprimer_lot", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("🗑 Lot supprimé");
-      setTimeout(loadAlerts, 600);
+      setTimeout(loadAlerts, 1000);
     }
 
     async function corrigerQuantite(id, qteActuelle){
@@ -1160,7 +1163,7 @@
       console.log("corrigerQuantite → data:", data, "error:", error);
       if (error){ showToast("❌ " + JSON.stringify(error)); return; }
       showToast(`✅ Quantité corrigée : ${newQty}`);
-      setTimeout(loadAlerts, 600);
+      setTimeout(loadAlerts, 1000);
     }
 
     /* ══ HISTORIQUE DLC ══ */
