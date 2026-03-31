@@ -1156,7 +1156,7 @@
       if (isNaN(newQty) || newQty < 0){ showToast("⚠️ Quantité invalide"); return; }
       showToast("⏳ Correction...");
       console.log("corrigerQuantite → id:", id, "newQty:", newQty);
-      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { p_lot_id: id, p_quantite: newQty });
+      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { lot_id: id, quantite: newQty });
       console.log("corrigerQuantite → data:", data, "error:", error);
       if (error){ showToast("❌ " + JSON.stringify(error)); return; }
       showToast(`✅ Quantité corrigée : ${newQty}`);
