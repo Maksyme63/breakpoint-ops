@@ -1138,7 +1138,7 @@
       const { error } = await supabaseClient.rpc("marquer_lot_traite", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("✅ Lot marqué comme traité");
-      loadAlerts();
+      setTimeout(loadAlerts, 600);
     }
 
     async function supprimerLot(id){
@@ -1146,7 +1146,7 @@
       const { error } = await supabaseClient.rpc("supprimer_lot", { p_lot_id: Number(id) });
       if (error){ showToast("❌ " + error.message); return; }
       showToast("🗑 Lot supprimé");
-      loadAlerts();
+      setTimeout(loadAlerts, 600);
     }
 
     async function corrigerQuantite(id, qteActuelle){
@@ -1160,7 +1160,7 @@
       console.log("corrigerQuantite → data:", data, "error:", error);
       if (error){ showToast("❌ " + JSON.stringify(error)); return; }
       showToast(`✅ Quantité corrigée : ${newQty}`);
-      loadAlerts();
+      setTimeout(loadAlerts, 600);
     }
 
     /* ══ HISTORIQUE DLC ══ */
