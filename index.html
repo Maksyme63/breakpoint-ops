@@ -811,13 +811,14 @@
   <section class="screen" id="page-alerts">
     <div class="topbar">
       <button class="back-btn" onclick="goStockHome()">‹</button>
-      <div>
+      <div style="flex:1;">
         <div class="topbar-title">Alertes DLC</div>
         <div class="topbar-sub" id="alerts-station-name">Station</div>
       </div>
+      <div id="alertsBadge" style="background:#ef4444;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px;display:none;"></div>
     </div>
-    <div class="section">
-      <div id="alertsList" style="display:grid; gap:12px;"></div>
+    <div style="padding:14px 14px 32px;">
+      <div id="alertsList" style="display:grid;gap:11px;"></div>
     </div>
   </section>
 
@@ -961,124 +962,200 @@
     }
 
     async function saveProduct(){
-      const ean = document.getElementById("eanInput").value.trim();
-      const nom = document.getElementById("nameInput").value.trim();
-      const dlc = document.getElementById("dlcInput").value;
+      const ean      = document.getElementById("eanInput").value.trim();
+      const nom      = document.getElementById("nameInput").value.trim();
+      const dlc      = document.getElementById("dlcInput").value;
       const quantite = parseInt(document.getElementById("qtyInput").value || "1", 10);
+      const station  = state.station;
 
-      if (!state.station) {
-        showToast("Aucune station sélectionnée");
-        return;
-      }
-      if (!ean) {
-        showToast("Code EAN requis");
-        return;
-      }
-      if (!nom) {
-        showToast("Nom produit requis");
-        return;
-      }
-      if (!dlc) {
-        showToast("DLC requise");
-        return;
-      }
-      if (state.selectedLocations.length === 0) {
-        showToast("Choisis au moins un emplacement");
-        return;
-      }
+      if (!station)               { showToast("Aucune station sélectionnée"); return; }
+      if (!ean)                   { showToast("Code EAN requis");             return; }
+      if (!nom)                   { showToast("Nom produit requis");          return; }
+      if (!dlc)                   { showToast("DLC requise");                 return; }
+      if (!state.selectedLocations.length) { showToast("Choisis au moins un emplacement"); return; }
 
       try{
-        let photoUrl = null;
-        if (state.photoDataUrl) {
+        /* ── 1. Produit : créer seulement s'il n'existe pas ── */
+        const { data: existingProd } = await supabaseClient
+          .from("produits")
+          .select("ean, photo")
+          .eq("ean", ean)
+          .maybeSingle();
+
+        if (!existingProd) {
+          // Nouveau produit → upload photo si présente, puis insert
+          let photoUrl = null;
+          if (state.photoDataUrl) {
+            const fileName = `${ean}-${Date.now()}.jpg`;
+            const { error: upErr } = await supabaseClient.storage
+              .from("produits")
+              .upload(fileName, dataURLtoBlob(state.photoDataUrl));
+            if (!upErr) {
+              photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
+            }
+          }
+          const { error: pErr } = await supabaseClient
+            .from("produits")
+            .insert([{ ean, nom, photo: photoUrl }]);
+          if (pErr) { showToast("Erreur produit : " + pErr.message); return; }
+
+        } else if (!existingProd.photo && state.photoDataUrl) {
+          // Produit existant SANS photo → on complète uniquement la photo
           const fileName = `${ean}-${Date.now()}.jpg`;
-          const { data: uploadData, error: uploadError } = await supabaseClient.storage
+          const { error: upErr } = await supabaseClient.storage
             .from("produits")
             .upload(fileName, dataURLtoBlob(state.photoDataUrl));
-          if (!uploadError) {
-            photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
+          if (!upErr) {
+            const photoUrl = `https://hhsvazolktxqntyhuqqj.supabase.co/storage/v1/object/public/produits/${fileName}`;
+            await supabaseClient.from("produits").update({ photo: photoUrl }).eq("ean", ean);
           }
+          // nom et reste : on ne touche pas
         }
+        // Si produit existant avec photo → on ne fait rien
 
-        const { error: pError } = await supabaseClient
-          .from("produits")
-          .upsert([{ ean, nom, photo: photoUrl }], { onConflict: "ean" });
-
-        if (pError) {
-          console.error(pError);
-          showToast("Erreur produits");
-          return;
-        }
-
-        const lotPayload = {
-          ean,
-          station: state.station,
-          dlc,
-          quantite,
-          statut: "actif"
-        };
-
-        const { error: lError } = await supabaseClient
+        /* ── 2. Lot : update quantité si doublon, sinon insert ── */
+        const { data: existingLot } = await supabaseClient
           .from("lots")
-          .insert([lotPayload]);
+          .select("id, quantite")
+          .eq("ean", ean)
+          .eq("station", station)
+          .eq("dlc", dlc)
+          .eq("statut", "actif")
+          .maybeSingle();
 
-        if (lError) {
-          console.error(lError);
-          showToast("Erreur lots");
-          return;
+        if (existingLot) {
+          // Même EAN + même station + même DLC → additionner la quantité
+          const newQty = existingLot.quantite + quantite;
+          const { error: lErr } = await supabaseClient
+            .from("lots")
+            .update({ quantite: newQty })
+            .eq("id", existingLot.id);
+          if (lErr) { showToast("Erreur mise à jour lot : " + lErr.message); return; }
+          showToast("✅ Quantité mise à jour (" + newQty + " unités)");
+
+        } else {
+          // Nouveau lot
+          const { error: lErr } = await supabaseClient
+            .from("lots")
+            .insert([{ ean, station, dlc, quantite, statut: "actif" }]);
+          if (lErr) { showToast("Erreur lot : " + lErr.message); return; }
+          showToast("✅ Lot enregistré");
         }
 
+        /* ── 3. Reset formulaire ── */
         document.getElementById("eanInput").value = "";
         document.getElementById("nameInput").value = "";
         document.getElementById("qtyInput").value = "1";
-
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
-
         resetPhotoBox();
         resetLocationGrid();
 
-        showToast("Produit enregistré");
       }catch(err){
         console.error(err);
-        showToast("Erreur d'enregistrement");
+        showToast("Erreur : " + err.message);
       }
     }
 
     async function loadAlerts(){
       const list = document.getElementById("alertsList");
-      list.innerHTML = `<div class="muted">Chargement...</div>`;
+      const badge = document.getElementById("alertsBadge");
+      list.innerHTML = `<div style="text-align:center;padding:28px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+
       if (!state.station) {
         list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
         return;
       }
-      const today = new Date();
-      const limit = new Date();
-      limit.setDate(limit.getDate() + 5);
-      const todayStr = today.toISOString().split("T")[0];
-      const limitStr = limit.toISOString().split("T")[0];
+
       const { data, error } = await supabaseClient
-        .from("lots")
-        .select("*")
+        .from("v_alertes_dlc")
+        .select("id,ean,nom,photo,station,dlc,quantite,statut,created_at,jours_restants")
         .eq("station", state.station)
-        .eq("statut", "actif")
-        .lte("dlc", limitStr)
-        .gte("dlc", todayStr);
-      if (error || !data) {
-        list.innerHTML = `<div class="card"><div class="muted">Erreur chargement</div></div>`;
+        .order("jours_restants", { ascending: true });
+
+      if (error) {
+        list.innerHTML = `<div class="card"><div class="muted">❌ Erreur : ${error.message}</div></div>`;
         return;
       }
-      if (data.length === 0) {
-        list.innerHTML = `<div class="card">Aucune alerte</div>`;
+
+      if (!data || data.length === 0) {
+        if (badge) { badge.style.display = "none"; }
+        list.innerHTML = `
+          <div style="text-align:center;padding:48px 20px;">
+            <div style="font-size:52px;margin-bottom:12px;">🎉</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucune alerte !</div>
+            <div style="font-size:13px;color:#9ca3af;">Tous les produits sont dans les délais.</div>
+          </div>`;
         return;
       }
-      list.innerHTML = data.map(item => `
-        <div class="card">
-          <b>${item.ean}</b><br>
-          DLC : ${item.dlc}<br>
-          Quantité : ${item.quantite}
-        </div>
-      `).join("");
+
+      if (badge) { badge.textContent = data.length; badge.style.display = "inline"; }
+
+      list.innerHTML = data.map(item => {
+        const j = item.jours_restants;
+        const isExpired = j <= 0;
+        const isUrgent  = j === 1;
+        const isWarning = j >= 2 && j <= 5;
+
+        const pillColor = isExpired ? "#ef4444" : isUrgent ? "#f97316" : "#f59e0b";
+        const pillBg    = isExpired ? "#fef2f2" : isUrgent ? "#fff7ed" : "#fffbeb";
+        const pillText  = isExpired ? "⛔ EXPIRÉ" : isUrgent ? "⚠️ Expire demain" : `⚠️ ${j} jours restants`;
+        const borderColor = isExpired ? "#fca5a5" : isUrgent ? "#fdba74" : "#fcd34d";
+
+        const dlcFmt = new Date(item.dlc).toLocaleDateString("fr-BE", { day:"2-digit", month:"2-digit", year:"numeric" });
+        const photoHtml = item.photo
+          ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+          : `<div style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
+
+        return `
+          <div id="alert-card-${item.id}" style="
+            background:#fff;
+            border-radius:16px;
+            box-shadow:0 2px 12px rgba(0,0,0,.08);
+            border-left:4px solid ${borderColor};
+            padding:14px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+          ">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:62px;height:62px;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">
+                ${photoHtml}
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${item.quantite} unité${item.quantite > 1 ? "s" : ""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
+                <span style="display:inline-block;background:${pillBg};color:${pillColor};border:1px solid ${borderColor};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">${pillText}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;border-top:1px solid #f3f4f6;padding-top:10px;">
+              <button onclick="marquerTraite(${item.id})" style="
+                flex:1;border:none;border-radius:10px;padding:10px 0;
+                background:#dcfce7;color:#16a34a;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;
+              ">✅ Marquer traité</button>
+              <button onclick="supprimerLot(${item.id})" style="
+                width:42px;border:none;border-radius:10px;
+                background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;
+              ">🗑</button>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    async function marquerTraite(id){
+      const { error } = await supabaseClient.rpc("marquer_lot_traite", { lot_id: id });
+      if (error) { showToast("❌ Erreur : " + error.message); return; }
+      showToast("✅ Lot marqué comme traité");
+      loadAlerts();
+    }
+
+    async function supprimerLot(id){
+      if (!confirm("Supprimer ce lot définitivement ?")) return;
+      const { error } = await supabaseClient.rpc("supprimer_lot", { lot_id: id });
+      if (error) { showToast("❌ Erreur : " + error.message); return; }
+      showToast("🗑 Lot supprimé");
+      loadAlerts();
     }
 
     function loadScript(src){
