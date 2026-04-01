@@ -661,7 +661,7 @@
         <span class="badge-soon">Bientôt</span>
       </button>
 
-      <button class="module-btn gray" type="button">
+      <button class="module-btn gray" onclick="goMaintenance()">
         <span>
           Maintenance
           <span class="sub">Rapport d'incident · Demande d'intervention</span>
@@ -844,6 +844,70 @@
     </div>
     <div style="padding:14px 14px 32px;">
       <div id="historyList" style="display:grid;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 7 — MAINTENANCE ACCUEIL -->
+  <section class="screen" id="page-maintenance">
+    <div class="topbar">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Maintenance</div>
+        <div class="topbar-sub" id="maintenance-station-name">Station</div>
+      </div>
+    </div>
+    <div style="padding:16px 14px 32px;">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:14px;font-weight:600;">Sélectionnez une catégorie</div>
+      <div id="maintenanceCatGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 8 — MAINTENANCE FORMULAIRE -->
+  <section class="screen" id="page-maintenance-form">
+    <div class="topbar">
+      <button class="back-btn" onclick="goMaintenance()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title" id="maint-form-title">Incident</div>
+        <div class="topbar-sub" id="maint-form-sub">Station</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 40px;display:flex;flex-direction:column;gap:14px;">
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Sous-catégorie</label>
+        <select id="maintSubcat" onchange="onMaintSubcatChange()" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;"></select>
+      </div>
+
+      <div id="maintInfoBox" style="display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px;">ℹ️ Information</div>
+        <div id="maintInfoText" style="font-size:13px;color:#78350f;line-height:1.5;"></div>
+      </div>
+
+      <div id="maintContactBox" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:4px;">📬 Contact</div>
+        <div id="maintContactMail" style="font-size:13px;color:#374151;"></div>
+        <div id="maintContactPhone" style="font-size:13px;color:#374151;margin-top:3px;"></div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Description de l'incident</label>
+        <textarea id="maintDescription" placeholder="Décrivez le problème en détail..." style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;min-height:100px;resize:vertical;"></textarea>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Niveau d'urgence</label>
+        <div style="display:flex;gap:8px;">
+          <button id="urg-low"  onclick="setUrgence('low')"  style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🟢 Normal</button>
+          <button id="urg-med"  onclick="setUrgence('med')"  style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🟡 Urgent</button>
+          <button id="urg-high" onclick="setUrgence('high')" style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🔴 Critique</button>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+        <button onclick="preparerMail()" style="width:100%;border:none;border-radius:12px;padding:15px;background:#2d4a3e;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">📧 Préparer l'e-mail</button>
+        <button onclick="enregistrerIncident()" style="width:100%;border:none;border-radius:12px;padding:15px;background:#16a34a;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">💾 Enregistrer l'incident</button>
+      </div>
+
     </div>
   </section>
 
@@ -1373,6 +1437,233 @@
       navigator.serviceWorker.getRegistrations().then(regs => {
         regs.forEach(reg => reg.unregister());
       });
+    }
+
+    /* ══ MAINTENANCE CONFIG ══ */
+    const stationEmails = {
+      "Evere": "evere@g-v.be",
+      "Wemmel": "wemmel@g-v.be",
+      "Fort-Jaco": "fortjaco@g-v.be",
+      "Auderghem": "auderghem@g-v.be",
+      "Etterbeek": "etterbeek@g-v.be",
+      "Molenbeek": "molenbeek@g-v.be",
+      "Uccle": "uccle@g-v.be"
+    };
+
+    const globalCc = ["thomas.dumont@g-v.be"];
+
+    const maintenanceConfig = {
+      "Piste carburant": { icon:"⛽", items: {
+        "Pompes": { key:"FORECOURT_PUMPS", to:"esso@sepia.be", cc:[], phone:"", preferred:"mail", info:"" },
+        "Paiement": { key:"FORECOURT_PAYMENT", to:"helpdesk.turnhout@tsgnortheurope.com", cc:["thd@g-v.be","firstline@g-v.be"], phone:"014/44.85.90", preferred:"mail+phone", info:"Ajouter le numéro de contrat TSG dans le mail. Mettre THD et firstline en copie. Appeler si besoin." },
+        "Piste": { key:"FORECOURT_PISTE", to:"bfstechnics@g-v.be", cc:[], phone:"056/73.63.59", preferred:"mail+phone", info:"Pour drapeaux / visuels / éléments de piste selon le cas." },
+        "Terrasse": { key:"FORECOURT_TERRAS", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter selon votre circuit interne." },
+        "Sécurité piste": { key:"FORECOURT_SAFETY", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter selon votre circuit interne." }
+      }},
+      "Magasin": { icon:"🛒", items: {
+        "Caisse": { key:"SHOP_POS", to:"helpdesk.turnhout@tsgnortheurope.com", cc:["thd@g-v.be","firstline@g-v.be"], phone:"014/44.85.90", preferred:"mail+phone", info:"Ajouter le numéro de contrat TSG. THD et firstline en copie." },
+        "Café": { key:"SHOP_COFFEE", to:"info@vjodi.be", cc:[], phone:"089/71.27.49", preferred:"mail+phone", info:"Pour machines Barista / Lattiz. Pour Charlie / imprimante Charlie : passer par TSG si concerné." },
+        "Froid / frigos": { key:"SHOP_COOLING", to:"customerservice.belux@unilever.com", cc:[], phone:"02/333.62.06", preferred:"phone", info:"Pour congélateur OLA : appeler en priorité. Pour Jetimport cooler : téléphone prioritaire." },
+        "Four / chaud / food": { key:"SHOP_OVEN", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter selon vos prestataires exacts." },
+        "Gestion cash": { key:"SHOP_CASHMANAGEMENT", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter." },
+        "Réserve / stockage": { key:"SHOP_STORAGE", to:"proshophelpdesk@conway.be", cc:[], phone:"", preferred:"mail", info:"Pour automate cigarettes / distributeur cigarettes." },
+        "Toilettes": { key:"SHOP_TOILET", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter." },
+        "Sécurité magasin": { key:"SHOP_SAFETY", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter." },
+        "Carwash": { key:"SHOP_CARWASH", to:"helpdesk.turnhout@tsgnortheurope.com", cc:["thd@g-v.be","firstline@g-v.be"], phone:"014/44.85.90", preferred:"mail+phone", info:"Ajouter le numéro de contrat TSG. THD et firstline en copie." }
+      }},
+      "Infrastructure": { icon:"🏢", items: {
+        "Électricité": { key:"INFRA_ELEC", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter à partir de l'onglet Infrastructure." },
+        "Plomberie": { key:"INFRA_WATER", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter à partir de l'onglet Infrastructure." },
+        "Climatisation / chauffage": { key:"INFRA_HVAC", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter à partir de l'onglet Infrastructure." },
+        "Bâtiment / portes / vitres": { key:"INFRA_BUILDING", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter à partir de l'onglet Infrastructure." },
+        "Extérieur / enseignes / éclairage": { key:"INFRA_OUTSIDE", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter à partir de l'onglet Infrastructure." }
+      }},
+      "Back-office": { icon:"🖥️", items: {
+        "Détecteur faux billets": { key:"BACKOFFICE_FALSE_MONEY", to:"s.ruigrok@prisma.nl", cc:["xlroc@g-v.be"], phone:"+31165303757", preferred:"mail", info:"Pour cash tester / détecteur faux billets." },
+        "Divers back-office": { key:"BACKOFFICE_OTHER", to:"", cc:[], phone:"", preferred:"mail", info:"" }
+      }},
+      "Stock / matériel": { icon:"📦", items: {
+        "Scanner": { key:"STOCK_SCANNER", to:"michelle.willen@g-v.be", cc:["bfs@g-v.be"], phone:"056/73.63.98", preferred:"mail+phone", info:"Téléphoner avant traitement dans Shopsys." },
+        "Automate cigarettes": { key:"STOCK_CIGARETTES", to:"proshophelpdesk@conway.be", cc:[], phone:"", preferred:"mail", info:"" },
+        "Divers stock": { key:"STOCK_OTHER", to:"", cc:[], phone:"", preferred:"mail", info:"" }
+      }},
+      "RH": { icon:"👥", items: {
+        "Kelio": { key:"HR_KELIO", to:"laetitia.leplae@g-v.be", cc:[], phone:"", preferred:"mail", info:"Questions techniques et droits Kelio." },
+        "Intérim": { key:"HR_INTERIM", to:"interim@g-v.be", cc:[], phone:"", preferred:"mail", info:"Selon le sujet, il peut y avoir une consigne régionale spécifique." },
+        "Jobtoolz": { key:"HR_JOBTOOLZ", to:"hr.admin@g-v.be", cc:[], phone:"", preferred:"mail", info:"" },
+        "Accident de travail": { key:"HR_ACCIDENT", to:"laetitia.leplae@g-v.be", cc:["philippe.thomas@g-v.be"], phone:"", preferred:"mail", info:"Mettre nom et prénom du collaborateur dans l'objet." },
+        "Heures supplémentaires": { key:"HR_OVERTIME", to:"", cc:[], phone:"", preferred:"mail", info:"Le destinataire dépend de la région." },
+        "Divers RH": { key:"HR_OTHER", to:"hr.admin@g-v.be", cc:[], phone:"", preferred:"mail", info:"" }
+      }},
+      "Autre": { icon:"📌", items: {
+        "Autre demande": { key:"OTHER", to:"", cc:[], phone:"", preferred:"mail", info:"À compléter manuellement." }
+      }}
+    };
+
+    /* ══ MAINTENANCE STATE ══ */
+    const maintState = {
+      categorie: null,
+      urgence: "low"
+    };
+
+    /* ══ MAINTENANCE NAVIGATION ══ */
+    function goMaintenance(){
+      document.getElementById("maintenance-station-name").textContent = state.station || "Station";
+      showPage("page-maintenance");
+      buildMaintenanceCatGrid();
+    }
+
+    function buildMaintenanceCatGrid(){
+      const grid = document.getElementById("maintenanceCatGrid");
+      grid.innerHTML = "";
+      Object.entries(maintenanceConfig).forEach(([cat, cfg]) => {
+        const btn = document.createElement("button");
+        btn.style.cssText = "background:#fff;border:2px solid #e4e7eb;border-radius:16px;padding:22px 12px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;transition:transform .1s;";
+        btn.innerHTML = `
+          <div style="font-size:32px;">${cfg.icon}</div>
+          <div style="font-size:13px;font-weight:800;color:#111827;text-align:center;line-height:1.3;">${cat}</div>
+        `;
+        btn.onpointerdown = () => btn.style.transform = "scale(.97)";
+        btn.onpointerup   = () => btn.style.transform = "";
+        btn.onpointerleave = () => btn.style.transform = "";
+        btn.onclick = () => openMaintenanceForm(cat);
+        grid.appendChild(btn);
+      });
+    }
+
+    function openMaintenanceForm(cat){
+      maintState.categorie = cat;
+      maintState.urgence = "low";
+      const cfg = maintenanceConfig[cat];
+
+      document.getElementById("maint-form-title").textContent = cfg.icon + " " + cat;
+      document.getElementById("maint-form-sub").textContent = state.station || "Station";
+
+      // Populate subcategories
+      const sel = document.getElementById("maintSubcat");
+      sel.innerHTML = '<option value="">-- Choisir une sous-catégorie --</option>';
+      Object.keys(cfg.items).forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub;
+        opt.textContent = sub;
+        sel.appendChild(opt);
+      });
+
+      // Reset form
+      document.getElementById("maintDescription").value = "";
+      document.getElementById("maintInfoBox").style.display = "none";
+      document.getElementById("maintContactBox").style.display = "none";
+      setUrgence("low");
+
+      showPage("page-maintenance-form");
+    }
+
+    function onMaintSubcatChange(){
+      const cat  = maintState.categorie;
+      const sub  = document.getElementById("maintSubcat").value;
+      if (!sub || !cat) return;
+      const item = maintenanceConfig[cat].items[sub];
+
+      // Info box
+      const infoBox = document.getElementById("maintInfoBox");
+      if (item.info){
+        document.getElementById("maintInfoText").textContent = item.info;
+        infoBox.style.display = "block";
+      } else {
+        infoBox.style.display = "none";
+      }
+
+      // Contact box
+      const contactBox = document.getElementById("maintContactBox");
+      const hasMail  = item.to;
+      const hasPhone = item.phone;
+      if (hasMail || hasPhone){
+        document.getElementById("maintContactMail").innerHTML  = hasMail  ? `📧 <a href="mailto:${item.to}" style="color:#2d4a3e;font-weight:700;">${item.to}</a>` : "";
+        document.getElementById("maintContactPhone").innerHTML = hasPhone ? `📞 <a href="tel:${item.phone}" style="color:#2d4a3e;font-weight:700;">${item.phone}</a>` : "";
+        contactBox.style.display = "flex";
+      } else {
+        contactBox.style.display = "none";
+      }
+    }
+
+    function setUrgence(level){
+      maintState.urgence = level;
+      const btns = { low:"urg-low", med:"urg-med", high:"urg-high" };
+      const colors = { low:"#dcfce7", med:"#fef9c3", high:"#fee2e2" };
+      const borders = { low:"#86efac", med:"#fcd34d", high:"#fca5a5" };
+      Object.entries(btns).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (k === level){
+          el.style.background = colors[k];
+          el.style.borderColor = borders[k];
+        } else {
+          el.style.background = "#fff";
+          el.style.borderColor = "#e3e7ec";
+        }
+      });
+    }
+
+    function preparerMail(){
+      const cat  = maintState.categorie;
+      const sub  = document.getElementById("maintSubcat").value;
+      const desc = document.getElementById("maintDescription").value.trim();
+      const urgLabels = { low:"Normal", med:"Urgent", high:"CRITIQUE" };
+
+      if (!sub){ showToast("⚠️ Choisissez une sous-catégorie"); return; }
+
+      const item    = maintenanceConfig[cat].items[sub];
+      const station = state.station || "Station";
+      const stMail  = stationEmails[station] || "";
+
+      // Build CC list
+      const ccList = [...new Set([...item.cc, ...globalCc, stMail].filter(Boolean))];
+
+      const subject = encodeURIComponent(`[Maintenance] ${cat} – ${sub} – ${station} – ${urgLabels[maintState.urgence]}`);
+      const body    = encodeURIComponent(
+        `Station : ${station}
+Catégorie : ${cat}
+Sous-catégorie : ${sub}
+Urgence : ${urgLabels[maintState.urgence]}
+
+Description :
+${desc || "(à compléter)"}
+
+---
+Envoyé depuis Breakpoint OPS`
+      );
+
+      const to  = item.to || "";
+      const cc  = ccList.join(",");
+      const mailto = `mailto:${to}?cc=${encodeURIComponent(cc)}&subject=${subject}&body=${body}`;
+      window.location.href = mailto;
+    }
+
+    async function enregistrerIncident(){
+      const cat  = maintState.categorie;
+      const sub  = document.getElementById("maintSubcat").value;
+      const desc = document.getElementById("maintDescription").value.trim();
+      const urgLabels = { low:"normal", med:"urgent", high:"critique" };
+
+      if (!sub)  { showToast("⚠️ Choisissez une sous-catégorie"); return; }
+      if (!desc) { showToast("⚠️ Ajoutez une description"); return; }
+
+      const item = maintenanceConfig[cat].items[sub];
+      const payload = {
+        station:      state.station,
+        categorie:    cat,
+        sous_categorie: sub,
+        cle:          item.key,
+        description:  desc,
+        urgence:      urgLabels[maintState.urgence],
+        statut:       "ouvert",
+        created_at:   new Date().toISOString()
+      };
+
+      showToast("⏳ Enregistrement...");
+      const { error } = await supabaseClient.from("incidents").insert([payload]);
+      if (error){ showToast("❌ " + error.message); return; }
+      showToast("✅ Incident enregistré !");
+      document.getElementById("maintDescription").value = "";
     }
 
     function dataURLtoBlob(dataurl){
