@@ -704,6 +704,14 @@
         </span>
         <span>›</span>
       </button>
+
+      <button class="module-btn" onclick="goPlanUrgence()" style="background:linear-gradient(135deg,#dc2626,#991b1b);">
+        <span>
+          🚨 Plan d'urgence
+          <span class="sub">Procédures vitales · Urgences · Numéros utiles</span>
+        </span>
+        <span>›</span>
+      </button>
     </div>
   </section>
 
@@ -990,7 +998,86 @@
     </div>
   </section>
 
-  <script>
+  <!-- PAGE — PLAN D'URGENCE ACCUEIL -->
+  <section class="screen" id="page-urgence">
+    <div class="topbar" style="background:#dc2626;">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">🚨 Plan d'urgence</div>
+        <div class="topbar-sub" id="urgence-station-name">Station</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 32px;">
+      <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:800;color:#dc2626;margin-bottom:2px;">⚠️ EN CAS D'URGENCE</div>
+        <div style="font-size:12px;color:#7f1d1d;">Restez calme · Appelez les secours · Suivez la procédure</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button type="button" onclick="goUrgenceFiche('incendie')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🔥</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Incendie / Explosion</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('epandage')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🛢️</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Épandage produit</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('premiers-soins')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🚑</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Premiers soins</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('empoisonnement')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">☠️</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Empoisonnement</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('odeurs-carburant')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">⛽</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Odeurs carburant</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('degats')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🏚️</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Dégâts bâtiment</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('holdup')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🔫</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Hold-up / Agression</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('vol')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🚔</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Vol / Vandalisme</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('gaz')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">💨</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Échappement de gaz</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('erreur-dechargement')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">🚚</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Erreur déchargement</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('menaces')" style="background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">⚠️</span>
+          <span style="font-size:12px;font-weight:800;color:#111827;text-align:center;">Situations menaçantes</span>
+        </button>
+        <button type="button" onclick="goUrgenceFiche('numeros')" style="background:#dc2626;border:2px solid #dc2626;border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="font-size:30px;">📞</span>
+          <span style="font-size:12px;font-weight:800;color:#fff;text-align:center;">Numéros d'urgence</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE — PLAN D'URGENCE FICHE DÉTAIL -->
+  <section class="screen" id="page-urgence-fiche">
+    <div class="topbar" id="urgence-fiche-topbar" style="background:#dc2626;">
+      <button class="back-btn" onclick="goPlanUrgence()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title" id="urgence-fiche-title">Incident</div>
+        <div class="topbar-sub">Plan d'urgence</div>
+      </div>
+    </div>
+    <div id="urgence-fiche-content" style="padding:14px 14px 40px;display:flex;flex-direction:column;gap:12px;"></div>
+  </section>
+
+<script>
     const SUPABASE_URL = "https://hhsvazolktxqntyhuqqj.supabase.co";
     const SUPABASE_KEY = "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1955,6 +2042,366 @@
     }
 
 
+
+    /* ══ PLAN D'URGENCE ══ */
+    const urgenceData = {
+      "incendie": {
+        icon: "🔥",
+        titre: "Incendie / Explosion",
+        danger: "⚠️ DANGER — Ne combattez un feu que s'il est maîtrisable sans risque personnel.",
+        sections: [
+          { label: "Actions immédiates", color: "#dc2626", items: [
+            "Restez calme",
+            "Arrêtez toute activité",
+            "Appuyez sur le bouton d'arrêt d'urgence",
+            "Coupez le gaz et l'électricité",
+            "Fermez portes et fenêtres",
+            "Éloignez les matériaux inflammables",
+            "Poussez les voitures SANS les démarrer"
+          ]},
+          { label: "Donner l'alarme", color: "#f97316", items: [
+            "Appelez les pompiers : 100",
+            "Appelez la police : 101",
+            "Appelez la centrale d'alarme Esso : 02 507 20 27"
+          ]},
+          { label: "Évacuation", color: "#f59e0b", items: [
+            "Évacuez le point de vente",
+            "Tenez les curieux à distance",
+            "Attendez les secours à l'extérieur"
+          ]},
+          { label: "Après l'incident", color: "#6b7280", items: [
+            "Remplacez les extincteurs utilisés",
+            "Rédigez un rapport quotidien",
+            "Prévenez THD",
+            "Contactez l'assureur"
+          ]}
+        ],
+        tel: [{ label: "📞 Pompiers / Ambulance", num: "100" }, { label: "📞 Police", num: "101" }, { label: "📞 Centrale Esso", num: "0250720 27" }]
+      },
+      "epandage": {
+        icon: "🛢️",
+        titre: "Épandage de produit",
+        danger: "⚠️ DANGER — Risque d'incendie et d'explosion. Interdiction de fumer. Extincteurs prêts.",
+        sections: [
+          { label: "Petit déversement", color: "#f97316", items: [
+            "Mettez la pompe hors service",
+            "Coupez le contact du véhicule",
+            "Poussez la voiture hors de la zone"
+          ]},
+          { label: "Grand déversement", color: "#dc2626", items: [
+            "Appuyez sur le bouton d'arrêt d'urgence",
+            "Arrêtez le trafic sur la piste",
+            "Faites quitter les véhicules",
+            "Empêchez l'accès à la zone",
+            "Évacuez la zone"
+          ]},
+          { label: "Informer", color: "#f59e0b", items: [
+            "Prévenez THD si déversement > 1 litre",
+            "Prévenez le coordinateur environnement si impact sur l'environnement",
+            "Mentionnez l'incident dans le rapport quotidien"
+          ]},
+          { label: "Réparer", color: "#6b7280", items: [
+            "Nettoyez la zone",
+            "Contactez l'entrepreneur compétent"
+          ]}
+        ],
+        tel: [{ label: "📞 Pompiers", num: "100" }, { label: "📞 THD", num: "" }]
+      },
+      "premiers-soins": {
+        icon: "🚑",
+        titre: "Premiers soins / Blessé",
+        danger: "",
+        sections: [
+          { label: "Actions immédiates", color: "#dc2626", items: [
+            "Appelez le 100 si aide médicale immédiate nécessaire",
+            "Donnez : votre nom, le lieu, le nombre de victimes, la gravité",
+            "Supprimez les risques si possible sans vous mettre en danger",
+            "Ne laissez JAMAIS un blessé seul"
+          ]},
+          { label: "En attendant les secours", color: "#f97316", items: [
+            "Soyez attentif aux dangers",
+            "Aidez les blessés dans la limite du possible",
+            "Parlez à la victime pour la rassurer"
+          ]},
+          { label: "À l'arrivée des secours", color: "#6b7280", items: [
+            "Informez les professionnels des causes possibles",
+            "Communiquez clairement les informations disponibles"
+          ]}
+        ],
+        tel: [{ label: "📞 Ambulance / Pompiers", num: "100" }, { label: "📞 Numéro européen", num: "112" }]
+      },
+      "empoisonnement": {
+        icon: "☠️",
+        titre: "Empoisonnement",
+        danger: "⚠️ Consultez immédiatement les fiches de sécurité des produits concernés.",
+        sections: [
+          { label: "Selon la voie d'exposition", color: "#dc2626", items: [
+            "Peau : lavez abondamment à l'eau et au savon",
+            "Ingestion : NE PAS faire vomir",
+            "Inhalation : mettez la personne à l'air frais immédiatement",
+            "Yeux : rincez abondamment à l'eau claire"
+          ]},
+          { label: "Informer", color: "#f97316", items: [
+            "Consultez un médecin en cas de doute",
+            "Appelez le Centre Anti-Poisons : 070 245 245",
+            "Appelez le 100 si urgence vitale"
+          ]}
+        ],
+        tel: [{ label: "📞 Centre Anti-Poisons", num: "070245245" }, { label: "📞 Ambulance", num: "100" }]
+      },
+      "odeurs-carburant": {
+        icon: "⛽",
+        titre: "Odeurs de carburant",
+        danger: "⚠️ DANGER — Risque d'incendie, explosion, asphyxie. Interdiction de fumer.",
+        sections: [
+          { label: "Actions immédiates", color: "#dc2626", items: [
+            "Coupez toutes les installations électriques",
+            "Éteignez toutes les flammes",
+            "Aérez les locaux si l'odeur est à l'intérieur",
+            "Déterminez l'origine de la fuite"
+          ]},
+          { label: "Si origine introuvable", color: "#f97316", items: [
+            "Fermez le point de vente",
+            "Prévenez les pompiers : 100",
+            "Prévenez la police : 101",
+            "Prévenez la centrale d'alarme Esso : 02 507 20 27"
+          ]},
+          { label: "Informer", color: "#6b7280", items: [
+            "Signalez au service technique",
+            "Mentionnez dans le rapport quotidien",
+            "Prévenez THD"
+          ]}
+        ],
+        tel: [{ label: "📞 Pompiers", num: "100" }, { label: "📞 Centrale Esso", num: "025072027" }]
+      },
+      "degats": {
+        icon: "🏚️",
+        titre: "Dégâts bâtiment / Installations",
+        danger: "",
+        sections: [
+          { label: "Actions immédiates", color: "#f97316", items: [
+            "Clôturez la zone dangereuse",
+            "Mettez les installations concernées hors service",
+            "Prévenez les secours si nécessaire"
+          ]},
+          { label: "Documenter", color: "#f59e0b", items: [
+            "Prenez des photos des dégâts",
+            "Rédigez une déclaration d'incident",
+            "Faites un constat pour les dégâts sur véhicules si nécessaire"
+          ]},
+          { label: "Informer", color: "#6b7280", items: [
+            "Mentionnez dans le rapport quotidien",
+            "Déclarez à l'assureur",
+            "Suivez les directives de signalement"
+          ]}
+        ],
+        tel: [{ label: "📞 Pompiers", num: "100" }, { label: "📞 Police", num: "101" }]
+      },
+      "holdup": {
+        icon: "🔫",
+        titre: "Hold-up / Agression",
+        danger: "⚠️ PENDANT le hold-up : faites CE QUE DEMANDE le malfaiteur. Ne résistez pas.",
+        sections: [
+          { label: "Pendant le hold-up", color: "#dc2626", items: [
+            "Restez calme, ne paniquez pas",
+            "Faites ce que demande le malfaiteur",
+            "Ne donnez PAS l'alarme pendant l'incident",
+            "N'improvisez pas, ne poursuivez pas le malfaiteur"
+          ]},
+          { label: "Après le hold-up", color: "#f97316", items: [
+            "Donnez l'alarme / appelez la police : 101",
+            "Verrouillez la porte",
+            "Gardez les témoins présents",
+            "Ne touchez à RIEN (conserver les preuves)",
+            "Remettez les vidéos à la police uniquement"
+          ]},
+          { label: "Informer", color: "#6b7280", items: [
+            "Prévenez l'exploitant immédiatement",
+            "Remplissez le questionnaire hold-up",
+            "Rédigez un rapport d'incident",
+            "Assurez le remplacement et l'assistance du personnel concerné"
+          ]}
+        ],
+        tel: [{ label: "📞 Police", num: "101" }, { label: "📞 Ambulance", num: "100" }]
+      },
+      "vol": {
+        icon: "🚔",
+        titre: "Vol / Vandalisme / Grivèlerie",
+        danger: "",
+        sections: [
+          { label: "Actions immédiates", color: "#f97316", items: [
+            "Examinez les dégâts",
+            "Prenez des photos",
+            "Clôturez la zone si danger",
+            "Prévenez la police : 101"
+          ]},
+          { label: "Pour une grivèlerie", color: "#f59e0b", items: [
+            "Notez les informations du véhicule (plaque, marque, couleur)",
+            "Faites une déclaration à la police",
+            "Informez vos collègues",
+            "Prenez des photos si possible"
+          ]},
+          { label: "Informer", color: "#6b7280", items: [
+            "Suivez les directives XL ROC",
+            "Mentionnez dans le rapport quotidien",
+            "Prévenez THD",
+            "Contactez l'assureur"
+          ]}
+        ],
+        tel: [{ label: "📞 Police", num: "101" }]
+      },
+      "gaz": {
+        icon: "💨",
+        titre: "Échappement de gaz",
+        danger: "⚠️ N'éteignez JAMAIS vous-même un feu de gaz. Pas de GSM dans la zone.",
+        sections: [
+          { label: "Actions immédiates", color: "#dc2626", items: [
+            "Appuyez sur le bouton d'arrêt d'urgence GPL",
+            "Fermez les vannes rouges si accessible",
+            "Coupez l'électricité",
+            "Éteignez toutes les flammes",
+            "Éloignez les voitures",
+            "N'utilisez PAS de GSM dans la zone"
+          ]},
+          { label: "Évacuation", color: "#f97316", items: [
+            "Évacuez la zone perpendiculairement au vent",
+            "Appelez les pompiers : 100",
+            "Attendez les secours à l'extérieur"
+          ]},
+          { label: "Informer", color: "#6b7280", items: [
+            "Prévenez XL ROC immédiatement après",
+            "Mentionnez dans le rapport quotidien",
+            "Prévenez THD dans les 24h"
+          ]}
+        ],
+        tel: [{ label: "📞 Pompiers", num: "100" }, { label: "📞 Police", num: "101" }]
+      },
+      "erreur-dechargement": {
+        icon: "🚚",
+        titre: "Erreur de déchargement",
+        danger: "",
+        sections: [
+          { label: "Actions immédiates", color: "#f97316", items: [
+            "Arrêtez immédiatement la vente des produits concernés",
+            "Contactez THD",
+            "Traitez les plaintes éventuelles"
+          ]},
+          { label: "Documenter", color: "#f59e0b", items: [
+            "Conservez les vidéos, tickets et données clients",
+            "Notez les données client sur le formulaire prévu",
+            "Sécurisez tous les autres éléments utiles"
+          ]}
+        ],
+        tel: [{ label: "📞 THD", num: "" }]
+      },
+      "menaces": {
+        icon: "⚠️",
+        titre: "Situations menaçantes",
+        danger: "⚠️ Ne mettez JAMAIS votre sécurité personnelle en danger.",
+        sections: [
+          { label: "Sur la piste", color: "#f97316", items: [
+            "Encouragez le départ calmement",
+            "Restez calme, ne provoquez pas",
+            "N'intervenez pas physiquement",
+            "Ne touchez à rien",
+            "Verrouillez la porte du shop",
+            "Appelez la police : 101"
+          ]},
+          { label: "Manifestations", color: "#f59e0b", items: [
+            "Restez calme, ne discutez pas",
+            "Limitez l'accès au shop si nécessaire",
+            "Fermez le shop si la sécurité est menacée",
+            "Ne commentez pas aux médias"
+          ]},
+          { label: "Clients agressifs", color: "#dc2626", items: [
+            "Parlez calmement, restez derrière le comptoir",
+            "Identifiez la plainte du client",
+            "N'escaladez pas la conversation",
+            "Faites quitter le shop si nécessaire",
+            "Appelez la police si menace réelle : 101"
+          ]},
+          { label: "Vandalisme", color: "#6b7280", items: [
+            "Prévenez la police immédiatement : 101"
+          ]}
+        ],
+        tel: [{ label: "📞 Police", num: "101" }]
+      },
+      "numeros": {
+        icon: "📞",
+        titre: "Numéros d'urgence",
+        danger: "",
+        sections: [],
+        tel: [
+          { label: "🚒 Pompiers", num: "100" },
+          { label: "🚔 Police", num: "101" },
+          { label: "🚑 Ambulance", num: "100" },
+          { label: "🌍 Numéro européen", num: "112" },
+          { label: "☠️ Centre Anti-Poisons", num: "070245245" },
+          { label: "⛽ Centrale alarme Esso", num: "025072027" }
+        ]
+      }
+    };
+
+    function goPlanUrgence(){
+      document.getElementById("urgence-station-name").textContent = state.station || "Station";
+      showPage("page-urgence");
+    }
+
+    function goUrgenceFiche(key){
+      var d = urgenceData[key];
+      if (!d) return;
+      document.getElementById("urgence-fiche-title").textContent = d.icon + " " + d.titre;
+
+      var html = "";
+
+      // Danger banner
+      if (d.danger){
+        html += '<div style="background:#fef2f2;border:2px solid #dc2626;border-radius:12px;padding:12px 14px;">' +
+          '<div style="font-size:13px;font-weight:800;color:#dc2626;line-height:1.5;">' + d.danger + '</div></div>';
+      }
+
+      // Sections
+      d.sections.forEach(function(sec){
+        html += '<div style="background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">' +
+          '<div style="background:' + sec.color + ';padding:10px 14px;">' +
+          '<div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.4px;">' + sec.label + '</div></div>' +
+          '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">';
+        sec.items.forEach(function(item, i){
+          html += '<div style="display:flex;gap:10px;align-items:flex-start;">' +
+            '<div style="min-width:22px;height:22px;border-radius:50%;background:' + sec.color + ';color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;">' + (i+1) + '</div>' +
+            '<div style="font-size:14px;color:#111827;line-height:1.5;flex:1;">' + item + '</div></div>';
+        });
+        html += '</div></div>';
+      });
+
+      // Numéros d'urgence
+      if (d.tel && d.tel.length){
+        html += '<div style="background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">' +
+          '<div style="background:#dc2626;padding:10px 14px;">' +
+          '<div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.4px;">📞 Appeler</div></div>' +
+          '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">';
+        d.tel.forEach(function(t){
+          if (!t.num) return;
+          html += '<a href="tel:' + t.num + '" style="display:flex;align-items:center;justify-content:space-between;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 14px;text-decoration:none;">' +
+            '<span style="font-size:14px;font-weight:700;color:#111827;">' + t.label + '</span>' +
+            '<span style="font-size:16px;font-weight:900;color:#dc2626;">' + t.num.replace(/^0+/,'0') + '</span></a>';
+        });
+        html += '</div></div>';
+      }
+
+      // Bouton rapport d'incident
+      var rapportBtn = '<button type="button" onclick="goUrgenceRapport()" ';
+      rapportBtn += 'style="width:100%;border:2px solid #e4e7eb;border-radius:12px;padding:14px;';
+      rapportBtn += 'background:#f9fafb;color:#374151;font-size:14px;font-weight:700;cursor:pointer;';
+      rapportBtn += 'font-family:inherit;touch-action:manipulation;">📋 Créer un rapport</button>';
+      html += rapportBtn;
+      document.getElementById("urgence-fiche-content").innerHTML = html;
+      showPage("page-urgence-fiche");
+    }
+
+    function goUrgenceRapport(){
+      goMaintenance();
+    }
 
     function dataURLtoBlob(dataurl){
       const arr  = dataurl.split(',');
