@@ -1697,18 +1697,7 @@
         const backendPayload = {
           to: item.to, cc: ccList,
           subject: `[${urgLabelsFr[maintState.urgence]}] ${cat} – ${sub} – ${station}`,
-          body: `Station : ${station}
-Catégorie : ${cat}
-Sous-catégorie : ${sub}
-Urgence : ${urgLabelsFr[maintState.urgence]}
-
-Description :
-${desc}${hasPhoto ? "
-
-📷 Photo jointe." : ""}
-
----
-Envoyé depuis Breakpoint OPS`,
+          body: `Station : ${station}\nCatégorie : ${cat}\nSous-catégorie : ${sub}\nUrgence : ${urgLabelsFr[maintState.urgence]}\n\nDescription :\n${desc}${hasPhoto ? "\n\n📷 Photo jointe." : ""}\n\n---\nEnvoyé depuis Breakpoint OPS`,
           attachment: hasPhoto ? { name: maintState.photoFileName || "photo.jpg", data: maintState.photoDataUrl } : null,
           incident_id: insertedId
         };
@@ -1717,20 +1706,9 @@ Envoyé depuis Breakpoint OPS`,
         // await fetch("VOTRE_ENDPOINT", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(backendPayload) });
 
         /* Mailto fallback */
-        const photoNote = hasPhoto ? "
-
-📷 Photo jointe en pièce jointe." : "";
+        const photoNote = hasPhoto ? "\n\n📷 Photo jointe en pièce jointe." : "";
         const subject = encodeURIComponent(`[${urgLabelsFr[maintState.urgence]}] ${cat} – ${sub} – ${station}`);
-        const body = encodeURIComponent(`Station : ${station}
-Catégorie : ${cat}
-Sous-catégorie : ${sub}
-Urgence : ${urgLabelsFr[maintState.urgence]}
-
-Description :
-${desc}${photoNote}
-
----
-Envoyé depuis Breakpoint OPS`);
+        const body = encodeURIComponent(`Station : ${station}\nCatégorie : ${cat}\nSous-catégorie : ${sub}\nUrgence : ${urgLabelsFr[maintState.urgence]}\n\nDescription :\n${desc}${photoNote}\n\n---\nEnvoyé depuis Breakpoint OPS`);
         const mailto = `mailto:${item.to || ""}?cc=${encodeURIComponent(ccList.join(","))}&subject=${subject}&body=${body}`;
 
         /* Marquer mail envoyé */
