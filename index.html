@@ -892,6 +892,25 @@
     <div style="padding:16px 14px 32px;">
       <div style="font-size:13px;color:#6b7280;margin-bottom:14px;font-weight:600;">Sélectionnez une catégorie</div>
       <div id="maintenanceCatGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:11px;"></div>
+      <button type="button" onclick="goMaintenanceHistory()" style="width:100%;margin-top:18px;border:2px solid #e4e7eb;border-radius:14px;padding:16px 18px;background:#f9fafb;color:#374151;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+        <span style="font-size:20px;">📋</span>
+        <span style="flex:1;text-align:left;">Historique des interventions</span>
+        <span style="color:#9ca3af;font-size:18px;">›</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- PAGE 9 — HISTORIQUE MAINTENANCE -->
+  <section class="screen" id="page-maintenance-history">
+    <div class="topbar">
+      <button class="back-btn" onclick="goMaintenance()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Historique interventions</div>
+        <div class="topbar-sub" id="maint-history-station">Station</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 36px;">
+      <div id="maintHistoryList" style="display:grid;gap:11px;"></div>
     </div>
   </section>
 
@@ -951,9 +970,8 @@
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
-        <button onclick="preparerMail()" style="width:100%;border:none;border-radius:12px;padding:15px;background:#2d4a3e;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">📧 Préparer l'e-mail</button>
-        <button onclick="enregistrerIncident()" style="width:100%;border:none;border-radius:12px;padding:15px;background:#16a34a;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">💾 Enregistrer l'incident</button>
+      <div style="margin-top:4px;">
+        <button id="maintSubmitBtn" type="button" onclick="envoyerDemande()" style="width:100%;border:none;border-radius:12px;padding:17px;background:#2d4a3e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
       </div>
 
     </div>
@@ -1612,6 +1630,193 @@
       }
     }
 
+    async function envoyerDemande(){
+      const cat  = maintState.categorie;
+      const sub  = document.getElementById("maintSubcat").value;
+      const desc = document.getElementById("maintDescription").value.trim();
+      const urgLabels = { low:"normal", med:"urgent", high:"critique" };
+      const urgLabelsFr = { low:"Normal", med:"Urgent", high:"CRITIQUE" };
+
+      if (!sub)  { showToast("⚠️ Choisissez une sous-catégorie"); return; }
+      if (!desc) { showToast("⚠️ Ajoutez une description");       return; }
+
+      const btn = document.getElementById("maintSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Envoi en cours...";
+
+      const item    = maintenanceConfig[cat].items[sub];
+      const station = state.station || "Station";
+      const stMail  = stationEmails[station] || "";
+      const ccList  = [...new Set([...item.cc, ...globalCc, stMail].filter(Boolean))];
+
+      /* ── 1. Upload photo si présente ── */
+      let photoUrl = null;
+      if (maintState.photoDataUrl) {
+        try {
+          const fileName = `incident-${Date.now()}.jpg`;
+          const { error: upErr } = await supabaseClient.storage
+            .from("incidents").upload(fileName, dataURLtoBlob(maintState.photoDataUrl));
+          if (!upErr) photoUrl = `${SUPABASE_URL}/storage/v1/object/public/incidents/${fileName}`;
+        } catch(e) { console.warn("Photo upload failed:", e); }
+      }
+
+      /* ── 2. Enregistrer dans Supabase ── */
+      const payload = {
+        station,
+        categorie:      cat,
+        sous_categorie: sub,
+        cle:            item.key,
+        description:    desc,
+        urgence:        urgLabels[maintState.urgence],
+        statut:         "ouvert",
+        photo:          photoUrl,
+        mail_envoye:    false,
+        created_at:     new Date().toISOString()
+      };
+
+      const { data: insertedRows, error: dbErr } = await supabaseClient
+        .from("incidents").insert([payload]).select();
+      if (dbErr){
+        showToast("❌ Erreur enregistrement : " + dbErr.message);
+        btn.disabled = false; btn.textContent = "🚀 Envoyer la demande";
+        return;
+      }
+      const insertedId = insertedRows?.[0]?.id;
+
+      /* ── 3. Préparer et ouvrir le mail ── */
+      try {
+        const hasPhoto = !!photoUrl;
+        // TODO BACKEND : envoyer via backend pour pièce jointe réelle
+        // backendPayload disponible pour fetch() vers Cloud Function :
+        const backendPayload = {
+          to: item.to, cc: ccList,
+          subject: `[${urgLabelsFr[maintState.urgence]}] ${cat} – ${sub} – ${station}`,
+          body: `Station : ${station}
+Catégorie : ${cat}
+Sous-catégorie : ${sub}
+Urgence : ${urgLabelsFr[maintState.urgence]}
+
+Description :
+${desc}${hasPhoto ? "
+
+📷 Photo jointe." : ""}
+
+---
+Envoyé depuis Breakpoint OPS`,
+          attachment: hasPhoto ? { name: maintState.photoFileName || "photo.jpg", data: maintState.photoDataUrl } : null,
+          incident_id: insertedId
+        };
+        console.log("📧 Payload mail prêt pour backend :", backendPayload);
+        // Décommenter quand backend prêt :
+        // await fetch("VOTRE_ENDPOINT", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(backendPayload) });
+
+        /* Mailto fallback */
+        const photoNote = hasPhoto ? "
+
+📷 Photo jointe en pièce jointe." : "";
+        const subject = encodeURIComponent(`[${urgLabelsFr[maintState.urgence]}] ${cat} – ${sub} – ${station}`);
+        const body = encodeURIComponent(`Station : ${station}
+Catégorie : ${cat}
+Sous-catégorie : ${sub}
+Urgence : ${urgLabelsFr[maintState.urgence]}
+
+Description :
+${desc}${photoNote}
+
+---
+Envoyé depuis Breakpoint OPS`);
+        const mailto = `mailto:${item.to || ""}?cc=${encodeURIComponent(ccList.join(","))}&subject=${subject}&body=${body}`;
+
+        /* Marquer mail envoyé */
+        if (insertedId) {
+          await supabaseClient.from("incidents").update({ mail_envoye: true }).eq("id", insertedId);
+        }
+        showToast("✅ Demande envoyée !");
+        window.location.href = mailto;
+
+      } catch(mailErr) {
+        console.error("Mail error:", mailErr);
+        /* Mail échoué → on met à jour le statut en base */
+        if (insertedId) {
+          await supabaseClient.from("incidents").update({ mail_envoye: false, statut: "mail_echec" }).eq("id", insertedId);
+        }
+        showToast("⚠️ Enregistré mais mail non envoyé");
+      }
+
+      /* ── 4. Reset formulaire ── */
+      document.getElementById("maintDescription").value = "";
+      removeMaintPhoto();
+      btn.disabled = false;
+      btn.textContent = "🚀 Envoyer la demande";
+    }
+
+    /* ── Historique maintenance ── */
+    function goMaintenanceHistory(){
+      document.getElementById("maint-history-station").textContent = state.station || "Station";
+      showPage("page-maintenance-history");
+      loadMaintenanceHistory();
+    }
+
+    async function loadMaintenanceHistory(){
+      const list = document.getElementById("maintHistoryList");
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+
+      if (!state.station){
+        list.innerHTML = `<div style="padding:16px;background:#fff;border-radius:14px;color:#6b7280;">Aucune station sélectionnée.</div>`;
+        return;
+      }
+
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const { data, error } = await supabaseClient
+        .from("incidents")
+        .select("*")
+        .eq("station", state.station)
+        .gte("created_at", sixMonthsAgo.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error){
+        list.innerHTML = `<div style="padding:16px;background:#fff;border-radius:14px;color:#ef4444;">❌ ${error.message}</div>`;
+        return;
+      }
+      if (!data || data.length === 0){
+        list.innerHTML = `
+          <div style="text-align:center;padding:52px 20px;">
+            <div style="font-size:48px;margin-bottom:12px;">📋</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucune intervention</div>
+            <div style="font-size:13px;color:#9ca3af;">Aucune demande sur les 6 derniers mois</div>
+          </div>`;
+        return;
+      }
+
+      const urgColors = { normal:"#dcfce7", urgent:"#fef9c3", critique:"#fee2e2" };
+      const urgText   = { normal:"🟢 Normal", urgent:"🟡 Urgent", critique:"🔴 Critique" };
+      const mailIcon  = { true:"✅", false:"⚠️", undefined:"—" };
+
+      list.innerHTML = data.map(inc => {
+        const dateFmt = new Date(inc.created_at).toLocaleDateString("fr-BE", { day:"2-digit", month:"2-digit", year:"numeric" });
+        const hourFmt = new Date(inc.created_at).toLocaleTimeString("fr-BE", { hour:"2-digit", minute:"2-digit" });
+        const urg     = inc.urgence || "normal";
+        const badgeBg = urgColors[urg] || "#f3f4f6";
+        const photoHtml = inc.photo
+          ? `<img src="${inc.photo}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-top:8px;">`
+          : "";
+        const mailStatus = inc.mail_envoye === true ? "✅ Mail envoyé" : inc.statut === "mail_echec" ? "⚠️ Mail non envoyé" : "";
+        return `
+          <div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:14px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div style="font-size:14px;font-weight:800;color:#111827;">${inc.categorie} › ${inc.sous_categorie}</div>
+              <span style="background:${badgeBg};color:#374151;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">${urgText[urg] || urg}</span>
+            </div>
+            <div style="font-size:12px;color:#6b7280;">📅 ${dateFmt} à ${hourFmt} · 🏠 ${inc.station}</div>
+            <div style="font-size:13px;color:#374151;line-height:1.5;">${inc.description}</div>
+            ${mailStatus ? `<div style="font-size:11px;color:#6b7280;">${mailStatus}</div>` : ""}
+            ${photoHtml}
+          </div>`;
+      }).join("");
+    }
+
     function goMaintenance(){
       document.getElementById("maintenance-station-name").textContent = state.station || "Station";
       showPage("page-maintenance");
@@ -1704,54 +1909,7 @@
       });
     }
 
-    function preparerMail(){
-      const cat  = maintState.categorie;
-      const sub  = document.getElementById("maintSubcat").value;
-      const desc = document.getElementById("maintDescription").value.trim();
-      const urgLabels = { low:"Normal", med:"Urgent", high:"CRITIQUE" };
 
-      if (!sub){ showToast("⚠️ Choisissez une sous-catégorie"); return; }
-
-      const item    = maintenanceConfig[cat].items[sub];
-      const station = state.station || "Station";
-      const stMail  = stationEmails[station] || "";
-
-      // Build CC list
-      const ccList = [...new Set([...item.cc, ...globalCc, stMail].filter(Boolean))];
-
-      const subject = encodeURIComponent(`[${urgLabels[maintState.urgence]}] ${cat} – ${sub} – ${station}`);
-      // ── Préparer les données pour envoi backend avec pièce jointe ──
-      // Si une photo est présente, les données sont disponibles dans maintState.photoDataUrl (base64)
-      // et dans maintState.photoFileName pour le nom du fichier.
-      // TODO BACKEND : envoyer ces données à une Cloud Function / Edge Function Supabase
-      // qui crée le mail avec l'image en pièce jointe (multipart/form-data).
-      const hasPhoto = !!maintState.photoDataUrl;
-      if (hasPhoto) {
-        // Données disponibles pour le backend :
-        // maintState.photoDataUrl  → image en base64
-        // maintState.photoFileName → nom du fichier
-        // payload complet ci-dessous prêt pour envoi via fetch() vers backend
-        const backendPayload = {
-          to: item.to,
-          cc: [...new Set([...item.cc, ...globalCc, stMail].filter(Boolean))],
-          subject: `[${urgLabels[maintState.urgence]}] ${cat} – ${sub} – ${station}`,
-          body: `Station : ${station}\nCatégorie : ${cat}\nSous-catégorie : ${sub}\nUrgence : ${urgLabels[maintState.urgence]}\n\nDescription :\n${desc || "(à compléter)"}\n\n---\nEnvoyé depuis Breakpoint OPS`,
-          attachment: { name: maintState.photoFileName || "photo.jpg", data: maintState.photoDataUrl }
-        };
-        console.log("📧 Payload prêt pour backend mail avec pièce jointe :", backendPayload);
-        // Décommenter quand le backend est prêt :
-        // await fetch("VOTRE_ENDPOINT_BACKEND", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(backendPayload) });
-      }
-      const photoNote = hasPhoto ? "\n\n📷 Photo jointe en pièce jointe." : "";
-      const body    = encodeURIComponent(
-        `Station : ${station}\nCatégorie : ${cat}\nSous-catégorie : ${sub}\nUrgence : ${urgLabels[maintState.urgence]}\n\nDescription :\n${desc || "(à compléter)"}${photoNote}\n\n---\nEnvoyé depuis Breakpoint OPS`
-      );
-
-      const to  = item.to || "";
-      const cc  = ccList.join(",");
-      const mailto = `mailto:${to}?cc=${encodeURIComponent(cc)}&subject=${subject}&body=${body}`;
-      window.location.href = mailto;
-    }
 
     function handleMaintPhoto(e){
       const file = e.target.files[0];
@@ -1776,42 +1934,7 @@
       document.getElementById("maintPhotoRemove").style.display = "none";
     }
 
-    async function enregistrerIncident(){
-      const cat  = maintState.categorie;
-      const sub  = document.getElementById("maintSubcat").value;
-      const desc = document.getElementById("maintDescription").value.trim();
-      const urgLabels = { low:"normal", med:"urgent", high:"critique" };
 
-      if (!sub)  { showToast("⚠️ Choisissez une sous-catégorie"); return; }
-      if (!desc) { showToast("⚠️ Ajoutez une description"); return; }
-
-      const item = maintenanceConfig[cat].items[sub];
-      const payload = {
-        station:      state.station,
-        categorie:    cat,
-        sous_categorie: sub,
-        cle:          item.key,
-        description:  desc,
-        urgence:      urgLabels[maintState.urgence],
-        statut:       "ouvert",
-        created_at:   new Date().toISOString()
-      };
-
-      showToast("⏳ Enregistrement...");
-      // Upload photo if present
-      let photoUrl = null;
-      if (maintState.photoDataUrl) {
-        const fileName = `incident-${Date.now()}.jpg`;
-        const { error: upErr } = await supabaseClient.storage
-          .from("incidents").upload(fileName, dataURLtoBlob(maintState.photoDataUrl));
-        if (!upErr) photoUrl = `${SUPABASE_URL}/storage/v1/object/public/incidents/${fileName}`;
-      }
-      if (photoUrl) payload.photo = photoUrl;
-      const { error } = await supabaseClient.from("incidents").insert([payload]);
-      if (error){ showToast("❌ " + error.message); return; }
-      showToast("✅ Incident enregistré !");
-      document.getElementById("maintDescription").value = "";
-    }
 
     function dataURLtoBlob(dataurl){
       const arr  = dataurl.split(',');
