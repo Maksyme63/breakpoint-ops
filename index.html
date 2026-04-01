@@ -523,23 +523,35 @@
   <div class="toast" id="toast"></div>
 
   <!-- PIN MODAL -->
-  <div id="pinModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px;">
-    <div style="background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-      <div style="text-align:center;margin-bottom:18px;">
-        <div id="pinModalIcon" style="font-size:36px;margin-bottom:8px;"></div>
+  <div id="pinModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px;-webkit-overflow-scrolling:touch;">
+    <div style="background:#fff;border-radius:20px;padding:24px 20px;width:100%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div style="text-align:center;margin-bottom:16px;">
         <div id="pinModalTitle" style="font-size:18px;font-weight:900;color:#111827;"></div>
         <div style="font-size:13px;color:#6b7280;margin-top:4px;">Entrez le code d'accès</div>
       </div>
-      <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-        placeholder="••••"
-        style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:14px;font-size:22px;text-align:center;letter-spacing:6px;outline:none;font-family:inherit;margin-bottom:10px;"
-        onkeydown="if(event.key==='Enter') confirmPin()"
-      />
-      <div id="pinError" style="display:none;color:#ef4444;font-size:13px;font-weight:700;text-align:center;margin-bottom:10px;">❌ Code incorrect</div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="closePinModal()" style="flex:1;border:2px solid #e3e7ec;border-radius:12px;padding:13px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:#374151;">Annuler</button>
-        <button onclick="confirmPin()" style="flex:1;border:none;border-radius:12px;padding:13px;background:#2d4a3e;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Entrer</button>
+
+      <!-- Affichage du code saisi -->
+      <div id="pinDisplay" style="font-size:28px;text-align:center;letter-spacing:10px;height:48px;line-height:48px;margin-bottom:8px;color:#111827;font-weight:900;">•</div>
+
+      <!-- Message erreur -->
+      <div id="pinError" style="display:none;color:#ef4444;font-size:13px;font-weight:700;text-align:center;margin-bottom:8px;">❌ Code incorrect</div>
+
+      <!-- Clavier numérique intégré — fiable sur tous les mobiles -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+        <button type="button" onclick="pinKey('1')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">1</button>
+        <button type="button" onclick="pinKey('2')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">2</button>
+        <button type="button" onclick="pinKey('3')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">3</button>
+        <button type="button" onclick="pinKey('4')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">4</button>
+        <button type="button" onclick="pinKey('5')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">5</button>
+        <button type="button" onclick="pinKey('6')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">6</button>
+        <button type="button" onclick="pinKey('7')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">7</button>
+        <button type="button" onclick="pinKey('8')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">8</button>
+        <button type="button" onclick="pinKey('9')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">9</button>
+        <button type="button" onclick="closePinModal()" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:13px;font-weight:700;background:#f3f4f6;cursor:pointer;font-family:inherit;color:#6b7280;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">Annuler</button>
+        <button type="button" onclick="pinKey('0')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">0</button>
+        <button type="button" onclick="pinBackspace()" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#f3f4f6;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">⌫</button>
       </div>
+
     </div>
   </div>
 
@@ -1553,33 +1565,50 @@
     };
 
     let _pinTarget = null;
+    let _pinBuffer = "";
 
     function openPinModal(stationName){
       _pinTarget = stationName;
+      _pinBuffer = "";
       document.getElementById("pinModalTitle").textContent = stationName;
-      document.getElementById("pinModalIcon").textContent  = "🏠";
-      document.getElementById("pinInput").value = "";
       document.getElementById("pinError").style.display = "none";
-      const modal = document.getElementById("pinModal");
-      modal.style.display = "flex";
-      setTimeout(() => document.getElementById("pinInput").focus(), 100);
+      document.getElementById("pinDisplay").textContent = "•";
+      document.getElementById("pinModal").style.display = "flex";
     }
 
     function closePinModal(){
       document.getElementById("pinModal").style.display = "none";
       _pinTarget = null;
+      _pinBuffer = "";
+    }
+
+    function pinKey(digit){
+      if (_pinBuffer.length >= 6) return;
+      _pinBuffer += digit;
+      document.getElementById("pinError").style.display = "none";
+      document.getElementById("pinDisplay").textContent = "•".repeat(_pinBuffer.length);
+      // Auto-confirm when length matches expected code
+      const expected = stationPins[_pinTarget] || "";
+      if (_pinBuffer.length >= expected.length) {
+        setTimeout(confirmPin, 120);
+      }
+    }
+
+    function pinBackspace(){
+      if (_pinBuffer.length === 0) return;
+      _pinBuffer = _pinBuffer.slice(0, -1);
+      document.getElementById("pinDisplay").textContent = _pinBuffer.length ? "•".repeat(_pinBuffer.length) : "•";
     }
 
     function confirmPin(){
-      const entered = document.getElementById("pinInput").value.trim();
-      const expected = stationPins[_pinTarget];
-      if (entered === expected){
+      const expected = stationPins[_pinTarget] || "";
+      if (_pinBuffer === expected){
         closePinModal();
         selectStation(_pinTarget);
       } else {
         document.getElementById("pinError").style.display = "block";
-        document.getElementById("pinInput").value = "";
-        document.getElementById("pinInput").focus();
+        _pinBuffer = "";
+        document.getElementById("pinDisplay").textContent = "•";
       }
     }
 
