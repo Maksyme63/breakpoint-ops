@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Breakpoint"> 
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Breakpoint OPS</title>
 
@@ -942,6 +945,16 @@
       </div>
 
       <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Titre</label>
+        <input id="maintTitre" type="text" placeholder="Ex: Pompe n°3 en panne" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;">
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Emplacement</label>
+        <input id="maintEmplacement" type="text" placeholder="Ex: Allée B, Caisse 2, Réserve..." style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;">
+      </div>
+
+      <div>
         <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Description de l'incident</label>
         <textarea id="maintDescription" placeholder="Décrivez le problème en détail..." style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;min-height:100px;resize:vertical;"></textarea>
       </div>
@@ -971,7 +984,7 @@
       </div>
 
       <div style="margin-top:4px;">
-        <button type="button" onclick="envoyerDemande()" style="width:100%;border:none;border-radius:12px;padding:17px;background:#2d4a3e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
+        <button type="button" onclick="envoyerDemande()" class="envoyer-btn" style="width:100%;border:none;border-radius:12px;padding:17px;background:#2d4a3e;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
       </div>
 
     </div>
@@ -1498,10 +1511,15 @@
       buildLocationGrid();
     })();
 
-    // Désactiver le Service Worker pour éviter les problèmes de cache
+    // Force désactivation SW + vidage cache
     if ('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(reg => reg.unregister());
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(reg){ reg.unregister(); });
+      });
+    }
+    if ('caches' in window){
+      caches.keys().then(function(names){
+        names.forEach(function(name){ caches.delete(name); });
       });
     }
 
@@ -1637,70 +1655,111 @@
     }
 
     async function envoyerDemande(){
-      var cat  = maintState.categorie;
-      var sub  = document.getElementById("maintSubcat").value;
-      var desc = document.getElementById("maintDescription").value.trim();
-      if (!sub)  { showToast("Choisissez une sous-categorie"); return; }
-      if (!desc) { showToast("Ajoutez une description"); return; }
+      var cat   = maintState.categorie;
+      var sub   = document.getElementById("maintSubcat").value;
+      var titre = document.getElementById("maintTitre").value.trim();
+      var empl  = document.getElementById("maintEmplacement").value.trim();
+      var desc  = document.getElementById("maintDescription").value.trim();
 
-      var urgFr  = { low:"Normal",  med:"Urgent",   high:"CRITIQUE" };
-      var urgDb  = { low:"normal",  med:"urgent",   high:"critique"  };
+      if (!sub)   { showToast("Choisissez une sous-categorie"); return; }
+      if (!titre) { showToast("Ajoutez un titre"); return; }
+      if (!desc)  { showToast("Ajoutez une description"); return; }
+
+      var urgFr = { low:"Normal", med:"Urgent", high:"CRITIQUE" };
+      var urgDb = { low:"normal", med:"urgent", high:"critique" };
       var item    = maintenanceConfig[cat].items[sub];
       var station = state.station || "Station";
       var stMail  = stationEmails[station] || "";
       var ccList  = [].concat(item.cc, globalCc, [stMail]).filter(function(x){ return !!x; });
       ccList = ccList.filter(function(v,i,a){ return a.indexOf(v)===i; });
 
-      /* 1. Upload photo */
+      var btn = document.querySelector("#page-maintenance-form .envoyer-btn");
+      if (btn){ btn.disabled = true; btn.textContent = "Envoi..."; }
+
+      /* 1. Upload photo si présente */
       var photoUrl = null;
       if (maintState.photoDataUrl){
         try {
           var fileName = "incident-" + Date.now() + ".jpg";
-          var up = await supabaseClient.storage.from("incidents").upload(fileName, dataURLtoBlob(maintState.photoDataUrl));
-          if (!up.error) photoUrl = SUPABASE_URL + "/storage/v1/object/public/incidents/" + fileName;
-        } catch(e){ console.warn(e); }
+          var up = await supabaseClient.storage.from("maintenance_photos").upload(fileName, dataURLtoBlob(maintState.photoDataUrl));
+          if (!up.error) photoUrl = SUPABASE_URL + "/storage/v1/object/public/maintenance_photos/" + fileName;
+        } catch(e){ console.warn("Photo upload:", e); }
       }
 
-      /* 2. Save to Supabase */
-      showToast("Enregistrement...");
+      /* 2. Enregistrer dans maintenance_incidents */
       var payload = {
-        station: station,
-        categorie: cat,
+        station:        station,
+        categorie:      cat,
         sous_categorie: sub,
-        cle: item.key,
-        description: desc,
-        urgence: urgDb[maintState.urgence],
-        statut: "ouvert",
-        photo: photoUrl,
-        created_at: new Date().toISOString()
+        cle:            item.key,
+        titre:          titre,
+        emplacement:    empl,
+        description:    desc,
+        urgence:        urgDb[maintState.urgence],
+        statut:         "ouvert",
+        photo:          photoUrl,
+        mail_envoye:    false,
+        to_email:       item.to,
+        cc_emails:      ccList.join(","),
+        created_at:     new Date().toISOString()
       };
-      var result = await supabaseClient.from("incidents").insert([payload]);
-      if (result.error){ showToast("Erreur: " + result.error.message); return; }
 
-      /* 3. Open mail */
-      var photoNote = photoUrl ? " [photo jointe dans Supabase]" : "";
-      var subj = "[" + urgFr[maintState.urgence] + "] " + cat + " - " + sub + " - " + station;
-      var bodyLines = [
-        "Station : " + station,
-        "Categorie : " + cat,
-        "Sous-categorie : " + sub,
-        "Urgence : " + urgFr[maintState.urgence],
-        "",
-        "Description :",
-        desc + photoNote,
-        "",
-        "---",
-        "Envoye depuis Breakpoint OPS"
-      ];
-      var mailto = "mailto:" + (item.to || "")
-        + "?cc=" + encodeURIComponent(ccList.join(","))
-        + "&subject=" + encodeURIComponent(subj)
-        + "&body=" + encodeURIComponent(bodyLines.join("\n"));
+      showToast("Enregistrement...");
+      var ins = await supabaseClient.from("maintenance_incidents").insert([payload]).select();
+      if (ins.error){ showToast("Erreur: " + ins.error.message); if(btn){btn.disabled=false;btn.textContent="Envoyer la demande";} return; }
+      var incidentId = ins.data && ins.data[0] ? ins.data[0].id : null;
 
-      showToast("Demande envoyee !");
+      /* 3. Appel Edge Function pour envoi mail avec pièce jointe */
+      /*
+        TODO: Déployer l'Edge Function Supabase "send-maintenance-mail"
+        URL: SUPABASE_URL + "/functions/v1/send-maintenance-mail"
+        Elle reçoit: { incident_id, to, cc, subject, body, photo_url, photo_base64 }
+        Elle envoie le mail avec la photo en pièce jointe via Resend/Sendgrid/SMTP
+        Et met à jour mail_envoye=true dans maintenance_incidents
+      */
+      var mailPayload = {
+        incident_id:  incidentId,
+        to:           item.to,
+        cc:           ccList,
+        subject:      "[" + urgFr[maintState.urgence] + "] " + cat + " - " + sub + " - " + station,
+        body: "Station : " + station + "\nCategorie : " + cat + "\nSous-categorie : " + sub + "\nTitre : " + titre + "\nEmplacement : " + (empl||"N/A") + "\nUrgence : " + urgFr[maintState.urgence] + "\n\nDescription :\n" + desc + "\n\n---\nEnvoye depuis Breakpoint OPS",
+        photo_url:    photoUrl,
+        photo_base64: maintState.photoDataUrl || null,
+        photo_name:   maintState.photoFileName || "photo.jpg"
+      };
+
+      var mailSent = false;
+      try {
+        var resp = await fetch(SUPABASE_URL + "/functions/v1/send-maintenance-mail", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + SUPABASE_KEY
+          },
+          body: JSON.stringify(mailPayload)
+        });
+        if (resp.ok){
+          mailSent = true;
+          if (incidentId) await supabaseClient.from("maintenance_incidents").update({ mail_envoye: true }).eq("id", incidentId);
+          showToast("Demande envoyee !");
+        } else {
+          var errText = await resp.text();
+          console.error("Mail edge function error:", errText);
+          if (incidentId) await supabaseClient.from("maintenance_incidents").update({ mail_envoye: false, statut: "mail_echec" }).eq("id", incidentId);
+          showToast("Enregistre mais mail non envoye - verifier Edge Function");
+        }
+      } catch(mailErr){
+        console.error("Mail fetch error:", mailErr);
+        if (incidentId) await supabaseClient.from("maintenance_incidents").update({ mail_envoye: false, statut: "mail_echec" }).eq("id", incidentId);
+        showToast("Enregistre mais mail non envoye");
+      }
+
+      /* 4. Reset formulaire */
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintDescription").value = "";
       removeMaintPhoto();
-      window.location.href = mailto;
+      if (btn){ btn.disabled = false; btn.textContent = "Envoyer la demande"; }
     }
 
     /* ── Historique maintenance ── */
@@ -1723,7 +1782,7 @@
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
       const { data, error } = await supabaseClient
-        .from("incidents")
+        .from("maintenance_incidents")
         .select("*")
         .eq("station", state.station)
         .gte("created_at", sixMonthsAgo.toISOString())
@@ -1763,7 +1822,9 @@
               <span style="background:${badgeBg};color:#374151;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">${urgText[urg] || urg}</span>
             </div>
             <div style="font-size:12px;color:#6b7280;">📅 ${dateFmt} à ${hourFmt} · 🏠 ${inc.station}</div>
-            <div style="font-size:13px;color:#374151;line-height:1.5;">${inc.description}</div>
+            ${inc.titre ? `<div style="font-size:13px;font-weight:700;color:#374151;margin-top:2px;">${inc.titre}</div>` : ""}
+            ${inc.emplacement ? `<div style="font-size:12px;color:#6b7280;">📍 ${inc.emplacement}</div>` : ""}
+            <div style="font-size:13px;color:#374151;line-height:1.5;margin-top:2px;">${inc.description}</div>
             ${mailStatus ? `<div style="font-size:11px;color:#6b7280;">${mailStatus}</div>` : ""}
             ${photoHtml}
           </div>`;
@@ -1808,6 +1869,12 @@
       });
 
       // Reset form
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintEmplacement").value = "";
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintEmplacement").value = "";
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintDescription").value = "";
       document.getElementById("maintInfoBox").style.display = "none";
       document.getElementById("maintContactBox").style.display = "none";
