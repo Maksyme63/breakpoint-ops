@@ -1234,7 +1234,6 @@
       const ean      = document.getElementById("eanInput").value.trim();
       const nom      = document.getElementById("nameInput").value.trim();
       const dlc      = document.getElementById("dlcInput").value;
-      const quantite = 1;
       const station  = state.station || (function(){ try { return sessionStorage.getItem("bpops_station"); } catch(e){ return null; } })();
       if (station && !state.station) state.station = station;
 
@@ -1277,27 +1276,14 @@
         }
 
         /* 2. Lot */
-        const { data: existingLot } = await supabaseClient
-          .from("lots").select("id,quantite")
-          .eq("ean", ean).eq("station", station).eq("dlc", dlc).eq("statut", "actif")
-          .maybeSingle();
-
-        if (existingLot){
-          const newQty = existingLot.quantite + quantite;
-          const { error: lErr } = await supabaseClient
-            .from("lots").update({ quantite: newQty }).eq("id", existingLot.id);
-          if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
-          showToast(`✅ Quantité mise à jour (${newQty} unités)`);
-        } else {
-          const { error: lErr } = await supabaseClient
-            .from("lots").insert([{
-              ean, station, dlc, quantite,
-              statut: "actif",
-              emplacements: [...state.selectedLocations]
-            }]);
-          if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
-          showToast("✅ Lot enregistré");
-        }
+        const { error: lErr } = await supabaseClient
+          .from("lots").insert([{
+            ean, station, dlc,
+            statut: "actif",
+            emplacements: [...state.selectedLocations]
+          }]);
+        if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
+        showToast("✅ Enregistré");
 
         /* 3. Reset */
         document.getElementById("eanInput").value  = "";
@@ -1371,13 +1357,13 @@
             <div style="width:62px;height:62px;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">${photoHtml}</div>
             <div style="flex:1;min-width:0;">
               <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
-              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${item.quantite} unité${item.quantite>1?"s":""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">DLC : ${dlcFmt}</div>
               <span style="display:inline-block;background:${pillBg};color:${pillColor};border:1px solid ${border};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">${pillText}</span>
             </div>
           </div>
           <div style="display:flex;gap:7px;border-top:1px solid #f3f4f6;padding-top:10px;flex-wrap:wrap;">
             <button onclick="marquerTraite('${item.id}')" style="flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 0;background:#dcfce7;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✅ Marquer traité</button>
-            <button onclick="corrigerQuantite('${item.id}',${item.quantite})" style="flex:1;min-width:100px;border:none;border-radius:10px;padding:10px 0;background:#eff6ff;color:#2563eb;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✏️ Corriger qté</button>
+
             <button onclick="supprimerLot('${item.id}')" style="width:42px;border:none;border-radius:10px;background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;">🗑</button>
           </div>
         </div>`;
