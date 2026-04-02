@@ -1104,7 +1104,8 @@
       photoDataUrl: null,
       quaggaRunning: false,
       saving: false,
-      lastScanTime: 0
+      lastScanTime: 0,
+      scanLock: false
     };
 
     /* ══ NAVIGATION ══ */
@@ -1474,6 +1475,19 @@
       return /^[0-9]{8}$|^[0-9]{13}$/.test(code);
     }
 
+    /* ── EAN Checksum validation ── */
+    function validateEAN(code){
+      if (!/^[0-9]{8}$|^[0-9]{13}$/.test(code)) return false;
+      var digits = code.split('').map(Number);
+      var len = digits.length;
+      var sum = 0;
+      for (var i = 0; i < len - 1; i++){
+        sum += digits[i] * (len === 13 ? (i % 2 === 0 ? 1 : 3) : (i % 2 === 0 ? 3 : 1));
+      }
+      var check = (10 - (sum % 10)) % 10;
+      return check === digits[len - 1];
+    }
+
     function playBeep(type){
       try {
         var ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1490,27 +1504,40 @@
           osc.stop(ctx.currentTime + 0.3);
         } else {
           osc.frequency.setValueAtTime(300, ctx.currentTime);
-          osc.frequency.setValueAtTime(200, ctx.currentTime + 0.1);
-          gain.gain.setValueAtTime(0.3, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
           osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + 0.25);
+          osc.stop(ctx.currentTime + 0.2);
         }
       } catch(e){}
     }
 
     function acceptScanCode(value){
+      if (state.scanLock) return;
+      state.scanLock = true;
       document.getElementById("eanInput").value = value;
-      if (navigator.vibrate) navigator.vibrate(100);
+      if (navigator.vibrate) navigator.vibrate(80);
       playBeep("success");
       stopInlineScanner();
       loadProductByEAN(value);
       showToast("✅ Code scanné : " + value);
     }
 
+    function processScanResult(raw){
+      if (!raw || state.scanLock) return;
+      // Keep digits only
+      var code = raw.replace(/[^0-9]/g, "");
+      // Must be EAN-8 or EAN-13
+      if (code.length !== 8 && code.length !== 13) return;
+      // Checksum validation — rejects any bad read
+      if (!validateEAN(code)) return;
+      // Accept immediately — no double-scan needed
+      acceptScanCode(code);
+    }
+
     function showScanConfirm(value){
-      const panel = document.getElementById("scanConfirmPanel");
-      const label = document.getElementById("scanConfirmCode");
+      var panel = document.getElementById("scanConfirmPanel");
+      var label = document.getElementById("scanConfirmCode");
       label.textContent = "Code détecté : " + value;
       panel.dataset.code = value;
       panel.style.display = "block";
@@ -1518,69 +1545,48 @@
     }
 
     function confirmScanCode(){
-      const panel = document.getElementById("scanConfirmPanel");
-      const value = panel.dataset.code;
+      var panel = document.getElementById("scanConfirmPanel");
+      var value = panel.dataset.code;
       if (value) acceptScanCode(value);
     }
 
     function dismissScanConfirm(){
-      const panel = document.getElementById("scanConfirmPanel");
+      var panel = document.getElementById("scanConfirmPanel");
       panel.style.display = "none";
       panel.dataset.code = "";
       document.getElementById("scanStatusBadge").style.display = "block";
       document.getElementById("scanStatusBadge").textContent = "Recherche...";
-      state.lastScanCode = null;
-    }
-
-    function processScanResult(code){
-      if (!code) return;
-      // Format valide EAN8 ou EAN13 uniquement chiffres
-      if (!isValidEAN(code)){
-        // format douteux → confirmation
-        playBeep("error");
-        showScanConfirm(code);
-        return;
-      }
-      // Fiabilité : même code détecté 2 fois consécutives
-      if (state.lastScanCode === code){
-        // Confirmé 2x → auto
-        state.lastScanCode = null;
-        acceptScanCode(code);
-      } else {
-        state.lastScanCode = code;
-        document.getElementById("scanStatusBadge").textContent = "Code détecté, vérification...";
-      }
+      state.scanLock = false;
     }
 
     async function startInlineScanner(){
-      const video       = document.getElementById("scannerVideoInline");
-      const placeholder = document.getElementById("scanPlaceholder");
-      const corners     = document.getElementById("scanCorners");
-      const statusBadge = document.getElementById("scanStatusBadge");
-      const stopBtn     = document.getElementById("scanStopBtn");
+      var video       = document.getElementById("scannerVideoInline");
+      var placeholder = document.getElementById("scanPlaceholder");
+      var corners     = document.getElementById("scanCorners");
+      var statusBadge = document.getElementById("scanStatusBadge");
+      var stopBtn     = document.getElementById("scanStopBtn");
 
-      // Reset scan state
+      state.scanLock = false;
       state.lastScanCode = null;
       state.lastScanTime = 0;
       document.getElementById("scanConfirmPanel").style.display = "none";
-
-      // Stop any previous stream before starting
       stopInlineScanner();
 
       try {
-        // iPhone optimized constraints: exact environment camera, autofocus
+        // iPhone: exact rear camera + high resolution for better EAN reads
         state.stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { exact: "environment" },
             width:  { ideal: 1920 },
-            height: { ideal: 1080 },
-            focusMode: "continuous"
+            height: { ideal: 1080 }
           },
           audio: false
-        }).catch(() => navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-          audio: false
-        }));
+        }).catch(function(){
+          return navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+          });
+        });
 
         video.srcObject = state.stream;
         await video.play();
@@ -1592,42 +1598,40 @@
         stopBtn.style.display = "block";
 
         if ("BarcodeDetector" in window){
-          state.barcodeDetector = new BarcodeDetector({ formats:["ean_13","ean_8","code_128","upc_a","upc_e"] });
-          // Scan every 400ms — good balance for iPhone
-          state.scanTimer = setInterval(async () => {
-            if (!state.stream) return;
+          // Use only EAN formats — no code128/UPC to avoid false positives
+          state.barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8"] });
+          state.scanTimer = setInterval(async function(){
+            if (!state.stream || state.scanLock) return;
             try {
-              const codes = await state.barcodeDetector.detect(video);
-              if (codes && codes.length > 0) {
-                const raw = codes[0].rawValue;
-                // Anti-duplicate: ignore same code within 1.5s
-                const now = Date.now();
-                if (raw === state.lastScanCode && now - state.lastScanTime < 1500) return;
-                state.lastScanCode = raw;
-                state.lastScanTime = now;
-                processScanResult(raw);
+              var codes = await state.barcodeDetector.detect(video);
+              if (codes && codes.length > 0){
+                processScanResult(codes[0].rawValue);
               }
             } catch(e){}
-          }, 400);
+          }, 300);
         } else {
+          // Quagga fallback for iOS Safari
           statusBadge.textContent = "Chargement scanner...";
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
           statusBadge.textContent = "Pointez vers le code-barres";
-          var quaggaLastCode = null;
-          var quaggaLastTime = 0;
           Quagga.init({
-            inputStream:{ name:"Live", type:"LiveStream", target:video, constraints:{ facingMode:"environment", width:1280, height:720 } },
-            decoder:{ readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"], multiple:false },
-            locate:true, frequency:15
+            inputStream:{
+              name: "Live",
+              type: "LiveStream",
+              target: video,
+              constraints: { facingMode: "environment" },
+              area: { top: "20%", right: "10%", left: "10%", bottom: "20%" }
+            },
+            decoder:{
+              readers: ["ean_reader", "ean_8_reader"],
+              multiple: false
+            },
+            locate: true,
+            frequency: 10
           }, function(err){ if (!err) Quagga.start(); });
           Quagga.onDetected(function(data){
-            var raw = data.codeResult.code;
-            var now = Date.now();
-            // Anti-duplicate for Quagga
-            if (raw === quaggaLastCode && now - quaggaLastTime < 1500) return;
-            quaggaLastCode = raw;
-            quaggaLastTime = now;
-            processScanResult(raw);
+            if (state.scanLock) return;
+            processScanResult(data.codeResult.code);
           });
           state.quaggaRunning = true;
         }
