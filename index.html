@@ -1072,6 +1072,25 @@
   </section>
 
 <script>
+    const APP_VERSION = "2.0.6";
+    (function checkVersion(){
+      try {
+        var stored = localStorage.getItem("bpops_version");
+        if (stored !== APP_VERSION) {
+          localStorage.setItem("bpops_version", APP_VERSION);
+          if ("caches" in window) {
+            caches.keys().then(function(names){
+              names.forEach(function(n){ caches.delete(n); });
+            });
+          }
+          if (stored !== null) {
+            // Version changed — reload once to get fresh content
+            window.location.reload(true);
+          }
+        }
+      } catch(e){}
+    })();
+
     const SUPABASE_URL = "https://hhsvazolktxqntyhuqqj.supabase.co";
     const SUPABASE_KEY = "sb_publishable_qr4Qq4OB-Qt1G8a0GO3WKw_IJxfRbl9";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1308,7 +1327,7 @@
       list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
       const currentStation = state.station;
       if (!currentStation){
-        list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">🎉</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucune alerte pour cette station</div></div>`;
         return;
       }
       const _ts = Date.now();
@@ -1404,7 +1423,7 @@
       list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
       const currentStation2 = state.station;
       if (!currentStation2){
-        list.innerHTML = `<div class="card"><div class="muted">Aucune station sélectionnée.</div></div>`;
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">📋</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucun historique pour cette station</div></div>`;
         return;
       }
       const { data, error } = await supabaseClient
@@ -1773,7 +1792,7 @@
       var cat   = maintState.categorie;
       var sub   = document.getElementById("maintSubcat").value;
       var titre = document.getElementById("maintTitre").value.trim();
-      var empl  = document.getElementById("maintEmplacement").value.trim();
+      var empl  = "";
       var desc  = document.getElementById("maintDescription").value.trim();
 
       if (!sub)   { showToast("Choisissez une sous-categorie"); return; }
@@ -1871,7 +1890,6 @@
 
       /* 4. Reset formulaire */
       document.getElementById("maintTitre").value = "";
-      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintDescription").value = "";
       removeMaintPhoto();
       if (btn){ btn.disabled = false; btn.textContent = "Envoyer la demande"; }
@@ -1985,11 +2003,8 @@
 
       // Reset form
       document.getElementById("maintTitre").value = "";
-      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintTitre").value = "";
-      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintTitre").value = "";
-      document.getElementById("maintEmplacement").value = "";
       document.getElementById("maintDescription").value = "";
       document.getElementById("maintInfoBox").style.display = "none";
       document.getElementById("maintContactBox").style.display = "none";
