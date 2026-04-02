@@ -1072,20 +1072,23 @@
   </section>
 
 <script>
-    const APP_VERSION = "2.0.6";
+    const APP_VERSION = "2.0.7";
     (function checkVersion(){
       try {
         var stored = localStorage.getItem("bpops_version");
         if (stored !== APP_VERSION) {
           localStorage.setItem("bpops_version", APP_VERSION);
+          // Clear SW caches on version change — but never reload
+          // Reloading resets state.station and makes history disappear
           if ("caches" in window) {
             caches.keys().then(function(names){
               names.forEach(function(n){ caches.delete(n); });
             });
           }
-          if (stored !== null) {
-            // Version changed — reload once to get fresh content
-            window.location.reload(true);
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs){
+              regs.forEach(function(reg){ reg.unregister(); });
+            });
           }
         }
       } catch(e){}
@@ -1478,11 +1481,19 @@
     /* ── EAN Checksum validation ── */
     function validateEAN(code){
       if (!/^[0-9]{8}$|^[0-9]{13}$/.test(code)) return false;
-      var digits = code.split('').map(Number);
+      var digits = code.split("").map(Number);
       var len = digits.length;
       var sum = 0;
-      for (var i = 0; i < len - 1; i++){
-        sum += digits[i] * (len === 13 ? (i % 2 === 0 ? 1 : 3) : (i % 2 === 0 ? 3 : 1));
+      if (len === 13){
+        // EAN-13: odd positions *1, even positions *3
+        for (var i = 0; i < 12; i++){
+          sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+        }
+      } else {
+        // EAN-8: odd positions *3, even positions *1
+        for (var i = 0; i < 7; i++){
+          sum += digits[i] * (i % 2 === 0 ? 3 : 1);
+        }
       }
       var check = (10 - (sum % 10)) % 10;
       return check === digits[len - 1];
@@ -1531,7 +1542,12 @@
       if (code.length !== 8 && code.length !== 13) return;
       // Checksum validation — rejects any bad read
       if (!validateEAN(code)) return;
-      // Accept immediately — no double-scan needed
+      // Cooldown: ignore same code within 1s to prevent duplicate fires
+      var now = Date.now();
+      if (code === state.lastScanCode && (now - state.lastScanTime) < 1000) return;
+      state.lastScanCode = code;
+      state.lastScanTime = now;
+      // Accept immediately
       acceptScanCode(code);
     }
 
