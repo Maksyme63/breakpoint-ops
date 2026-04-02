@@ -1103,16 +1103,15 @@
       selectedLocations: [],
       photoDataUrl: null,
       quaggaRunning: false,
-      saving: false
+      saving: false,
+      lastScanTime: 0
     };
 
     /* ══ NAVIGATION ══ */
     function showPage(id){
-      // Auto-stop scanner camera when leaving reception page
+      // Always stop scanner when leaving reception
       if (id !== "page-reception") {
-        if (state.stream || state.scanTimer || state.quaggaRunning) {
-          stopInlineScanner();
-        }
+        stopInlineScanner();
       }
       document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
       document.getElementById(id).classList.add("active");
@@ -1155,10 +1154,7 @@
     }
 
     /* ══ FORMULAIRE RECEPTION ══ */
-    function changeQty(delta){
-      const input = document.getElementById("qtyInput");
-      input.value = Math.max(1, (parseInt(input.value || "1", 10)) + delta);
-    }
+
 
     function setTodayMinDate(){
       document.getElementById("dlcInput").min = new Date().toISOString().split("T")[0];
@@ -1306,7 +1302,6 @@
         /* 3. Reset */
         document.getElementById("eanInput").value  = "";
         document.getElementById("nameInput").value = "";
-        document.getElementById("qtyInput").value  = "1";
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
@@ -1577,15 +1572,32 @@
       const corners     = document.getElementById("scanCorners");
       const statusBadge = document.getElementById("scanStatusBadge");
       const stopBtn     = document.getElementById("scanStopBtn");
+
+      // Reset scan state
       state.lastScanCode = null;
+      state.lastScanTime = 0;
       document.getElementById("scanConfirmPanel").style.display = "none";
 
+      // Stop any previous stream before starting
+      stopInlineScanner();
+
       try {
+        // iPhone optimized constraints: exact environment camera, autofocus
         state.stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720} },
+          video: {
+            facingMode: { exact: "environment" },
+            width:  { ideal: 1920 },
+            height: { ideal: 1080 },
+            focusMode: "continuous"
+          },
           audio: false
-        });
+        }).catch(() => navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false
+        }));
+
         video.srcObject = state.stream;
+        await video.play();
         video.style.display = "block";
         placeholder.style.display = "none";
         corners.style.display = "block";
@@ -1595,23 +1607,40 @@
 
         if ("BarcodeDetector" in window){
           state.barcodeDetector = new BarcodeDetector({ formats:["ean_13","ean_8","code_128","upc_a","upc_e"] });
+          // Scan every 400ms — good balance for iPhone
           state.scanTimer = setInterval(async () => {
+            if (!state.stream) return;
             try {
               const codes = await state.barcodeDetector.detect(video);
-              if (codes && codes.length > 0) processScanResult(codes[0].rawValue);
+              if (codes && codes.length > 0) {
+                const raw = codes[0].rawValue;
+                // Anti-duplicate: ignore same code within 1.5s
+                const now = Date.now();
+                if (raw === state.lastScanCode && now - state.lastScanTime < 1500) return;
+                state.lastScanCode = raw;
+                state.lastScanTime = now;
+                processScanResult(raw);
+              }
             } catch(e){}
-          }, 500);
+          }, 400);
         } else {
           statusBadge.textContent = "Chargement scanner...";
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
           statusBadge.textContent = "Pointez vers le code-barres";
+          var quaggaLastCode = null;
+          var quaggaLastTime = 0;
           Quagga.init({
-            inputStream:{ name:"Live", type:"LiveStream", target:video, constraints:{facingMode:"environment"} },
-            decoder:{ readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"] },
-            locate:true, frequency:10
-          }, err => { if (!err) Quagga.start(); });
-          Quagga.onDetected(data => {
-            const raw = data.codeResult.code;
+            inputStream:{ name:"Live", type:"LiveStream", target:video, constraints:{ facingMode:"environment", width:1280, height:720 } },
+            decoder:{ readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"], multiple:false },
+            locate:true, frequency:15
+          }, function(err){ if (!err) Quagga.start(); });
+          Quagga.onDetected(function(data){
+            var raw = data.codeResult.code;
+            var now = Date.now();
+            // Anti-duplicate for Quagga
+            if (raw === quaggaLastCode && now - quaggaLastTime < 1500) return;
+            quaggaLastCode = raw;
+            quaggaLastTime = now;
             processScanResult(raw);
           });
           state.quaggaRunning = true;
