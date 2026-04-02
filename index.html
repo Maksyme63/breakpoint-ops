@@ -845,7 +845,7 @@
 
         <div class="form-group">
           <label class="form-label">Date limite de consommation</label>
-          <input class="input" id="dlcInput" type="date" />
+          <input class="input" id="dlcInput" type="date" style="width:100%;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;" />
         </div>
 
         <div class="form-group">
@@ -1121,6 +1121,7 @@
 
     function selectStation(name){
       state.station = name;
+      try { sessionStorage.setItem("bpops_station", name); } catch(e){}
       document.getElementById("top-station-name").textContent    = name;
       document.getElementById("hero-station-name").textContent   = name;
       document.getElementById("stock-station-name").textContent  = name;
@@ -1221,7 +1222,7 @@
         if (data && data.nom){
           document.getElementById("nameInput").value = data.nom;
           if (data.photo){
-            state.photoDataUrl = null; // produit déjà connu
+            state.photoDataUrl = data.photo;
             document.getElementById("productPhotoBox").innerHTML =
               `<img src="${data.photo}" style="width:100%;height:100%;object-fit:cover;">`;
           }
@@ -1238,7 +1239,8 @@
       const nom      = document.getElementById("nameInput").value.trim();
       const dlc      = document.getElementById("dlcInput").value;
       const quantite = 1;
-      const station  = state.station;
+      const station  = state.station || (function(){ try { return sessionStorage.getItem("bpops_station"); } catch(e){ return null; } })();
+      if (station && !state.station) state.station = station;
 
       if (!station)                      { showToast("Aucune station sélectionnée"); return; }
       if (!ean)                          { showToast("⚠️ Code EAN requis");          return; }
@@ -1643,6 +1645,11 @@
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
       buildLocationGrid();
+      // Restore station from sessionStorage if page was reloaded
+      try {
+        var saved = sessionStorage.getItem("bpops_station");
+        if (saved && !state.station) state.station = saved;
+      } catch(e){}
     })();
 
     // Force désactivation SW + vidage cache
@@ -1906,8 +1913,9 @@
       const list = document.getElementById("maintHistoryList");
       list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
 
-      if (!state.station){
-        list.innerHTML = `<div style="padding:16px;background:#fff;border-radius:14px;color:#6b7280;">Aucune station sélectionnée.</div>`;
+      const maintHistStation = state.station;
+      if (!maintHistStation){
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">📋</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucun historique pour cette station</div></div>`;
         return;
       }
 
@@ -1917,7 +1925,7 @@
       const { data, error } = await supabaseClient
         .from("maintenance_incidents")
         .select("*")
-        .eq("station", state.station)
+        .eq("station", maintHistStation)
         .gte("created_at", sixMonthsAgo.toISOString())
         .order("created_at", { ascending: false });
 
