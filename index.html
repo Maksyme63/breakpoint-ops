@@ -1588,8 +1588,16 @@
       document.getElementById("scanConfirmPanel").style.display = "none";
       stopInlineScanner();
 
+      // BarcodeDetector not available — no fallback, use manual input
+      if (!("BarcodeDetector" in window)){
+        statusBadge.style.display = "block";
+        statusBadge.textContent = "Scanner non supporté sur cet appareil. Utilisez la saisie manuelle.";
+        placeholder.style.display = "none";
+        stopBtn.style.display = "block";
+        return;
+      }
+
       try {
-        // iPhone: exact rear camera + high resolution for better EAN reads
         state.stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { exact: "environment" },
@@ -1613,44 +1621,17 @@
         statusBadge.textContent = "Recherche...";
         stopBtn.style.display = "block";
 
-        if ("BarcodeDetector" in window){
-          // Use only EAN formats — no code128/UPC to avoid false positives
-          state.barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8"] });
-          state.scanTimer = setInterval(async function(){
-            if (!state.stream || state.scanLock) return;
-            try {
-              var codes = await state.barcodeDetector.detect(video);
-              if (codes && codes.length > 0){
-                processScanResult(codes[0].rawValue);
-              }
-            } catch(e){}
-          }, 300);
-        } else {
-          // Quagga fallback for iOS Safari
-          statusBadge.textContent = "Chargement scanner...";
-          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
-          statusBadge.textContent = "Pointez vers le code-barres";
-          Quagga.init({
-            inputStream:{
-              name: "Live",
-              type: "LiveStream",
-              target: video,
-              constraints: { facingMode: "environment" },
-              area: { top: "20%", right: "10%", left: "10%", bottom: "20%" }
-            },
-            decoder:{
-              readers: ["ean_reader", "ean_8_reader"],
-              multiple: false
-            },
-            locate: true,
-            frequency: 10
-          }, function(err){ if (!err) Quagga.start(); });
-          Quagga.onDetected(function(data){
-            if (state.scanLock) return;
-            processScanResult(data.codeResult.code);
-          });
-          state.quaggaRunning = true;
-        }
+        state.barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8"] });
+        state.scanTimer = setInterval(async function(){
+          if (!state.stream || state.scanLock) return;
+          try {
+            var codes = await state.barcodeDetector.detect(video);
+            if (codes && codes.length > 0){
+              processScanResult(codes[0].rawValue);
+            }
+          } catch(e){}
+        }, 300);
+
       } catch(err){
         showToast("⚠️ Caméra indisponible");
         placeholder.style.display = "flex";
@@ -1663,11 +1644,10 @@
 
     function stopInlineScanner(){
       if (state.scanTimer){ clearInterval(state.scanTimer); state.scanTimer = null; }
-      if (state.quaggaRunning){ try{ Quagga.stop(); }catch(e){} state.quaggaRunning = false; }
-      if (state.stream){ state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
-      const video = document.getElementById("scannerVideoInline");
+      if (state.stream){ state.stream.getTracks().forEach(function(t){ t.stop(); }); state.stream = null; }
+      var video = document.getElementById("scannerVideoInline");
       if (video) video.srcObject = null;
-      video.style.display = "none";
+      if (video) video.style.display = "none";
       document.getElementById("scanPlaceholder").style.display = "flex";
       document.getElementById("scanCorners").style.display = "none";
       document.getElementById("scanStatusBadge").style.display = "none";
