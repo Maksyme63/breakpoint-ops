@@ -10,7 +10,7 @@ if ! python3 -c "import tinytuya" 2>/dev/null; then
   echo "Installation de tinytuya (une seule fois)…"
   PIP="python3 -m pip install -q --disable-pip-version-check"
   $PIP --user --no-deps tinytuya 2>/dev/null || $PIP --no-deps tinytuya
-  $PIP --user requests colorama pyaes 2>/dev/null || $PIP requests colorama pyaes
+  $PIP --user requests colorama pycryptodomex 2>/dev/null || $PIP requests colorama pycryptodomex
   # Chiffrement rapide seulement s'il existe déjà compilé (jamais de compilation Rust)
   $PIP --user --only-binary=:all: cryptography 2>/dev/null || $PIP --only-binary=:all: cryptography 2>/dev/null || true
 fi
