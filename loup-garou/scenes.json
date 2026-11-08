@@ -248,13 +248,14 @@
     ]
    },
    "sons": [
-    "attaque"
+    "attaque",
+    "terreur"
    ],
    "fichier": "sounds/attaque.mp3",
    "voix": {
     "reveil": "Les loups bondissent sur leur proie… Un cri déchire la nuit, puis plus rien. Seul le silence."
    },
-   "voix_delai": 6.5,
+   "voix_delai": 12,
    "dodo_apres": true
   },
   {

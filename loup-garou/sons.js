@@ -616,8 +616,38 @@
     voix.connect(f1); voix.connect(f2); f1.connect(ce); f2.connect(ce); ce.connect(cb.entree);
     ce.gain.setValueAtTime(0.0001, tc); ce.gain.linearRampToValueAtTime(1, tc + 0.08); ce.gain.setValueAtTime(1, tc + 0.9); ce.gain.exponentialRampToValueAtTime(0.0001, tc + 1.5);
     voix.start(tc); vib.start(tc); voix.stop(tc + 1.6); vib.stop(tc + 1.6);
-    // puis silence pesant et un dernier hurlement au loin
-    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 7800);
+    // la meute dévore sa proie : craquements, déchirures, mastication, grognements
+    const devore = ctx.createGain(); devore.gain.value = 0.9; devore.connect(g);
+    const craque = (t, v) => { // os qui craque : salve de petits clics secs
+      for (let i = 0; i < 6; i++) {
+        const n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain(), tt = t + i * rnd(0.008, 0.025);
+        bp.type = "bandpass"; bp.frequency.value = rnd(1800, 4500); bp.Q.value = 3;
+        env(ng.gain, tt, v * rnd(0.4, 1), 0.001, rnd(0.01, 0.03)); n.connect(bp); bp.connect(ng); ng.connect(devore); n.stop(tt + 0.05);
+      }
+    };
+    const dechire = (t, d) => { // chair déchirée : souffle humide qui glisse
+      const n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      bp.type = "bandpass"; bp.Q.value = 2; bp.frequency.setValueAtTime(rnd(500, 900), t); bp.frequency.exponentialRampToValueAtTime(rnd(1500, 2600), t + d);
+      ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.5, t + 0.04);
+      const am = ctx.createOscillator(), amg = ctx.createGain(); am.frequency.value = rnd(40, 70); amg.gain.value = 0.3;
+      am.connect(amg); amg.connect(ng.gain); am.start(t); am.stop(t + d);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + d); n.connect(bp); bp.connect(ng); ng.connect(devore); n.stop(t + d + 0.05);
+    };
+    const mache = (t) => { // mastication humide : bruit grave qui claque
+      const n = bruit(false), lp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      lp.type = "lowpass"; lp.frequency.setValueAtTime(rnd(300, 600), t); lp.frequency.exponentialRampToValueAtTime(150, t + 0.15); lp.Q.value = 8;
+      env(ng.gain, t, rnd(0.5, 0.9), 0.01, rnd(0.1, 0.18)); n.connect(lp); lp.connect(ng); ng.connect(devore); n.stop(t + 0.25);
+    };
+    const td = t0 + 3.6;
+    for (let k = 0; k < 26; k++) {
+      const t = td + k * rnd(0.22, 0.38);
+      const x = Math.random();
+      if (x < 0.35) mache(t); else if (x < 0.6) craque(t, 0.8); else if (x < 0.8) dechire(t, rnd(0.25, 0.5)); else mache(t);
+    }
+    for (let k = 0; k < 5; k++) grogne(td + 0.4 + k * rnd(1.2, 1.8), rnd(0.8, 1.3), rnd(80, 120), rnd(-0.8, 0.8), 0.45);
+    devore.gain.setValueAtTime(0.9, td + 8); devore.gain.linearRampToValueAtTime(0.0001, td + 11);
+    // puis un dernier hurlement au loin
+    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 12500);
     return arretAvecFondu(g, [], [], 1.5);
   };
 
@@ -640,6 +670,58 @@
     };
     tick();
     return arretAvecFondu(b.gain, [], [() => { actif = false; clearTimeout(timer); }], 1.2);
+  };
+
+  /** Musique de terreur pour l'attaque : montée, explosion, puis menace continue (aucun silence). */
+  SONS.terreur = (sortie) => {
+    const g = ctx.createGain(); g.gain.value = 0.75; g.connect(sortie);
+    const t0 = ctx.currentTime + 0.05, noeuds = [];
+    const boum = (t, f = 55, v = 1) => { // grosse percussion grave (type taiko)
+      const o = ctx.createOscillator(), og = ctx.createGain(), n = bruit(false), lp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      o.frequency.setValueAtTime(f * 2.2, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.12);
+      env(og.gain, t, v, 0.004, 1.1); o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.2);
+      lp.type = "lowpass"; lp.frequency.value = 900; env(ng.gain, t, v * 0.5, 0.002, 0.18);
+      n.connect(lp); lp.connect(ng); ng.connect(g); n.stop(t + 0.3);
+    };
+    const cordes = (t, notes, duree, debut, fin, ouverture) => { // nappe de cordes dissonantes en trémolo
+      const b = bus(g, 1, 0.6), f = ctx.createBiquadFilter(), eg = ctx.createGain();
+      f.type = "lowpass"; f.frequency.setValueAtTime(ouverture[0], t); f.frequency.exponentialRampToValueAtTime(ouverture[1], t + duree);
+      eg.gain.setValueAtTime(debut, t); eg.gain.exponentialRampToValueAtTime(fin, t + duree);
+      const trem = ctx.createOscillator(), tg = ctx.createGain(); trem.frequency.value = 9; tg.gain.value = 0.35;
+      trem.connect(tg); tg.connect(eg.gain); trem.start(t); trem.stop(t + duree + 0.1);
+      f.connect(eg); eg.connect(b.entree);
+      notes.forEach((n) => [-9, 9].forEach((det) => {
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = "sawtooth"; o.frequency.value = note(n); o.detune.value = det;
+        og.gain.value = 0.05; o.connect(og); og.connect(f); o.start(t); o.stop(t + duree + 0.1);
+      }));
+    };
+    // 1) Dans le noir (0-2.4 s) : cordes qui montent, battements de plus en plus rapprochés
+    cordes(t0, [40, 41, 46, 52, 53], 2.4, 0.02, 0.5, [300, 2500]);
+    [0, 0.8, 1.4, 1.85, 2.15, 2.35].forEach((d, i) => boum(t0 + d, 50, 0.5 + i * 0.1));
+    // 2) L'attaque (2.4-5.2 s) : impacts, cris de violons stridents
+    const ta = t0 + 2.4;
+    boum(ta, 42, 1.4);
+    [0, 0.45, 0.8, 1.1, 1.5, 1.9, 2.3, 2.7].forEach((d) => boum(ta + d, 48 + Math.random() * 10, 0.9));
+    cordes(ta, [76, 77, 82, 83, 88], 2.8, 0.6, 0.15, [6000, 2500]);
+    cordes(ta, [28, 29, 34], 2.8, 0.8, 0.4, [500, 300]);
+    // 3) Après (5.2 s et plus) : menace continue jusqu'à la scène suivante
+    const tm = t0 + 4.4, bm = bus(g, 0.0001, 0.7), fm = ctx.createBiquadFilter();
+    bm.gain.gain.setValueAtTime(0.0001, tm - 0.3); bm.gain.gain.exponentialRampToValueAtTime(0.5, tm + 0.8);
+    fm.type = "lowpass"; fm.frequency.value = 600; fm.Q.value = 4; fm.connect(bm.entree);
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.08; lg.gain.value = 350;
+    lfo.connect(lg); lg.connect(fm.frequency); lfo.start(tm - 0.3); noeuds.push(lfo);
+    [[29, -7], [29, 8], [30, 0], [35, 4], [41, -3]].forEach(([n, det]) => {
+      const o = ctx.createOscillator(), og = ctx.createGain(); o.type = "sawtooth"; o.frequency.value = note(n); o.detune.value = det;
+      og.gain.value = 0.12; o.connect(og); og.connect(fm); o.start(tm - 0.3); noeuds.push(o);
+    });
+    const stop = boucleAleatoire(() => { // boum lointain et souffle qui monte, régulièrement
+      const t = ctx.currentTime + 0.05; boum(t, 45, 0.6);
+      const n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      bp.type = "bandpass"; bp.frequency.setValueAtTime(400, t); bp.frequency.exponentialRampToValueAtTime(2500, t + 2.5); bp.Q.value = 3;
+      ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.12, t + 2.4); ng.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+      n.connect(bp); bp.connect(ng); ng.connect(g); n.stop(t + 3);
+    }, 3.5, 6, 6.5);
+    return arretAvecFondu(g, noeuds, [stop], 2.5);
   };
 
   /** Croassements de corbeau. */
