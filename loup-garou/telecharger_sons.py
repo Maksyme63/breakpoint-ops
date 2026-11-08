@@ -44,6 +44,10 @@ SONS = {
     "oiseaux":     (["birdsong", "dawn chorus", "bird song", "birds singing", "chant oiseaux"], 5, 1200),
     "feu":         (["fire crackling", "campfire", "crackling fire", "fireplace", "feu de bois"], 5, 1200),
     "foule":       (["crowd", "crowd noise", "people talking", "murmur", "market crowd"], 5, 1200),
+    "grognement_loup": (["wolf growl", "wolf snarl", "dog growling", "dog snarling", "growling dog"], 1, 40),
+    "morsure":     (["bone crunch", "bone breaking", "crunch", "bite apple", "celery crunch"], 0.2, 20),
+    "cri_victime": (["scream", "woman screaming", "man screaming", "horror scream", "terrified scream"], 0.5, 15),
+    "devorement":  (["dog eating", "dog chewing bone", "chewing", "eating sounds", "lion eating", "wolf eating"], 3, 180),
     "brabanconne": (["La Brabançonne", "Brabanconne", "Belgium national anthem", "Belgian national anthem", "hymne national belge"], 40, 600),
     "marche":      (["market ambience", "marketplace ambience", "medieval market", "outdoor market", "bazaar ambience"], 15, 1200),
     "medieval":    (["estampie", "saltarello", "medieval music", "medieval dance", "lute music", "musique médiévale"], 30, 1800),
@@ -106,7 +110,7 @@ def candidats(nom, rang_voulu=1):
             licence = (meta.get("LicenseShortName") or {}).get("value", "") or (meta.get("License") or {}).get("value", "")
             duree = float(vi.get("duration") or 0)
             description = re.sub(r"<[^>]+>", "", (meta.get("ImageDescription") or {}).get("value", "")).lower()
-            if re.search(r"voice|spoken|speech|narrat|comment|lecture|talk|announc|interview|explain", description + " " + p["title"].lower()):
+            if nom != "cri_victime" and re.search(r"voice|spoken|speech|narrat|comment|lecture|talk|announc|interview|explain", description + " " + p["title"].lower()):
                 ecartes.setdefault("voix parlée", 0)
                 ecartes["voix parlée"] += 1
                 continue

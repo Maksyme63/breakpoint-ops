@@ -595,12 +595,18 @@
       eg.gain.setValueAtTime(0.9, t + d * 0.8); eg.gain.exponentialRampToValueAtTime(0.0001, t + d);
       o.start(t); am.start(t); o.stop(t + d + 0.05); am.stop(t + d + 0.05); n.stop(t + d + 0.05);
     };
-    // la meute encercle la proie
-    grogne(t0, 1.6, 95, -0.6, 0.5); grogne(t0 + 0.5, 1.4, 110, 0.6, 0.5); grogne(t0 + 1.0, 1.2, 85, 0, 0.6);
-    // le bond : rugissement qui monte
-    grogne(t0 + 2.0, 0.9, 140, -0.2, 0.9); grogne(t0 + 2.05, 0.9, 170, 0.3, 0.8);
+    const vraiGrognement = enregistrementA("grognement_loup", g, 2.4, 1.0);
+    if (vraiGrognement) enregistrementA("grognement_loup", g, 4.2, 0.8);
+    if (!vraiGrognement) {
+      // la meute encercle la proie
+      grogne(t0, 1.6, 95, -0.6, 0.5); grogne(t0 + 0.5, 1.4, 110, 0.6, 0.5); grogne(t0 + 1.0, 1.2, 85, 0, 0.6);
+      // le bond : rugissement qui monte
+      grogne(t0 + 2.0, 0.9, 140, -0.2, 0.9); grogne(t0 + 2.05, 0.9, 170, 0.3, 0.8);
+    }
     // morsures
-    [2.7, 2.95, 3.3].forEach((d) => {
+    const vraieMorsure = enregistrementA("morsure", g, 2.4 + 2.7, 1.0);
+    if (vraieMorsure) { enregistrementA("morsure", g, 2.4 + 3.1, 0.8); }
+    if (!vraieMorsure) [2.7, 2.95, 3.3].forEach((d) => {
       const t = t0 + d, n = bruit(false), hp = ctx.createBiquadFilter(), ng = ctx.createGain(), o = ctx.createOscillator(), og = ctx.createGain();
       hp.type = "bandpass"; hp.frequency.value = rnd(1200, 2500); hp.Q.value = 2; env(ng.gain, t, 0.9, 0.002, 0.12);
       n.connect(hp); hp.connect(ng); ng.connect(g); n.stop(t + 0.2);
@@ -608,6 +614,8 @@
       env(og.gain, t, 1, 0.003, 0.2); o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.25);
     });
     // cri de la victime
+    const vraiCri = enregistrementA("cri_victime", g, 2.4 + 2.6, 0.9);
+    if (!vraiCri) {
     const tc = t0 + 2.6, cb = bus(g, 0.22, 0.8, 0.1), voix = ctx.createOscillator(), f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), ce = ctx.createGain();
     voix.type = "sawtooth"; voix.frequency.setValueAtTime(700, tc); voix.frequency.linearRampToValueAtTime(1050, tc + 0.3);
     voix.frequency.linearRampToValueAtTime(600, tc + 1.4);
@@ -616,6 +624,7 @@
     voix.connect(f1); voix.connect(f2); f1.connect(ce); f2.connect(ce); ce.connect(cb.entree);
     ce.gain.setValueAtTime(0.0001, tc); ce.gain.linearRampToValueAtTime(1, tc + 0.08); ce.gain.setValueAtTime(1, tc + 0.9); ce.gain.exponentialRampToValueAtTime(0.0001, tc + 1.5);
     voix.start(tc); vib.start(tc); voix.stop(tc + 1.6); vib.stop(tc + 1.6);
+    }
     // la meute dévore sa proie : craquements, déchirures, mastication, grognements
     const devore = ctx.createGain(); devore.gain.value = 0.9; devore.connect(g);
     const craque = (t, v) => { // os qui craque : salve de petits clics secs
@@ -639,7 +648,8 @@
       env(ng.gain, t, rnd(0.5, 0.9), 0.01, rnd(0.1, 0.18)); n.connect(lp); lp.connect(ng); ng.connect(devore); n.stop(t + 0.25);
     };
     const td = t0 + 3.6;
-    for (let k = 0; k < 26; k++) {
+    const vraiFestin = enregistrementA("devorement", devore, 2.4 + 3.6, 1.0, 9);
+    if (!vraiFestin) for (let k = 0; k < 26; k++) {
       const t = td + k * rnd(0.22, 0.38);
       const x = Math.random();
       if (x < 0.35) mache(t); else if (x < 0.6) craque(t, 0.8); else if (x < 0.8) dechire(t, rnd(0.25, 0.5)); else mache(t);
@@ -647,7 +657,7 @@
     for (let k = 0; k < 5; k++) grogne(td + 0.4 + k * rnd(1.2, 1.8), rnd(0.8, 1.3), rnd(80, 120), rnd(-0.8, 0.8), 0.45);
     devore.gain.setValueAtTime(0.9, td + 8); devore.gain.linearRampToValueAtTime(0.0001, td + 11);
     // puis un dernier hurlement au loin
-    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 12500);
+    if (!enregistrementA("loups", g, 12.5, 0.5)) setTimeout(() => hurlement(g, 0.7, 330, 3.5), 12500);
     return arretAvecFondu(g, [], [], 1.5);
   };
 
@@ -844,6 +854,27 @@
       const r = ctx.createGain(); r.gain.value = 0.2; dernier.connect(r); r.connect(reverb);
       src.start(); return { src, duree: buf.duration };
     }).catch(() => null);
+  }
+
+  /** Joue l'enregistrement « nom » de sounds/lib dans `delai` secondes (en boucle pendant `duree` si donnée).
+   *  Renvoie false s'il n'existe pas (on garde alors la version synthétisée). */
+  function enregistrementA(nom, sortie, delai, vol, duree) {
+    const url = cheminEchantillon(nom);
+    if (!url) return false;
+    const t = ctx.currentTime + delai;
+    charger(url).then((buf) => {
+      const src = ctx.createBufferSource(), g = ctx.createGain(), r = ctx.createGain();
+      src.buffer = buf; src.connect(g); g.connect(sortie); r.gain.value = 0.2; g.connect(r); r.connect(reverb);
+      g.gain.setValueAtTime(vol, Math.max(t, ctx.currentTime));
+      if (duree) {
+        src.loop = true;
+        g.gain.setValueAtTime(vol, t + duree - 2); g.gain.linearRampToValueAtTime(0.0001, t + duree);
+        src.start(Math.max(t, ctx.currentTime), rnd(0, Math.max(0, buf.duration - 1) * 0.3)); src.stop(t + duree + 0.1);
+      } else {
+        src.start(Math.max(t, ctx.currentTime));
+      }
+    }).catch(() => {});
+    return true;
   }
 
   function echantillon(url, type, sortie, vol) {
