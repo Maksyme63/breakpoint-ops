@@ -108,10 +108,12 @@ class AmpouleTuya:
         self.prochain_essai = 0.0
         self.ok = False
         self.dev = None
+        self.raison = None
         try:
             self._connecter()
-        except Exception:
+        except Exception as e:
             self.ok = False
+            self.raison = str(e)
         if not self.ok:
             self.echecs = 1  # on réessaiera pendant la partie
 
@@ -128,7 +130,9 @@ class AmpouleTuya:
             connection_timeout=2, connection_retry_limit=1, connection_retry_delay=0.5)
         self.dev.set_socketPersistent(True)
         r = self.dev.status()  # détecte le type d'ampoule (DP 1-5 ou 20-24)
-        self.ok = isinstance(r, dict) and "Error" not in r
+        # Certaines ampoules répondent à vide : seule une vraie erreur compte
+        self.raison = r.get("Error") if isinstance(r, dict) else None
+        self.ok = not self.raison
         self.derniere_cmd = None
         return self.ok
 
@@ -145,7 +149,7 @@ class AmpouleTuya:
                 if not self.ok and time.time() < self.prochain_essai:
                     return  # ampoule injoignable : on réessaie un peu plus tard
                 if not self.ok and not self._connecter():
-                    raise RuntimeError("toujours injoignable")
+                    raise RuntimeError(self.raison or "toujours injoignable")
                 r = fn(*args)  # attend la réponse de l'ampoule
                 if isinstance(r, dict) and r.get("Error"):
                     raise RuntimeError(r.get("Error"))
@@ -156,8 +160,8 @@ class AmpouleTuya:
                 self.derniere_cmd = cle
             except Exception as e:
                 self.echecs += 1
-                if self.ok or self.echecs == 1:
-                    print(f"  ! {self.nom} ne répond plus ({e}) -> reconnexion automatique")
+                if self.ok or self.echecs in (1, 5, 20):
+                    print(f"  ! {self.nom} ne répond pas ({e}) -> nouvel essai automatique")
                 self.ok = False
                 self.derniere_cmd = None
                 self.prochain_essai = time.time() + min(10, 2 * self.echecs)
@@ -221,7 +225,7 @@ def charger_ampoules():
             print(f"🔌 Connexion à « {info.get('name')} » ({info.get('ip') or 'recherche auto'})…")
             a = AmpouleTuya(info)
             ampoules.append(a)
-            print("   ✅ OK" if a.ok else "   ⚠️  Pas de réponse pour l'instant (allumée à l'interrupteur ?) : nouvel essai pendant la partie")
+            print("   ✅ OK" if a.ok else f"   ⚠️  Pas de réponse pour l'instant ({a.raison}) : nouvel essai pendant la partie")
         except Exception as e:
             print(f"   ❌ Impossible de joindre cette ampoule : {e}")
 
@@ -519,6 +523,9 @@ if __name__ == "__main__":
     print("🐺  Pad Loup-Garou prêt !")
     print(f"    Sur ce PC        : http://localhost:{PORT}")
     print(f"    Sur le téléphone : http://{ip_locale()}:{PORT}   (même Wi-Fi)")
+    nom_local = socket.gethostname().split(".")[0]
+    if nom_local and sys.platform == "darwin":
+        print(f"    Adresse fixe     : http://{nom_local}.local:{PORT}   (à mettre en favori sur l'iPhone)")
     print(f"    Ampoules         : {len(AMPOULES)} {'(SIMULATION)' if SIMULATION else ''}")
     print("    Ctrl+C pour arrêter.")
     print()
