@@ -295,8 +295,16 @@
   }
   SONS.tonnerre = (sortie) => {
     const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
-    coupDeTonnerre(g);
-    const stop = boucleAleatoire(() => coupDeTonnerre(g), 8, 16);
+    // L'éclair d'abord (lumières), le grondement juste après, comme en vrai
+    const orage = () => {
+      try { config.surEclair && config.surEclair(); } catch (e) {}
+      setTimeout(() => {
+        const p = cheminEchantillon("tonnerre");
+        if (p) jouerUneFois(p, g, 0.9); else coupDeTonnerre(g);
+      }, rnd(350, 1100));
+    };
+    orage();
+    const stop = boucleAleatoire(orage, 9, 18);
     return arretAvecFondu(g, [], [stop]);
   };
 
@@ -565,6 +573,49 @@
     return arretAvecFondu(b.gain, bourdon, [() => { actif = false; clearTimeout(timer); }], 2);
   };
 
+  /** Attaque des loups : grognements, bond, morsure, cri. */
+  SONS.attaque = (sortie) => {
+    const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
+    const t0 = ctx.currentTime + 0.05;
+    const grogne = (t, d, f, pan, vol) => {
+      const b = bus(g, vol, 0.35, pan), o = ctx.createOscillator(), n = bruit(false);
+      const lp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), eg = ctx.createGain(), ng = ctx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * rnd(1.3, 1.8), t + d * 0.6);
+      o.frequency.linearRampToValueAtTime(f * 0.8, t + d);
+      const am = ctx.createOscillator(), amg = ctx.createGain(); am.frequency.value = rnd(28, 40); amg.gain.value = 0.5;
+      am.connect(amg); amg.connect(eg.gain);
+      lp.type = "lowpass"; lp.frequency.value = 900; lp.Q.value = 6; bp.type = "bandpass"; bp.frequency.value = 600; bp.Q.value = 1; ng.gain.value = 0.5;
+      o.connect(lp); n.connect(bp); bp.connect(ng); ng.connect(lp); lp.connect(eg); eg.connect(b.entree);
+      eg.gain.setValueAtTime(0.0001, t); eg.gain.linearRampToValueAtTime(0.9, t + 0.12);
+      eg.gain.setValueAtTime(0.9, t + d * 0.8); eg.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.start(t); am.start(t); o.stop(t + d + 0.05); am.stop(t + d + 0.05); n.stop(t + d + 0.05);
+    };
+    // la meute encercle la proie
+    grogne(t0, 1.6, 95, -0.6, 0.5); grogne(t0 + 0.5, 1.4, 110, 0.6, 0.5); grogne(t0 + 1.0, 1.2, 85, 0, 0.6);
+    // le bond : rugissement qui monte
+    grogne(t0 + 2.0, 0.9, 140, -0.2, 0.9); grogne(t0 + 2.05, 0.9, 170, 0.3, 0.8);
+    // morsures
+    [2.7, 2.95, 3.3].forEach((d) => {
+      const t = t0 + d, n = bruit(false), hp = ctx.createBiquadFilter(), ng = ctx.createGain(), o = ctx.createOscillator(), og = ctx.createGain();
+      hp.type = "bandpass"; hp.frequency.value = rnd(1200, 2500); hp.Q.value = 2; env(ng.gain, t, 0.9, 0.002, 0.12);
+      n.connect(hp); hp.connect(ng); ng.connect(g); n.stop(t + 0.2);
+      o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+      env(og.gain, t, 1, 0.003, 0.2); o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.25);
+    });
+    // cri de la victime
+    const tc = t0 + 2.6, cb = bus(g, 0.22, 0.8, 0.1), voix = ctx.createOscillator(), f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), ce = ctx.createGain();
+    voix.type = "sawtooth"; voix.frequency.setValueAtTime(700, tc); voix.frequency.linearRampToValueAtTime(1050, tc + 0.3);
+    voix.frequency.linearRampToValueAtTime(600, tc + 1.4);
+    const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 7; vg.gain.value = 25; vib.connect(vg); vg.connect(voix.frequency);
+    f1.type = "bandpass"; f1.frequency.value = 900; f1.Q.value = 5; f2.type = "bandpass"; f2.frequency.value = 2600; f2.Q.value = 6;
+    voix.connect(f1); voix.connect(f2); f1.connect(ce); f2.connect(ce); ce.connect(cb.entree);
+    ce.gain.setValueAtTime(0.0001, tc); ce.gain.linearRampToValueAtTime(1, tc + 0.08); ce.gain.setValueAtTime(1, tc + 0.9); ce.gain.exponentialRampToValueAtTime(0.0001, tc + 1.5);
+    voix.start(tc); vib.start(tc); voix.stop(tc + 1.6); vib.stop(tc + 1.6);
+    // puis silence pesant et un dernier hurlement au loin
+    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 5200);
+    return arretAvecFondu(g, [], [], 1.5);
+  };
+
   /** Croassements de corbeau. */
   SONS.corbeau = (sortie) => {
     const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
@@ -646,11 +697,143 @@
     return arretAvecFondu(b.gain, [], [], 1);
   };
 
+  // ---------- vrais enregistrements (dossier sounds/lib) ----------
+  let config = { echantillons: new Set(), narrateur: true, surEclair: null };
+  function configurer(c) {
+    if (c.echantillons) c.echantillons = new Set(c.echantillons);
+    Object.assign(config, c);
+  }
+  const tampons = {};
+  function charger(url) {
+    if (!tampons[url]) {
+      tampons[url] = fetch(url).then((r) => { if (!r.ok) throw new Error(url); return r.arrayBuffer(); })
+        .then((b) => new Promise((ok, ko) => ctx.decodeAudioData(b, ok, ko)));
+      tampons[url].catch(() => delete tampons[url]);
+    }
+    return tampons[url];
+  }
+  function cheminEchantillon(nom, dossier = "lib") {
+    for (const ext of ["mp3", "m4a", "wav", "flac", "aac"]) {
+      const p = `sounds/${dossier}/${nom}.${ext}`;
+      if (config.echantillons.has(p)) return p;
+    }
+    return null;
+  }
+  // boucle = ambiance continue ; ponctuel = revient de temps en temps ; unique = joué une fois
+  const TYPE = { loups: "ponctuel", meute: "boucle", hibou: "ponctuel", corbeau: "ponctuel", grognement: "ponctuel",
+    glas: "unique", coq: "unique", coup_de_feu: "unique", fanfare: "unique", marteau: "unique", cri: "unique", attaque: "unique" };
+  const VOLUME = { medieval: 0.55, peur: 0.6, loups: 0.8, meute: 0.8, foule: 0.45, vent: 0.5, pluie: 0.5, feu: 0.6,
+    grillons: 0.35, oiseaux: 0.5, coeur: 0.8, glas: 0.7, coq: 0.7 };
+
+  function jouerUneFois(url, sortie, vol, pan) {
+    return charger(url).then((buf) => {
+      const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; g.gain.value = vol;
+      let dernier = g;
+      if (pan !== undefined && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); dernier = p; }
+      src.connect(g); dernier.connect(sortie);
+      const r = ctx.createGain(); r.gain.value = 0.2; dernier.connect(r); r.connect(reverb);
+      src.start(); return { src, duree: buf.duration };
+    }).catch(() => null);
+  }
+
+  function echantillon(url, type, sortie, vol) {
+    const g = ctx.createGain(), t = ctx.currentTime; g.connect(sortie);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (type === "boucle" ? 2.5 : 0.05));
+    const sources = []; let actif = true, timer;
+    if (type === "boucle") {
+      charger(url).then((buf) => {
+        if (!actif) return;
+        const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g);
+        const r = ctx.createGain(); r.gain.value = 0.15; g.connect(r); r.connect(reverb);
+        src.start(0, rnd(0, buf.duration * 0.6)); sources.push(src);
+      }).catch(() => {});
+    } else if (type === "unique") {
+      jouerUneFois(url, g, 1).then((x) => x && sources.push(x.src));
+    } else {
+      const tick = async () => {
+        if (!actif) return;
+        const x = await jouerUneFois(url, g, 1, rnd(-0.7, 0.7));
+        if (x) sources.push(x.src);
+        timer = setTimeout(tick, ((x && x.duree) || 5) * 1000 + rnd(4000, 10000));
+      };
+      tick();
+    }
+    return arretAvecFondu(g, sources, [() => { actif = false; clearTimeout(timer); }], 2);
+  }
+
+  /** Une couche sonore : le vrai enregistrement s'il existe, sinon le son synthétisé. */
+  function couche(nom, sortie) {
+    if (nom !== "tonnerre") {
+      const p = cheminEchantillon(nom);
+      if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, VOLUME[nom] ?? 0.7);
+    }
+    return SONS[nom] ? SONS[nom](sortie) : null;
+  }
+
+  // ---------- narrateur ----------
+  let jetonVoix = 0, sourceVoix = null, busScene = null;
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+  function choisirVoix() {
+    const vs = ("speechSynthesis" in window ? speechSynthesis.getVoices() : []).filter((v) => /^fr/i.test(v.lang));
+    const score = (v) => (/premium|enhanced|améliorée|neural|natural/i.test(v.name) ? 10 : 0)
+      + (/thomas|amélie|audrey|aurélie|daniel|google/i.test(v.name) ? 3 : 0) + (v.lang === "fr-FR" ? 1 : 0);
+    return vs.sort((a, b) => score(b) - score(a))[0];
+  }
+  function attenuerAmbiance(oui) {
+    if (busScene) busScene.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
+  }
+  function arreterVoix() {
+    jetonVoix++;
+    try { sourceVoix && sourceVoix.stop(); } catch (e) {}
+    sourceVoix = null;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    attenuerAmbiance(false);
+  }
+  async function dire(id, cle, texte, jeton) {
+    const url = cheminEchantillon(`${id}-${cle}`, "voix");
+    attenuerAmbiance(true);
+    if (url) {
+      const buf = await charger(url).catch(() => null);
+      if (buf && jeton === jetonVoix) {
+        await new Promise((fin) => {
+          const src = ctx.createBufferSource(), g = ctx.createGain(), r = ctx.createGain();
+          src.buffer = buf; g.gain.value = 1.15; r.gain.value = 0.3;
+          src.connect(g); g.connect(maitre); g.connect(r); r.connect(reverb);
+          src.onended = fin; src.start(); sourceVoix = src;
+        });
+        return;
+      }
+    }
+    if (jeton !== jetonVoix || !("speechSynthesis" in window)) return;
+    await new Promise((fin) => {
+      const u = new SpeechSynthesisUtterance(texte.replace(/…/g, "... "));
+      u.lang = "fr-FR"; const v = choisirVoix(); if (v) u.voice = v;
+      u.rate = 0.88; u.pitch = 0.8; u.volume = 1;
+      u.onend = u.onerror = fin; speechSynthesis.speak(u);
+      setTimeout(fin, 30000);
+    });
+  }
+  async function narrer(liste) {
+    arreterVoix();
+    const jeton = jetonVoix;
+    await pause(400);
+    for (const [id, cle, texte] of liste) {
+      if (jeton !== jetonVoix) return;
+      await dire(id, cle, texte, jeton);
+      await pause(500);
+    }
+    if (jeton === jetonVoix) attenuerAmbiance(false);
+  }
+  function debloquerVoix() {
+    try { if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); speechSynthesis.getVoices(); } } catch (e) {}
+  }
+
   // ---------- lecteur ----------
   let enCours = []; // { stop() }
   let audioFichier = null;
 
   function toutArreter(rapide) {
+    arreterVoix();
     enCours.forEach((s) => { try { s.stop(); } catch (e) {} });
     enCours = [];
     if (audioFichier) {
@@ -660,17 +843,25 @@
     }
   }
 
-  /** Joue une scène : un mp3 perso s'il existe, sinon les sons synthétisés. */
-  async function jouer(scene, fichierDisponible) {
+  /** Joue une scène : son mp3 perso s'il existe, sinon les couches d'ambiance, puis le narrateur. */
+  async function jouer(scene, fichierDisponible, precedente) {
     init();
     toutArreter(false);
     if (fichierDisponible && scene.fichier) {
       const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = maitre.gain.value;
       audioFichier = a; a.play().catch(() => {});
-      return;
+      busScene = null;
+    } else {
+      const sortie = ctx.createGain(); sortie.connect(maitre); busScene = sortie;
+      (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie); if (c) enCours.push(c); });
     }
-    const sortie = ctx.createGain(); sortie.connect(maitre);
-    (scene.sons || []).forEach((nom) => { if (SONS[nom]) enCours.push(SONS[nom](sortie)); });
+    if (config.narrateur) {
+      const liste = [];
+      if (precedente && precedente.id !== scene.id && precedente.quand && precedente.voix && precedente.voix.dodo)
+        liste.push([precedente.id, "dodo", precedente.voix.dodo]);
+      if (scene.voix && scene.voix.reveil) liste.push([scene.id, "reveil", scene.voix.reveil]);
+      if (liste.length) narrer(liste);
+    }
   }
 
   function volume(v) {
@@ -689,5 +880,5 @@
     return ctx.state;
   }
 
-  window.SonsLoupGarou = { init, jouer, toutArreter, volume, test, etat: () => (ctx ? ctx.state : "non démarré"), liste: () => Object.keys(SONS), SONS };
+  window.SonsLoupGarou = { init, jouer, toutArreter, volume, test, configurer, debloquerVoix, arreterVoix, etat: () => (ctx ? ctx.state : "non démarré"), liste: () => Object.keys(SONS), SONS };
 })();

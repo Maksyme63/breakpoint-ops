@@ -37,7 +37,8 @@ FICHIERS_AUTORISES = {
     "/sons.js": ("sons.js", "application/javascript; charset=utf-8"),
     "/scenes.json": ("scenes.json", "application/json; charset=utf-8"),
 }
-TYPES_AUDIO = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".m4a": "audio/mp4"}
+TYPES_AUDIO = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".m4a": "audio/mp4",
+               ".aac": "audio/aac", ".flac": "audio/flac"}
 
 
 def charger_json(nom, defaut=None):
@@ -303,6 +304,7 @@ class Pilote(threading.Thread):
         self.ampoule = ampoule
         self.index = index
         self.programme = None
+        self.actuel = None  # dernière couleur envoyée, pour les transitions douces
         self.changement = threading.Event()
 
     def jouer(self, programme):
@@ -320,10 +322,29 @@ class Pilote(threading.Thread):
     def appliquer(self, etape):
         if etape == "eteint" or etape.get("eteint"):
             self.ampoule.eteindre()
+            self.actuel = None
         elif etape.get("blanc"):
             self.ampoule.blanc(self.lum(etape.get("lum", 100)), etape.get("temp", 50))
+            self.actuel = None
         else:
             self.ampoule.couleur(etape["couleur"], self.lum(etape.get("lum", 100)))
+            self.actuel = (list(etape["couleur"]), etape.get("lum", 100))
+
+    def fondu_depuis_actuel(self, cible, prog, duree=1.6):
+        """Transition douce depuis la couleur actuelle. Renvoie True si interrompue."""
+        if not getattr(self, "actuel", None):
+            return False
+        (c0, l0), c1, l1 = self.actuel, cible["couleur"], cible.get("lum", 100)
+        debut, pas = time.time(), float(CONFIG["intervalle_effets"])
+        while True:
+            f = min(1.0, (time.time() - debut) / duree)
+            coul = [round(c0[k] + (c1[k] - c0[k]) * f) for k in range(3)]
+            self.ampoule.couleur(coul, self.lum(l0 + (l1 - l0) * f))
+            if f >= 1.0:
+                self.actuel = (list(c1), l1)
+                return False
+            if self.attendre(pas):
+                return True
 
     def run(self):
         while True:
@@ -357,7 +378,10 @@ class Pilote(threading.Thread):
             self.ampoule.eteindre()
             return
         if mode == "static":
-            self.appliquer({"couleur": spec["couleur"], "lum": spec.get("lum", 100)})
+            cible = {"couleur": spec["couleur"], "lum": spec.get("lum", 100)}
+            if self.fondu_depuis_actuel(cible, prog):
+                return
+            self.appliquer(cible)
             return
         if mode == "white":
             self.appliquer({"blanc": True, "lum": spec.get("lum", 100), "temp": spec.get("temp", 50)})
@@ -390,10 +414,12 @@ class Pilote(threading.Thread):
             bas, haut = spec.get("min", 10), spec.get("max", 100)
             periode = float(spec.get("periode", 2))
             while True:
-                phase = ((time.time() - prog.depart) % periode) / periode
+                decalage = float(spec.get("decalage", 0)) * self.index  # vague d'une lampe à l'autre
+                phase = (((time.time() - prog.depart) / periode) + decalage) % 1.0
                 onde = (1 - math.cos(2 * math.pi * phase)) / 2  # 0 -> 1 -> 0
                 coul = [round(c2[k] + (c1[k] - c2[k]) * onde) for k in range(3)]
                 self.ampoule.couleur(coul, self.lum(bas + (haut - bas) * onde))
+                self.actuel = (coul, bas + (haut - bas) * onde)
                 if self.attendre(pas):
                     return
 
@@ -415,7 +441,7 @@ class Pilote(threading.Thread):
             lum = spec.get("lum", 100)
             n = -1
             while True:
-                i = int((time.time() - prog.depart) / periode) % len(couleurs)
+                i = (int((time.time() - prog.depart) / periode) + int(spec.get("decalage", 0)) * self.index) % len(couleurs)
                 if i != n:
                     n = i
                     c = couleurs[i]
@@ -458,6 +484,21 @@ def lancer_spec(spec):
     ETAT["derniere_spec"] = spec
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
+        p.jouer(prog)
+
+
+def eclair():
+    """Éclair déclenché par le tonnerre de la page : flash puis retour à la scène."""
+    spec = ETAT["derniere_spec"]
+    if not spec:
+        return
+    flash = dict(spec)
+    flash["intro"] = [{"blanc": True, "lum": 100, "temp": 100, "duree": 0.15},
+                      {"couleur": spec.get("couleur", [0, 20, 90]), "lum": 5, "duree": 0.1},
+                      {"blanc": True, "lum": 100, "temp": 100, "duree": 0.1}]
+    prog = Programme(flash, time.time() + 0.02, random.randrange(1 << 30))
+    for p in PILOTES:
+        p.actuel = None  # pas de fondu après un éclair
         p.jouer(prog)
 
 
@@ -513,20 +554,25 @@ class Handler(BaseHTTPRequestHandler):
         chemin = self.path.split("?")[0]
         if chemin == "/api/etat":
             return self.envoyer(200, self.etat())
-        if chemin == "/api/sons":  # mp3 perso présents dans sounds/
+        if chemin == "/api/sons":  # fichiers audio présents dans sounds/ (et sounds/lib, sounds/voix)
             dossier = os.path.join(ICI, "sounds")
-            noms = sorted(f for f in os.listdir(dossier) if os.path.splitext(f)[1].lower() in TYPES_AUDIO) \
-                if os.path.isdir(dossier) else []
-            return self.envoyer(200, ["sounds/" + f for f in noms])
+            noms = []
+            for racine, _, fichiers in os.walk(dossier):
+                for f in fichiers:
+                    if os.path.splitext(f)[1].lower() in TYPES_AUDIO:
+                        rel = os.path.relpath(os.path.join(racine, f), ICI).replace(os.sep, "/")
+                        noms.append(rel)
+            return self.envoyer(200, sorted(noms))
         if chemin in FICHIERS_AUTORISES:
             nom, type_ = FICHIERS_AUTORISES[chemin]
             with open(os.path.join(ICI, nom), "rb") as f:
                 return self.envoyer(200, f.read(), type_)
         if chemin.startswith("/sounds/"):
-            nom = os.path.basename(chemin)
-            ext = os.path.splitext(nom)[1].lower()
-            fichier = os.path.join(ICI, "sounds", nom)
-            if ext in TYPES_AUDIO and os.path.isfile(fichier):
+            from urllib.parse import unquote
+            dossier = os.path.realpath(os.path.join(ICI, "sounds"))
+            fichier = os.path.realpath(os.path.join(ICI, unquote(chemin).lstrip("/")))
+            ext = os.path.splitext(fichier)[1].lower()
+            if fichier.startswith(dossier + os.sep) and ext in TYPES_AUDIO and os.path.isfile(fichier):
                 with open(fichier, "rb") as f:
                     return self.envoyer(200, f.read(), TYPES_AUDIO[ext])
         self.envoyer(404, {"erreur": "introuvable"})
@@ -542,6 +588,9 @@ class Handler(BaseHTTPRequestHandler):
         if chemin.startswith("/api/scene/"):
             ok = lancer_scene(chemin.rsplit("/", 1)[1])
             return self.envoyer(200 if ok else 404, self.etat())
+        if chemin == "/api/eclair":
+            eclair()
+            return self.envoyer(200, {"ok": True})
         if chemin == "/api/luminosite":
             ETAT["luminosite"] = max(5, min(100, int(donnees.get("valeur", 100))))
             if ETAT["derniere_spec"]:

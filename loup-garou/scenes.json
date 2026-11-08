@@ -1,5 +1,5 @@
 {
- "_aide": "Chaque scène = un bouton. 'lumiere' pilote les ampoules, 'sons' liste les sons synthétisés (voir sons.js), 'fichier' = un mp3 perso optionnel dans le dossier sounds/ (prioritaire sur les sons synthétisés s'il existe). Couleurs en [Rouge, Vert, Bleu] de 0 à 255, luminosité de 1 à 100. 'roles' = personnages à cocher au début de la partie ; 'quand' = nuit1 (première nuit), nuit (chaque nuit), jour (au réveil), evenement (déclenché pendant la partie) ; 'ordre' = ordre d'appel. 'avec' = scène ajoutée automatiquement quand ce personnage est choisi.",
+ "_aide": "Chaque scène = un bouton. 'lumiere' pilote les ampoules, 'sons' liste les sons synthétisés (voir sons.js), 'fichier' = un mp3 perso optionnel dans le dossier sounds/ (prioritaire sur les sons synthétisés s'il existe). Couleurs en [Rouge, Vert, Bleu] de 0 à 255, luminosité de 1 à 100. 'roles' = personnages à cocher au début de la partie ; 'quand' = nuit1 (première nuit), nuit (chaque nuit), jour (au réveil), evenement (déclenché pendant la partie) ; 'ordre' = ordre d'appel. 'avec' = scène ajoutée automatiquement quand ce personnage est choisi. 'voix' = texte du narrateur ('reveil' lu au lancement, 'dodo' lu quand on passe au personnage suivant).",
  "classique": [
   "loups",
   "voyante",
@@ -48,14 +48,125 @@
       "eteint": true,
       "duree": 0.3
      }
-    ]
+    ],
+    "decalage": 0.25
    },
    "sons": [
     "loups",
     "peur",
     "coeur"
    ],
-   "fichier": "sounds/loups.mp3"
+   "fichier": "sounds/loups.mp3",
+   "voix": {
+    "reveil": "Les loups-garous se réveillent… Ils se reconnaissent, et choisissent en silence leur victime de la nuit.",
+    "dodo": "Les loups-garous ont fait leur choix. Ils se rendorment, repus."
+   }
+  },
+  {
+   "id": "attaque",
+   "nom": "L'attaque des loups",
+   "emoji": "🩸",
+   "couleur": "#8b0000",
+   "camp": "loups",
+   "quand": "nuit",
+   "ordre": 50.5,
+   "avec": "loups",
+   "desc": "Les loups se jettent sur leur victime.",
+   "lsc": "rouge sombre 20 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     140,
+     0,
+     0
+    ],
+    "min": 5,
+    "max": 25,
+    "periode": 4,
+    "intro": [
+     {
+      "eteint": true,
+      "duree": 0.8
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 40,
+      "duree": 0.6
+     },
+     {
+      "eteint": true,
+      "duree": 0.6
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.4
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.3
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.4
+     },
+     {
+      "eteint": true,
+      "duree": 0.3
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.3
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.3
+     },
+     {
+      "couleur": [
+       200,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.5
+     },
+     {
+      "eteint": true,
+      "duree": 1.5
+     }
+    ]
+   },
+   "sons": [
+    "attaque",
+    "coeur"
+   ],
+   "fichier": "sounds/attaque.mp3",
+   "voix": {
+    "reveil": "Les loups bondissent sur leur proie… Un cri déchire la nuit, puis plus rien. Seul le silence."
+   }
   },
   {
    "id": "voleur",
@@ -82,7 +193,11 @@
     "mystique",
     "coeur"
    ],
-   "fichier": "sounds/voleur.mp3"
+   "fichier": "sounds/voleur.mp3",
+   "voix": {
+    "reveil": "Le Voleur se réveille. Il peut, s'il le souhaite, échanger sa carte avec l'une de celles restées au centre.",
+    "dodo": "Le Voleur se rendort."
+   }
   },
   {
    "id": "cupidon",
@@ -108,7 +223,11 @@
    "sons": [
     "harpe"
    ],
-   "fichier": "sounds/cupidon.mp3"
+   "fichier": "sounds/cupidon.mp3",
+   "voix": {
+    "reveil": "Cupidon se réveille. Il décoche ses flèches et désigne deux joueurs qui seront amoureux jusqu'à la mort.",
+    "dodo": "Cupidon se rendort."
+   }
   },
   {
    "id": "amoureux",
@@ -141,7 +260,11 @@
     "coeur"
    ],
    "fichier": "sounds/amoureux.mp3",
-   "avec": "cupidon"
+   "avec": "cupidon",
+   "voix": {
+    "reveil": "Le meneur touche l'épaule des amoureux. Amoureux, ouvrez les yeux et découvrez-vous… Si l'un meurt, l'autre mourra de chagrin.",
+    "dodo": "Les amoureux referment les yeux."
+   }
   },
   {
    "id": "enfant_sauvage",
@@ -172,7 +295,11 @@
     "oiseaux",
     "vent"
    ],
-   "fichier": "sounds/enfant_sauvage.mp3"
+   "fichier": "sounds/enfant_sauvage.mp3",
+   "voix": {
+    "reveil": "L'Enfant Sauvage se réveille. Il choisit en secret un modèle. Si ce modèle meurt, l'enfant rejoindra les loups.",
+    "dodo": "L'Enfant Sauvage se rendort."
+   }
   },
   {
    "id": "chien_loup",
@@ -204,7 +331,11 @@
     "coeur",
     "peur"
    ],
-   "fichier": "sounds/chien_loup.mp3"
+   "fichier": "sounds/chien_loup.mp3",
+   "voix": {
+    "reveil": "Le Chien-Loup se réveille. Il choisit son camp : fidèle chien du village… ou loup sauvage.",
+    "dodo": "Le Chien-Loup se rendort."
+   }
   },
   {
    "id": "soeurs",
@@ -230,7 +361,11 @@
    "sons": [
     "choeur"
    ],
-   "fichier": "sounds/soeurs.mp3"
+   "fichier": "sounds/soeurs.mp3",
+   "voix": {
+    "reveil": "Les deux sœurs se réveillent. Elles se reconnaissent et peuvent se concerter en silence.",
+    "dodo": "Les deux sœurs se rendorment."
+   }
   },
   {
    "id": "freres",
@@ -256,7 +391,11 @@
    "sons": [
     "choeur"
    ],
-   "fichier": "sounds/freres.mp3"
+   "fichier": "sounds/freres.mp3",
+   "voix": {
+    "reveil": "Les trois frères se réveillent. Ils se reconnaissent et peuvent se concerter en silence.",
+    "dodo": "Les trois frères se rendorment."
+   }
   },
   {
    "id": "voyante",
@@ -287,7 +426,11 @@
    "sons": [
     "mystique"
    ],
-   "fichier": "sounds/voyante.mp3"
+   "fichier": "sounds/voyante.mp3",
+   "voix": {
+    "reveil": "La Voyante se réveille. Elle désigne un joueur dont elle veut connaître la véritable nature.",
+    "dodo": "La Voyante se rendort."
+   }
   },
   {
    "id": "renard",
@@ -313,7 +456,11 @@
     "vent",
     "mystique"
    ],
-   "fichier": "sounds/renard.mp3"
+   "fichier": "sounds/renard.mp3",
+   "voix": {
+    "reveil": "Le Renard se réveille. Il flaire un groupe de trois voisins, à la recherche d'une odeur de loup.",
+    "dodo": "Le Renard se rendort."
+   }
   },
   {
    "id": "salvateur",
@@ -339,7 +486,11 @@
    "sons": [
     "choeur"
    ],
-   "fichier": "sounds/salvateur.mp3"
+   "fichier": "sounds/salvateur.mp3",
+   "voix": {
+    "reveil": "Le Salvateur se réveille. Il choisit un joueur qu'il protégera des loups cette nuit.",
+    "dodo": "Le Salvateur se rendort."
+   }
   },
   {
    "id": "petite_fille",
@@ -365,7 +516,10 @@
     "coeur",
     "peur"
    ],
-   "fichier": "sounds/petite_fille.mp3"
+   "fichier": "sounds/petite_fille.mp3",
+   "voix": {
+    "reveil": "Petite Fille… tu peux entrouvrir les yeux pour espionner les loups. Mais prends garde à ne pas te faire surprendre."
+   }
   },
   {
    "id": "infect",
@@ -397,7 +551,11 @@
     "chaudron",
     "loups"
    ],
-   "fichier": "sounds/infect.mp3"
+   "fichier": "sounds/infect.mp3",
+   "voix": {
+    "reveil": "L'Infect Père des Loups se réveille. Il peut, une fois dans la partie, transformer la victime en loup-garou.",
+    "dodo": "L'Infect Père des Loups se rendort."
+   }
   },
   {
    "id": "grand_mechant_loup",
@@ -424,7 +582,11 @@
     "meute",
     "peur"
    ],
-   "fichier": "sounds/grand_mechant_loup.mp3"
+   "fichier": "sounds/grand_mechant_loup.mp3",
+   "voix": {
+    "reveil": "Le Grand Méchant Loup se réveille. Il peut dévorer une victime supplémentaire.",
+    "dodo": "Le Grand Méchant Loup se rendort."
+   }
   },
   {
    "id": "loup_blanc",
@@ -456,7 +618,11 @@
     "loups",
     "vent"
    ],
-   "fichier": "sounds/loup_blanc.mp3"
+   "fichier": "sounds/loup_blanc.mp3",
+   "voix": {
+    "reveil": "Le Loup-Garou Blanc se réveille. Il peut, s'il le souhaite, dévorer l'un de ses frères loups.",
+    "dodo": "Le Loup-Garou Blanc se rendort."
+   }
   },
   {
    "id": "sorciere",
@@ -487,7 +653,11 @@
     "chaudron",
     "mystique"
    ],
-   "fichier": "sounds/sorciere.mp3"
+   "fichier": "sounds/sorciere.mp3",
+   "voix": {
+    "reveil": "La Sorcière se réveille. Le meneur lui montre la victime de la nuit. Elle peut utiliser sa potion de vie… ou sa potion de mort.",
+    "dodo": "La Sorcière se rendort."
+   }
   },
   {
    "id": "joueur_de_flute",
@@ -519,7 +689,11 @@
     "flute",
     "mystique"
    ],
-   "fichier": "sounds/joueur_de_flute.mp3"
+   "fichier": "sounds/joueur_de_flute.mp3",
+   "voix": {
+    "reveil": "Le Joueur de Flûte se réveille. Il ensorcelle deux joueurs au son de sa mélodie.",
+    "dodo": "Le Joueur de Flûte se rendort."
+   }
   },
   {
    "id": "ensorceles",
@@ -546,7 +720,11 @@
     "flute"
    ],
    "fichier": "sounds/ensorceles.mp3",
-   "avec": "joueur_de_flute"
+   "avec": "joueur_de_flute",
+   "voix": {
+    "reveil": "Le meneur touche les joueurs ensorcelés. Ensorcelés, ouvrez les yeux et reconnaissez-vous.",
+    "dodo": "Les ensorcelés se rendorment."
+   }
   },
   {
    "id": "corbeau",
@@ -572,7 +750,11 @@
     "corbeau",
     "vent"
    ],
-   "fichier": "sounds/corbeau.mp3"
+   "fichier": "sounds/corbeau.mp3",
+   "voix": {
+    "reveil": "Le Corbeau se réveille. Il désigne un joueur qui portera sa marque demain au vote.",
+    "dodo": "Le Corbeau se rendort."
+   }
   },
   {
    "id": "montreur_ours",
@@ -611,7 +793,10 @@
    "sons": [
     "grognement"
    ],
-   "fichier": "sounds/montreur_ours.mp3"
+   "fichier": "sounds/montreur_ours.mp3",
+   "voix": {
+    "reveil": "Écoutez… L'ours du montreur s'agite. Grogne-t-il ce matin ?"
+   }
   },
   {
    "id": "ancien",
@@ -643,7 +828,10 @@
     "glas",
     "choeur"
    ],
-   "fichier": "sounds/ancien.mp3"
+   "fichier": "sounds/ancien.mp3",
+   "voix": {
+    "reveil": "L'Ancien a survécu à l'attaque ! Sa vieille peau est plus coriace que les crocs des loups."
+   }
   },
   {
    "id": "chasseur",
@@ -678,7 +866,10 @@
    "sons": [
     "coup_de_feu"
    ],
-   "fichier": "sounds/chasseur.mp3"
+   "fichier": "sounds/chasseur.mp3",
+   "voix": {
+    "reveil": "Le Chasseur est mort… mais d'un dernier geste, il épaule son fusil et emporte quelqu'un avec lui."
+   }
   },
   {
    "id": "chevalier",
@@ -714,7 +905,10 @@
     "coup_de_feu",
     "glas"
    ],
-   "fichier": "sounds/chevalier.mp3"
+   "fichier": "sounds/chevalier.mp3",
+   "voix": {
+    "reveil": "Le Chevalier tombe… mais son épée rouillée a blessé le loup qui l'a attaqué."
+   }
   },
   {
    "id": "idiot",
@@ -741,7 +935,10 @@
     "foule",
     "fanfare"
    ],
-   "fichier": "sounds/idiot.mp3"
+   "fichier": "sounds/idiot.mp3",
+   "voix": {
+    "reveil": "C'est l'Idiot du village ! On ne tue pas un idiot… il est gracié, mais perd son droit de vote."
+   }
   },
   {
    "id": "bouc_emissaire",
@@ -767,7 +964,10 @@
    "sons": [
     "tambour"
    ],
-   "fichier": "sounds/bouc_emissaire.mp3"
+   "fichier": "sounds/bouc_emissaire.mp3",
+   "voix": {
+    "reveil": "Égalité ! Le Bouc Émissaire est désigné pour payer à la place des autres."
+   }
   },
   {
    "id": "juge_begue",
@@ -812,7 +1012,10 @@
     "marteau",
     "tambour"
    ],
-   "fichier": "sounds/juge_begue.mp3"
+   "fichier": "sounds/juge_begue.mp3",
+   "voix": {
+    "reveil": "Le Juge Bègue fait un signe… Un second vote aura lieu immédiatement !"
+   }
   },
   {
    "id": "servante",
@@ -832,7 +1035,10 @@
    "sons": [
     "choeur"
    ],
-   "fichier": "sounds/servante.mp3"
+   "fichier": "sounds/servante.mp3",
+   "voix": {
+    "reveil": "La Servante Dévouée s'avance. Elle peut prendre la place du condamné et hériter de son rôle."
+   }
   },
   {
    "id": "ange",
@@ -859,7 +1065,10 @@
     "choeur",
     "harpe"
    ],
-   "fichier": "sounds/ange.mp3"
+   "fichier": "sounds/ange.mp3",
+   "voix": {
+    "reveil": "L'Ange a été éliminé dès le premier tour… Il remporte la partie, seul !"
+   }
   }
  ],
  "scenes": [
@@ -884,7 +1093,10 @@
     "medieval",
     "feu"
    ],
-   "fichier": "sounds/accueil.mp3"
+   "fichier": "sounds/accueil.mp3",
+   "voix": {
+    "reveil": "Bienvenue, voyageurs, au village de Thiercelieux. Approchez du feu… Ce soir, parmi vous, se cachent des loups-garous. Le jour, ils ont visage humain. La nuit, ils chassent. À vous de les démasquer avant qu'il ne soit trop tard."
+   }
   },
   {
    "id": "nuit",
@@ -928,7 +1140,10 @@
     "grillons",
     "hibou"
    ],
-   "fichier": "sounds/nuit.mp3"
+   "fichier": "sounds/nuit.mp3",
+   "voix": {
+    "reveil": "La nuit tombe sur le village. Les volets se ferment, les bougies s'éteignent… Tout le village s'endort. Fermez les yeux."
+   }
   },
   {
    "id": "jour",
@@ -977,7 +1192,10 @@
     "coq",
     "oiseaux"
    ],
-   "fichier": "sounds/jour.mp3"
+   "fichier": "sounds/jour.mp3",
+   "voix": {
+    "reveil": "Le soleil se lève sur Thiercelieux. Tout le village se réveille… ouvrez les yeux."
+   }
   },
   {
    "id": "victime",
@@ -1019,7 +1237,10 @@
     "cri",
     "glas"
    ],
-   "fichier": "sounds/victime.mp3"
+   "fichier": "sounds/victime.mp3",
+   "voix": {
+    "reveil": "Hélas… cette nuit, le village a perdu l'un des siens. Le meneur va révéler le nom de la victime."
+   }
   },
   {
    "id": "debat",
@@ -1036,7 +1257,10 @@
    "sons": [
     "foule"
    ],
-   "fichier": "sounds/debat.mp3"
+   "fichier": "sounds/debat.mp3",
+   "voix": {
+    "reveil": "Le village se rassemble sur la place. Parlez, accusez, défendez-vous… Les loups sont parmi vous."
+   }
   },
   {
    "id": "vote",
@@ -1060,7 +1284,10 @@
     "tambour",
     "coeur"
    ],
-   "fichier": "sounds/vote.mp3"
+   "fichier": "sounds/vote.mp3",
+   "voix": {
+    "reveil": "L'heure du jugement a sonné. Au signal, chacun désigne celui qu'il soupçonne. Trois… deux… un… votez !"
+   }
   },
   {
    "id": "bucher",
@@ -1089,7 +1316,10 @@
     "glas",
     "foule"
    ],
-   "fichier": "sounds/bucher.mp3"
+   "fichier": "sounds/bucher.mp3",
+   "voix": {
+    "reveil": "Le village a parlé. Que le condamné monte sur le bûcher… et révèle enfin qui il était."
+   }
   },
   {
    "id": "orage",
@@ -1099,13 +1329,14 @@
    "emoji": "⛈️",
    "couleur": "#38457a",
    "lumiere": {
-    "mode": "lightning",
+    "mode": "static",
     "couleur": [
      0,
      20,
      90
     ],
-    "lum": 12
+    "lum": 12,
+    "eclairs": "son"
    },
    "sons": [
     "pluie",
@@ -1170,13 +1401,17 @@
      ]
     ],
     "lum": 100,
-    "periode": 0.8
+    "periode": 0.8,
+    "decalage": 1
    },
    "sons": [
     "fanfare",
     "oiseaux"
    ],
-   "fichier": "sounds/victoire_village.mp3"
+   "fichier": "sounds/victoire_village.mp3",
+   "voix": {
+    "reveil": "Les loups-garous ont été démasqués ! Le village de Thiercelieux peut enfin dormir en paix. Victoire du village !"
+   }
   },
   {
    "id": "victoire_loups",
@@ -1209,7 +1444,10 @@
     "peur",
     "cri"
    ],
-   "fichier": "sounds/victoire_loups.mp3"
+   "fichier": "sounds/victoire_loups.mp3",
+   "voix": {
+    "reveil": "Il est trop tard… Les loups-garous ont dévoré le dernier villageois. Thiercelieux appartient désormais à la meute."
+   }
   },
   {
    "id": "victoire_amoureux",
@@ -1241,13 +1479,17 @@
      ]
     ],
     "lum": 100,
-    "periode": 0.9
+    "periode": 0.9,
+    "decalage": 1
    },
    "sons": [
     "harpe",
     "fanfare"
    ],
-   "fichier": "sounds/victoire_amoureux.mp3"
+   "fichier": "sounds/victoire_amoureux.mp3",
+   "voix": {
+    "reveil": "Contre vents et marées, les deux amoureux ont survécu. L'amour triomphe à Thiercelieux !"
+   }
   },
   {
    "id": "victoire_solitaire",
@@ -1278,7 +1520,10 @@
     "cri",
     "peur"
    ],
-   "fichier": "sounds/victoire_solitaire.mp3"
+   "fichier": "sounds/victoire_solitaire.mp3",
+   "voix": {
+    "reveil": "Personne ne l'a vu venir… Un joueur solitaire remporte la partie, seul contre tous."
+   }
   },
   {
    "id": "lumiere",

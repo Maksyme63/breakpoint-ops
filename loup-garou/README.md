@@ -102,6 +102,26 @@ la nuit dans l'ordre d'appel (« APPEL 1, 2, 3… »). Le choix est mémorisé ;
 Réglages en haut du pad : volume, luminosité générale, couleur libre et bouton 🔇
 pour couper le son. Sur PC : raccourcis clavier (chiffres/lettres affichés sur les boutons), **Espace** = silence.
 
+## Narrateur, vrais sons et ambiance pro (Mac)
+
+- **Narrateur** : chaque personnage est appelé (« La Voyante se réveille… ») et renvoyé
+  dormir quand on passe au suivant. Bouton 🗣️ pour le couper. Sans rien installer, le pad
+  utilise la voix du navigateur. Pour une voix bien meilleure, enregistre-la avec macOS :
+  ```
+  python3 generer_voix.py
+  ```
+  (encore mieux : installe d'abord la voix « Thomas (Premium) », voir l'aide dans le fichier).
+- **Vrais enregistrements** (loups, hibou, cloches, orage, musique médiévale…), sous licences
+  libres, depuis Wikimedia Commons :
+  ```
+  python3 telecharger_sons.py
+  ```
+  Un son ne plaît pas ? `python3 telecharger_sons.py loups 2` essaie le suivant. Tu peux aussi
+  déposer tes propres fichiers dans `sounds/lib/` (même nom : `medieval.mp3`, `loups.mp3`…).
+- **Lumières** : transitions douces, vague rouge d'une lampe à l'autre pour les loups,
+  chenillard pour les victoires, éclairs synchronisés avec le tonnerre, séquence de flashs
+  pour l'attaque des loups.
+
 ## Personnaliser
 
 - **Tes propres musiques** : dépose `loups.mp3`, `nuit.mp3`… dans `sounds/` (liste dans

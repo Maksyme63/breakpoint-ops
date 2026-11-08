@@ -37,6 +37,7 @@
   #etat.ok { color: var(--ok); border-color: #1f5d37; }
   #etat.simu { color: #f3c969; border-color: #6b5320; }
   .petit-bouton { background: #2a2635; color: var(--texte); border: 1px solid var(--bord); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 0.88rem; cursor: pointer; }
+  .petit-bouton[aria-pressed="false"] { opacity: 0.55; text-decoration: line-through; }
   .petit-bouton:focus-visible, .bouton:focus-visible, .role:focus-visible, .gros:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 
   .reglages { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
@@ -134,6 +135,7 @@
       <label>💡 <input id="lum" type="range" min="5" max="100" value="100" aria-label="Luminosité"></label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre" aria-label="Couleur libre">
+        <button class="petit-bouton" id="narrateur" aria-pressed="true" title="Activer ou couper la voix du narrateur">🗣️ Narrateur</button>
         <button class="petit-bouton" id="testSon" title="Jouer un bip de test">🔔 Test</button>
         <button class="petit-bouton" id="couperSon" title="Couper uniquement le son">🔇 Son</button>
         <button class="petit-bouton" id="retour" title="Changer les personnages">👥 Personnages</button>
@@ -155,7 +157,7 @@
   const Sons = window.SonsLoupGarou;
   const TOUCHES = "1234567890azertyuiopqsdfghjklmwxcvbn";
   const CLE = "loupgarou.personnages";
-  let donnees, serveur = false, fichiers = {}, choisis = new Set(), actives = [], audioPret = false;
+  let donnees, serveur = false, fichiers = {}, choisis = new Set(), actives = [], audioPret = false, precedente = null;
 
   // --- chargement des scènes ---
   try {
@@ -271,7 +273,12 @@
   // --- mp3 personnalisés présents ? ---
   const toutes = [...roles, ...scenes];
   if (serveur) {
-    try { const dispo = await api("api/sons"); toutes.forEach((s) => (fichiers[s.id] = dispo.includes(s.fichier))); } catch (e) {}
+    try {
+      const dispo = await api("api/sons");
+      toutes.forEach((s) => (fichiers[s.id] = dispo.includes(s.fichier)));
+      Sons.configurer({ echantillons: dispo });
+    } catch (e) {}
+    Sons.configurer({ surEclair: () => api("api/eclair", {}).catch(() => {}) });
   } else {
     await Promise.all(toutes.filter((s) => s.fichier).map(async (s) => {
       try { const r = await fetch(s.fichier, { method: "HEAD", cache: "no-store" }); fichiers[s.id] = r.ok; }
@@ -283,7 +290,8 @@
   function lancer(s) {
     document.querySelectorAll(".bouton").forEach((b) => b.classList.toggle("actif", b.dataset.id === s.id));
     document.documentElement.style.setProperty("--lueur", s.id === "stop" ? "#000" : (s.couleur || "#000"));
-    Sons.jouer(s, fichiers[s.id]);
+    Sons.jouer(s, fichiers[s.id], precedente);
+    precedente = s;
     if (navigator.vibrate) navigator.vibrate(30);
     if (serveur) api("api/scene/" + encodeURIComponent(s.id), {}).then(afficherEtat).catch(() => afficherEtat(null));
   }
@@ -302,6 +310,16 @@
     if (serveur) api("api/couleur", { couleur: rgb, lum: 100 });
   });
   $("#couperSon").addEventListener("click", () => Sons.toutArreter(false));
+  // Narrateur : activé par défaut, choix mémorisé
+  let narrateur = true;
+  try { narrateur = localStorage.getItem("loupgarou.narrateur") !== "non"; } catch (e) {}
+  const majNarrateur = () => { $("#narrateur").setAttribute("aria-pressed", narrateur); Sons.configurer({ narrateur }); };
+  majNarrateur();
+  $("#narrateur").addEventListener("click", () => {
+    narrateur = !narrateur; majNarrateur();
+    if (!narrateur) Sons.arreterVoix();
+    try { localStorage.setItem("loupgarou.narrateur", narrateur ? "oui" : "non"); } catch (e) {}
+  });
   $("#testSon").addEventListener("click", () => {
     Sons.test();
     setTimeout(() => { if (Sons.etat() !== "running") $("#etat").textContent = "⚠️ Son bloqué : retouche un bouton"; }, 400);
@@ -321,7 +339,7 @@
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !$("#jeu").hidden) garderEcranAllume(); });
   $("#go").addEventListener("click", () => {
     Sons.init(); Sons.volume($("#volume").value / 100);
-    if (!audioPret) { Sons.test(); audioPret = true; }
+    if (!audioPret) { Sons.test(); Sons.debloquerVoix(); audioPret = true; }
     construirePad();
     $("#preparation").hidden = true; $("#jeu").hidden = false;
     window.scrollTo(0, 0);
