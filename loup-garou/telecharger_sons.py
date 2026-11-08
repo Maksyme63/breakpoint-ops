@@ -63,17 +63,35 @@ LICENCES_OK = re.compile(r"(public domain|domaine public|^pd|cc0|cc[- ]?by(?![- 
 FORMATS_OK = ("audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/wave", "audio/flac", "audio/x-flac", "audio/mp4")
 
 
+def ouvrir(url, timeout=30):
+    """Requête polie : une à la fois, avec pause et nouvel essai si Wikimedia demande de ralentir."""
+    import time
+    import urllib.error
+    for essai in range(5):
+        time.sleep(1.0)
+        try:
+            return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout, context=CONTEXTE_SSL)
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or essai == 4:
+                raise
+            attente = int(e.headers.get("Retry-After") or 0) or 10 * (essai + 1)
+            print(f"   (Wikimedia demande de ralentir : pause de {attente} s…)")
+            time.sleep(attente)
+
+
 def appel(params):
     url = API + "?" + urllib.parse.urlencode({**params, "format": "json"})
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30, context=CONTEXTE_SSL) as r:
+    with ouvrir(url) as r:
         return json.load(r)
 
 
-def candidats(nom):
+def candidats(nom, rang_voulu=1):
     recherches, dmin, dmax = SONS[nom]
     vus, liste = set(), []
     ecartes = {"licence": 0, "durée": 0, "format": 0}
     for q in recherches:
+        if len(liste) >= rang_voulu + 2:
+            break  # assez de choix : inutile d'interroger davantage Wikimedia
         try:
             r = appel({"action": "query", "generator": "search", "gsrsearch": f"{q} filetype:audio",
                        "gsrnamespace": 6, "gsrlimit": 40, "prop": "videoinfo",
@@ -115,7 +133,7 @@ def candidats(nom):
 
 def telecharger(nom, rang=1):
     print(f"🔎 {nom}…")
-    liste = candidats(nom)
+    liste = candidats(nom, rang)
     if len(liste) < rang:
         print(f"   ❌ rien trouvé (le son synthétisé sera utilisé)")
         return None
@@ -125,8 +143,7 @@ def telecharger(nom, rang=1):
         if os.path.splitext(vieux)[0] == nom:
             os.remove(os.path.join(DOSSIER, vieux))
     chemin = os.path.join(DOSSIER, nom + ext)
-    req = urllib.request.Request(c["url"], headers=UA)
-    with urllib.request.urlopen(req, timeout=120, context=CONTEXTE_SSL) as r, open(chemin, "wb") as f:
+    with ouvrir(c["url"], timeout=120) as r, open(chemin, "wb") as f:
         f.write(r.read())
     print(f"   ✅ {c['titre']} ({round(c['duree'])} s, {c['licence']})")
     return c
