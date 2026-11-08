@@ -30,7 +30,7 @@ except ImportError:
 ICI = os.path.dirname(os.path.abspath(__file__))
 DOSSIER = os.path.join(ICI, "sounds", "lib")
 API = "https://commons.wikimedia.org/w/api.php"
-UA = {"User-Agent": "PadLoupGarou/1.0 (usage personnel; script de telechargement de sons libres)"}
+UA = {"User-Agent": "PadLoupGarou/1.1 (https://github.com/Maksyme63/breakpoint-ops; usage personnel) python-urllib"}
 
 # nom du son -> (recherches, durée min, durée max en secondes)
 SONS = {
@@ -67,14 +67,14 @@ def ouvrir(url, timeout=30):
     """Requête polie : une à la fois, avec pause et nouvel essai si Wikimedia demande de ralentir."""
     import time
     import urllib.error
-    for essai in range(5):
-        time.sleep(1.0)
+    for essai in range(6):
+        time.sleep(3.0)
         try:
             return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout, context=CONTEXTE_SSL)
         except urllib.error.HTTPError as e:
-            if e.code != 429 or essai == 4:
+            if e.code != 429 or essai == 5:
                 raise
-            attente = int(e.headers.get("Retry-After") or 0) or 10 * (essai + 1)
+            attente = max(int(e.headers.get("Retry-After") or 0), 60 * (essai + 1))
             print(f"   (Wikimedia demande de ralentir : pause de {attente} s…)")
             time.sleep(attente)
 
@@ -90,7 +90,7 @@ def candidats(nom, rang_voulu=1):
     vus, liste = set(), []
     ecartes = {"licence": 0, "durée": 0, "format": 0}
     for q in recherches:
-        if len(liste) >= rang_voulu + 2:
+        if len(liste) >= rang_voulu:
             break  # assez de choix : inutile d'interroger davantage Wikimedia
         try:
             r = appel({"action": "query", "generator": "search", "gsrsearch": f"{q} filetype:audio",
