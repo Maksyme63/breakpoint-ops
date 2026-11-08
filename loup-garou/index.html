@@ -136,6 +136,7 @@
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre" aria-label="Couleur libre">
         <button class="petit-bouton" id="narrateur" aria-pressed="true" title="Activer ou couper la voix du narrateur">🗣️ Narrateur</button>
+        <button class="petit-bouton" id="voixSombre" aria-pressed="true" title="Voix du narrateur plus grave et inquiétante">🎭 Voix sombre</button>
         <button class="petit-bouton" id="testSon" title="Jouer un bip de test">🔔 Test</button>
         <button class="petit-bouton" id="couperSon" title="Couper uniquement le son">🔇 Son</button>
         <button class="petit-bouton" id="retour" title="Changer les personnages">👥 Personnages</button>
@@ -338,6 +339,15 @@
     narrateur = !narrateur; majNarrateur();
     if (!narrateur) Sons.arreterVoix();
     try { localStorage.setItem("loupgarou.narrateur", narrateur ? "oui" : "non"); } catch (e) {}
+  });
+  // Voix sombre : activée par défaut, choix mémorisé
+  let voixSombre = true;
+  try { voixSombre = localStorage.getItem("loupgarou.voixSombre") !== "non"; } catch (e) {}
+  const majVoixSombre = () => { $("#voixSombre").setAttribute("aria-pressed", voixSombre); Sons.configurer({ voixSombre }); };
+  majVoixSombre();
+  $("#voixSombre").addEventListener("click", () => {
+    voixSombre = !voixSombre; majVoixSombre();
+    try { localStorage.setItem("loupgarou.voixSombre", voixSombre ? "oui" : "non"); } catch (e) {}
   });
   $("#testSon").addEventListener("click", () => {
     Sons.test();

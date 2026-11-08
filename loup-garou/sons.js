@@ -747,7 +747,7 @@
   };
 
   // ---------- vrais enregistrements (dossier sounds/lib) ----------
-  let config = { echantillons: new Set(), narrateur: true, surEclair: null };
+  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, surEclair: null };
   function configurer(c) {
     if (c.echantillons) c.echantillons = new Set(c.echantillons);
     Object.assign(config, c);
@@ -880,7 +880,19 @@
         await new Promise((fin) => {
           const src = ctx.createBufferSource(), g = ctx.createGain(), r = ctx.createGain();
           src.buffer = buf; g.gain.value = 1.15; r.gain.value = 0.3;
-          src.connect(g); g.connect(maitre); g.connect(r); r.connect(reverb);
+          if (config.voixSombre) {
+            // Voix sombre : un peu plus grave et lente, basses renforcées, aigus adoucis, écho plus profond
+            src.playbackRate.value = 0.9;
+            const basses = ctx.createBiquadFilter(), presence = ctx.createBiquadFilter(), douceur = ctx.createBiquadFilter();
+            basses.type = "lowshelf"; basses.frequency.value = 200; basses.gain.value = 6;
+            presence.type = "peaking"; presence.frequency.value = 3000; presence.Q.value = 1; presence.gain.value = -3;
+            douceur.type = "lowpass"; douceur.frequency.value = 7000;
+            src.connect(basses); basses.connect(presence); presence.connect(douceur); douceur.connect(g);
+            r.gain.value = 0.5; g.gain.value = 1.3;
+          } else {
+            src.connect(g);
+          }
+          g.connect(maitre); g.connect(r); r.connect(reverb);
           src.onended = fin; src.start(); sourceVoix = src;
         });
         return;
