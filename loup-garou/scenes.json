@@ -1561,45 +1561,47 @@
    }
   },
   {
-   "id": "orage",
-   "lsc": "bleu très sombre 12 %",
+   "id": "fete",
    "groupe": "Ambiances",
-   "nom": "Orage",
-   "emoji": "⛈️",
-   "couleur": "#38457a",
+   "nom": "Fête médiévale",
+   "emoji": "🎶",
+   "couleur": "#d9822b",
+   "lsc": "orange doré 90 %",
    "lumiere": {
-    "mode": "ambiance",
-    "couleur": [
-     0,
-     20,
-     110
-    ],
-    "lum": 10,
-    "eclairs": "son",
+    "mode": "cycle",
     "couleurs": [
      [
-      0,
+      255,
+      170,
+      0
+     ],
+     [
+      200,
       20,
-      110
+      20
      ],
      [
-      40,
-      0,
+      255,
+      110,
+      0
+     ],
+     [
+      255,
+      210,
       90
-     ],
-     [
-      0,
-      50,
-      120
      ]
-    ]
+    ],
+    "lum": 90,
+    "periode": 2.2,
+    "decalage": 1
    },
    "sons": [
-    "pluie",
-    "vent",
-    "tonnerre"
+    "medieval"
    ],
-   "fichier": "sounds/orage.mp3"
+   "volumes": {
+    "medieval": 0.8
+   },
+   "fichier": "sounds/fete.mp3"
   },
   {
    "id": "suspense",
@@ -1609,25 +1611,16 @@
    "emoji": "😨",
    "couleur": "#4a1d5c",
    "lumiere": {
-    "mode": "ambiance",
+    "mode": "battement",
     "couleur": [
-     90,
+     110,
      0,
-     140
+     160
     ],
-    "lum": 20,
-    "couleurs": [
-     [
-      90,
-      0,
-      140
-     ],
-     [
-      20,
-      0,
-      90
-     ]
-    ]
+    "lum_base": 6,
+    "lum_flash": 70,
+    "periode": 1.0,
+    "double": true
    },
    "sons": [
     "peur",
