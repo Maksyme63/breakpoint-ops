@@ -131,7 +131,9 @@
   <!-- 2. Le pad -->
   <section id="jeu" hidden>
     <section class="reglages">
-      <label>🔊 <input id="volume" type="range" min="0" max="100" value="80" aria-label="Volume"></label>
+      <label title="Volume général">🔊 <input id="volume" type="range" min="0" max="100" value="80" aria-label="Volume général"></label>
+      <label title="Voix du narrateur">🗣️ <input id="mixVoix" type="range" min="0" max="200" value="100" aria-label="Volume de la voix"></label>
+      <label title="Musique et ambiances">🎵 <input id="mixAmbiance" type="range" min="0" max="200" value="100" aria-label="Volume de la musique et des ambiances"></label>
       <label>💡 <input id="lum" type="range" min="5" max="100" value="100" aria-label="Luminosité"></label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre" aria-label="Couleur libre">
@@ -318,6 +320,18 @@
 
   // --- réglages ---
   $("#volume").addEventListener("input", (e) => Sons.volume(e.target.value / 100));
+  // Table de mixage voix / musique, réglages mémorisés
+  try {
+    const m = JSON.parse(localStorage.getItem("loupgarou.mixage") || "null");
+    if (m) { $("#mixVoix").value = m.voix; $("#mixAmbiance").value = m.ambiance; }
+  } catch (e) {}
+  const appliquerMixage = () => {
+    Sons.mixage({ voix: $("#mixVoix").value / 100, ambiance: $("#mixAmbiance").value / 100 });
+    try { localStorage.setItem("loupgarou.mixage", JSON.stringify({ voix: +$("#mixVoix").value, ambiance: +$("#mixAmbiance").value })); } catch (e) {}
+  };
+  $("#mixVoix").addEventListener("input", appliquerMixage);
+  $("#mixAmbiance").addEventListener("input", appliquerMixage);
+  Sons.mixage({ voix: $("#mixVoix").value / 100, ambiance: $("#mixAmbiance").value / 100 });
   let minuterieLum;
   $("#lum").addEventListener("input", (e) => {
     clearTimeout(minuterieLum);

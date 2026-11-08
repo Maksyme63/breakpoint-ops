@@ -8,6 +8,38 @@
   "use strict";
 
   let ctx = null, maitre = null, reverb = null, bruitBlanc = null;
+  let busVoix = null, busAmbiance = null;
+  const niveaux = { voix: 1, ambiance: 1 };
+
+  /** Égalisation : ramène chaque enregistrement à un niveau commun (mesure de son volume moyen). */
+  const CIBLE = 0.1, normes = new WeakMap();
+  function gainNormalise(buf) {
+    if (normes.has(buf)) return normes.get(buf);
+    let somme = 0, n = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < d.length; i += 4) { const v = d[i]; if (v > 0.002 || v < -0.002) { somme += v * v; n++; } }
+    }
+    const rms = n ? Math.sqrt(somme / n) : CIBLE;
+    const f = Math.max(0.25, Math.min(4, CIBLE / rms));
+    normes.set(buf, f);
+    return f;
+  }
+  /** Même chose pour les longues musiques lues en continu : mesure pendant les premières secondes. */
+  function niveleur(entree, sortie) {
+    const n = ctx.createGain(), an = ctx.createAnalyser(); n.gain.value = 1; an.fftSize = 2048;
+    entree.connect(n); entree.connect(an); n.connect(sortie);
+    const d = new Float32Array(an.fftSize); let somme = 0, nb = 0, tours = 0;
+    const timer = setInterval(() => {
+      an.getFloatTimeDomainData(d);
+      let s = 0; for (const v of d) s += v * v;
+      const rms = Math.sqrt(s / d.length);
+      if (rms > 0.003) { somme += rms; nb++; }
+      if (nb) n.gain.setTargetAtTime(Math.max(0.25, Math.min(4, CIBLE / (somme / nb))), ctx.currentTime, 0.6);
+      if (++tours > 24) clearInterval(timer);
+    }, 250);
+    return n;
+  }
 
   // --- Déblocage iOS ---
   // Sur iPhone, le son Web Audio est coupé par le bouton silencieux et mis en pause
@@ -48,7 +80,13 @@
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 4;
     maitre = ctx.createGain(); maitre.gain.value = 0.8;
-    maitre.connect(comp); comp.connect(ctx.destination);
+    // limiteur final : aucun son ne sature
+    const limiteur = ctx.createDynamicsCompressor();
+    limiteur.threshold.value = -2; limiteur.ratio.value = 20; limiteur.attack.value = 0.003; limiteur.release.value = 0.1;
+    maitre.connect(comp); comp.connect(limiteur); limiteur.connect(ctx.destination);
+    // table de mixage : voix du narrateur / musique et ambiances
+    busVoix = ctx.createGain(); busVoix.gain.value = niveaux.voix; busVoix.connect(maitre);
+    busAmbiance = ctx.createGain(); busAmbiance.gain.value = niveaux.ambiance; busAmbiance.connect(maitre);
     // Réverbération "grande église / forêt" : réponse impulsionnelle générée
     reverb = ctx.createConvolver();
     const len = ctx.sampleRate * 3.5, ir = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -778,7 +816,7 @@
 
   function jouerUneFois(url, sortie, vol, pan) {
     return charger(url).then((buf) => {
-      const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; g.gain.value = vol;
+      const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; g.gain.value = vol * gainNormalise(buf);
       let dernier = g;
       if (pan !== undefined && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); dernier = p; }
       src.connect(g); dernier.connect(sortie);
@@ -796,6 +834,7 @@
     charger(url).then((buf) => {
       const src = ctx.createBufferSource(), g = ctx.createGain(), r = ctx.createGain();
       src.buffer = buf; src.connect(g); g.connect(sortie); r.gain.value = 0.2; g.connect(r); r.connect(reverb);
+      vol = vol * gainNormalise(buf);
       g.gain.setValueAtTime(vol, Math.max(t, ctx.currentTime));
       if (duree) {
         src.loop = true;
@@ -816,7 +855,7 @@
       // Lecture en continu (comme un lecteur de musique) : marche aussi pour les très longs fichiers,
       // sans tout charger en mémoire.
       const a = new Audio(); a.src = url; a.loop = true; a.preload = "auto"; a.crossOrigin = "anonymous";
-      const src = ctx.createMediaElementSource(a); src.connect(g);
+      const src = ctx.createMediaElementSource(a); niveleur(src, g);
       const r = ctx.createGain(); r.gain.value = 0.15; g.connect(r); r.connect(reverb);
       a.addEventListener("loadedmetadata", () => {
         // départ au hasard dans les ambiances courtes, au début pour les longues musiques
@@ -892,7 +931,8 @@
           } else {
             src.connect(g);
           }
-          g.connect(maitre); g.connect(r); r.connect(reverb);
+          g.gain.value *= gainNormalise(buf);
+          g.connect(busVoix || maitre); g.connect(r); r.connect(reverb);
           src.onended = fin; src.start(); sourceVoix = src;
         });
         return;
@@ -902,7 +942,7 @@
     await new Promise((fin) => {
       const u = new SpeechSynthesisUtterance(texte.replace(/…/g, "... "));
       u.lang = "fr-FR"; const v = choisirVoix(); if (v) u.voice = v;
-      u.rate = 0.88; u.pitch = 0.8; u.volume = 1;
+      u.rate = 0.88; u.pitch = 0.8; u.volume = Math.min(1, niveaux.voix);
       u.onend = u.onerror = fin; speechSynthesis.speak(u);
       setTimeout(fin, 30000);
     });
@@ -942,11 +982,11 @@
     init();
     toutArreter(false);
     if (fichierDisponible && scene.fichier) {
-      const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = maitre.gain.value;
+      const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
       audioFichier = a; a.play().catch(() => {});
       busScene = null;
     } else {
-      const sortie = ctx.createGain(); sortie.connect(maitre); busScene = sortie;
+      const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
     }
     if (config.narrateur) {
@@ -964,7 +1004,15 @@
   function volume(v) {
     init();
     maitre.gain.setTargetAtTime(v, ctx.currentTime, 0.05);
-    if (audioFichier) audioFichier.volume = v;
+    if (audioFichier) audioFichier.volume = Math.min(1, v * niveaux.ambiance);
+  }
+
+  /** Table de mixage : niveau de la voix et de la musique/ambiances (0 à 2). */
+  function mixage(m) {
+    Object.assign(niveaux, m);
+    if (busVoix) busVoix.gain.setTargetAtTime(niveaux.voix, ctx.currentTime, 0.05);
+    if (busAmbiance) busAmbiance.gain.setTargetAtTime(niveaux.ambiance, ctx.currentTime, 0.05);
+    if (audioFichier && maitre) audioFichier.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
   }
 
   function test() {
@@ -977,5 +1025,5 @@
     return ctx.state;
   }
 
-  window.SonsLoupGarou = { init, jouer, toutArreter, volume, test, configurer, debloquerVoix, arreterVoix, etat: () => (ctx ? ctx.state : "non démarré"), liste: () => Object.keys(SONS), SONS };
+  window.SonsLoupGarou = { init, jouer, toutArreter, volume, mixage, test, configurer, debloquerVoix, arreterVoix, etat: () => (ctx ? ctx.state : "non démarré"), liste: () => Object.keys(SONS), SONS };
 })();
