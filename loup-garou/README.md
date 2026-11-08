@@ -111,6 +111,9 @@ pour couper le son. Sur PC : raccourcis clavier (chiffres/lettres affichés sur 
   python3 generer_voix.py
   ```
   (encore mieux : installe d'abord la voix « Thomas (Premium) », voir l'aide dans le fichier).
+  Pour une voix de conteur vraiment naturelle : `python3 generer_voix_ia.py` (voix IA
+  ElevenLabs, compte gratuit suffisant), ou enregistre ta propre voix avec la liste
+  `REPLIQUES.md`.
 - **Vrais enregistrements** (loups, hibou, cloches, orage, musique médiévale…), sous licences
   libres, depuis Wikimedia Commons :
   ```
