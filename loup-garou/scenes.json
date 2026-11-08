@@ -61,88 +61,7 @@
    "desc": "Les loups se jettent sur leur victime.",
    "lsc": "rouge sombre 20 %",
    "lumiere": {
-    "mode": "static",
-    "couleur": [
-     140,
-     0,
-     0
-    ],
-    "lum": 15,
-    "intro": [
-     {
-      "eteint": true,
-      "duree": 0.8
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 40,
-      "duree": 0.6
-     },
-     {
-      "eteint": true,
-      "duree": 0.6
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.4
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.3
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.4
-     },
-     {
-      "eteint": true,
-      "duree": 0.3
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.3
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.3
-     },
-     {
-      "couleur": [
-       200,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.5
-     },
-     {
-      "eteint": true,
-      "duree": 1.5
-     }
-    ],
+    "mode": "ambiance",
     "couleurs": [
      [
       140,
@@ -154,16 +73,189 @@
       0,
       40
      ]
+    ],
+    "lum": 15,
+    "intro": [
+     {
+      "couleur": [
+       90,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 3.3,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.09,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.11,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 1.2,
+      "vite": true
+     }
     ]
    },
    "sons": [
-    "attaque",
-    "coeur"
+    "attaque"
    ],
    "fichier": "sounds/attaque.mp3",
    "voix": {
     "reveil": "Les loups bondissent sur leur proie… Un cri déchire la nuit, puis plus rien. Seul le silence."
-   }
+   },
+   "voix_delai": 6.5,
+   "dodo_apres": true
   },
   {
    "id": "cupidon",
@@ -176,7 +268,7 @@
    "desc": "Désigne deux amoureux liés jusqu'à la mort.",
    "lsc": "rose 90 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      30,
@@ -221,7 +313,7 @@
    "desc": "Les deux amoureux ouvrent les yeux et se reconnaissent.",
    "lsc": "rose 100 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      60,
@@ -268,7 +360,7 @@
    "desc": "Choisit un modèle ; s'il meurt, l'enfant devient loup.",
    "lsc": "vert 60 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      40,
      180,
@@ -314,7 +406,7 @@
    "desc": "Choisit son camp : chien fidèle ou loup.",
    "lsc": "orange 80 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      120,
@@ -355,7 +447,7 @@
    "desc": "Se réveillent pour se reconnaître et se concerter.",
    "lsc": "mauve 70 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      230,
      150,
@@ -395,7 +487,7 @@
    "desc": "Découvre en secret le rôle d'un joueur.",
    "lsc": "violet 80 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      130,
      0,
@@ -440,7 +532,7 @@
    "desc": "Flaire un groupe de trois joueurs pour y sentir un loup.",
    "lsc": "orange 70 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      100,
@@ -481,7 +573,7 @@
    "desc": "Peut espionner les loups… à ses risques et périls.",
    "lsc": "rouge 15 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      200,
      0,
@@ -521,7 +613,7 @@
    "desc": "Peut transformer la victime des loups en loup-garou.",
    "lsc": "vert acide 90 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      120,
      255,
@@ -562,7 +654,7 @@
    "desc": "Dévore une victime de plus tant qu'aucun loup n'est mort.",
    "lsc": "rouge 100 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      180,
      0,
@@ -603,7 +695,7 @@
    "desc": "Une nuit sur deux, peut dévorer un autre loup.",
    "lsc": "blanc 100 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      230,
@@ -644,7 +736,7 @@
    "desc": "Une potion pour sauver, une potion pour tuer.",
    "lsc": "vert 75 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      20,
      255,
@@ -690,7 +782,7 @@
    "desc": "Ensorcelle deux joueurs chaque nuit.",
    "lsc": "turquoise 80 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      0,
      220,
@@ -731,7 +823,7 @@
    "desc": "Les joueurs charmés ouvrent les yeux et se reconnaissent.",
    "lsc": "turquoise 70 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      0,
      200,
@@ -772,7 +864,7 @@
    "desc": "Au réveil, l'ours grogne si un loup est à côté de lui.",
    "lsc": "brun 70 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      200,
      110,
@@ -861,7 +953,7 @@
    "desc": "En mourant, il emporte un joueur avec lui.",
    "lsc": "orange 45 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      90,
@@ -911,7 +1003,7 @@
    "desc": "Le loup qui le tue mourra de son épée.",
    "lsc": "gris bleuté 60 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      120,
      140,
@@ -962,7 +1054,7 @@
    "desc": "Gagne seul s'il est éliminé au premier tour.",
    "lsc": "blanc doré 100 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      240,
@@ -1002,7 +1094,7 @@
    "desc": "Le premier jour, le village élit un maire dont la voix compte double.",
    "lsc": "or 90 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      255,
      190,
@@ -1023,12 +1115,14 @@
     ]
    },
    "sons": [
-    "foule",
-    "tambour"
+    "brabanconne"
    ],
    "fichier": "sounds/maire.mp3",
    "voix": {
     "reveil": "Avant toute chose, le village doit se choisir un maire. Que les candidats se présentent… Le maire portera la médaille, et sa voix comptera double lors des votes."
+   },
+   "volumes": {
+    "brabanconne": 0.85
    }
   },
   {
@@ -1086,7 +1180,7 @@
    "desc": "",
    "lsc": "or 60 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      220,
      160,
@@ -1124,13 +1218,7 @@
    "emoji": "🏡",
    "couleur": "#c96a1b",
    "lumiere": {
-    "mode": "static",
-    "couleur": [
-     255,
-     110,
-     20
-    ],
-    "lum": 60,
+    "mode": "feu",
     "couleurs": [
      [
       255,
@@ -1147,7 +1235,9 @@
       160,
       50
      ]
-    ]
+    ],
+    "min": 35,
+    "max": 75
    },
    "sons": [
     "medieval",
@@ -1265,7 +1355,7 @@
    "emoji": "💀",
    "couleur": "#5a0a0a",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      200,
      0,
@@ -1328,11 +1418,16 @@
     "temp": 30
    },
    "sons": [
-    "foule"
+    "medieval",
+    "marche"
    ],
    "fichier": "sounds/debat.mp3",
    "voix": {
     "reveil": "Le village se rassemble sur la place. Parlez, accusez, défendez-vous… Les loups sont parmi vous."
+   },
+   "volumes": {
+    "medieval": 0.35,
+    "marche": 0.5
    }
   },
   {
@@ -1360,7 +1455,8 @@
    "fichier": "sounds/vote.mp3",
    "voix": {
     "reveil": "L'heure du jugement a sonné. Au signal, chacun désigne celui qu'il soupçonne. Trois… deux… un… votez !"
-   }
+   },
+   "voix_delai": 20
   },
   {
    "id": "bucher",
@@ -1370,13 +1466,7 @@
    "emoji": "🔥",
    "couleur": "#e04b0f",
    "lumiere": {
-    "mode": "static",
-    "couleur": [
-     255,
-     60,
-     0
-    ],
-    "lum": 90,
+    "mode": "feu",
     "couleurs": [
      [
       255,
@@ -1393,7 +1483,9 @@
       0,
       0
      ]
-    ]
+    ],
+    "min": 45,
+    "max": 100
    },
    "sons": [
     "feu",
@@ -1413,7 +1505,7 @@
    "emoji": "⛈️",
    "couleur": "#38457a",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      0,
      20,
@@ -1454,7 +1546,7 @@
    "emoji": "😨",
    "couleur": "#4a1d5c",
    "lumiere": {
-    "mode": "static",
+    "mode": "ambiance",
     "couleur": [
      90,
      0,

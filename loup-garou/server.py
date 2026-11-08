@@ -397,7 +397,10 @@ class Pilote(threading.Thread):
         # Séquence d'intro (flashs, noir…) jouée en même temps sur toutes les ampoules
         t = prog.depart
         for etape in spec.get("intro", []):
-            self.appliquer(etape)
+            if etape.get("vite"):
+                self.ampoule.instantane(etape)  # flashs : envoyés sans attendre
+            else:
+                self.appliquer(etape)
             t += etape.get("duree", 0.2)
             if self.attendre(t - time.time()):
                 return
@@ -454,6 +457,44 @@ class Pilote(threading.Thread):
                     self.appliquer(etapes[-1])
                     return
                 if self.attendre(max(1.0, pas * 2.5)):
+                    return
+
+        if mode == "ambiance":
+            # Une lampe sur trois reste fixe, une respire lentement, une glisse d'une couleur
+            # à l'autre de la palette. Changements rares : l'ampoule fait elle-même un fondu doux.
+            palette = spec.get("couleurs") or [spec["couleur"]]
+            lum = spec.get("lum", 70)
+            i = self.index % len(palette)
+            role = self.index % 3 if len(palette) > 1 else (self.index % 2)
+            self.appliquer({"couleur": palette[i], "lum": lum})
+            haut = True
+            while True:
+                if role == 0:
+                    if self.attendre(3600):
+                        return
+                elif role == 1:
+                    if self.attendre(float(spec.get("respiration", 4.5))):
+                        return
+                    haut = not haut
+                    self.appliquer({"couleur": palette[i], "lum": lum if haut else max(3, lum * 0.4)})
+                else:
+                    if self.attendre(float(spec.get("derive", 6))):
+                        return
+                    i = (i + 1) % len(palette)
+                    self.appliquer({"couleur": palette[i], "lum": lum})
+
+        if mode == "feu":
+            # feu de cheminée : chaque lampe vacille à son rythme, dans des teintes de flammes
+            hasard = random.Random(prog.graine + self.index * 7919)
+            palette = spec.get("couleurs") or [spec["couleur"]]
+            bas, haut = spec.get("min", 35), spec.get("max", 80)
+            lum = (bas + haut) / 2
+            while True:
+                lum = max(bas, min(haut, lum * 0.5 + hasard.uniform(bas, haut) * 0.5))
+                coul = palette[(self.index + hasard.randrange(len(palette))) % len(palette)] if hasard.random() < 0.3 \
+                    else palette[self.index % len(palette)]
+                self.ampoule.couleur(coul, self.lum(lum))
+                if self.attendre(hasard.uniform(0.45, 0.9)):
                     return
 
         if mode == "battement":

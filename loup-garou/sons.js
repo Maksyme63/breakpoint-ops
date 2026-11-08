@@ -576,7 +576,12 @@
   /** Attaque des loups : grognements, bond, morsure, cri. */
   SONS.attaque = (sortie) => {
     const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
-    const t0 = ctx.currentTime + 0.05;
+    // d'abord la meute hurle dans le noir…
+    const p = cheminEchantillon("meute") || cheminEchantillon("loups");
+    if (p) jouerUneFois(p, g, 0.9);
+    else { hurlement(g, -0.6, 360, 2.6); setTimeout(() => hurlement(g, 0.6, 300, 2.4), 350); setTimeout(() => hurlement(g, 0, 420, 2.2), 800); }
+    // … puis l'attaque, synchronisée avec les flashs des lampes
+    const t0 = ctx.currentTime + 2.4;
     const grogne = (t, d, f, pan, vol) => {
       const b = bus(g, vol, 0.35, pan), o = ctx.createOscillator(), n = bruit(false);
       const lp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), eg = ctx.createGain(), ng = ctx.createGain();
@@ -612,7 +617,7 @@
     ce.gain.setValueAtTime(0.0001, tc); ce.gain.linearRampToValueAtTime(1, tc + 0.08); ce.gain.setValueAtTime(1, tc + 0.9); ce.gain.exponentialRampToValueAtTime(0.0001, tc + 1.5);
     voix.start(tc); vib.start(tc); voix.stop(tc + 1.6); vib.stop(tc + 1.6);
     // puis silence pesant et un dernier hurlement au loin
-    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 5200);
+    setTimeout(() => hurlement(g, 0.7, 330, 3.5), 7800);
     return arretAvecFondu(g, [], [], 1.5);
   };
 
@@ -742,7 +747,9 @@
   }
   // boucle = ambiance continue ; ponctuel = revient de temps en temps ; unique = joué une fois
   const TYPE = { loups: "ponctuel", meute: "boucle", hibou: "ponctuel", corbeau: "ponctuel", grognement: "ponctuel",
-    glas: "unique", coq: "unique", coup_de_feu: "unique", fanfare: "unique", marteau: "unique", cri: "unique", attaque: "unique" };
+    glas: "unique", coq: "unique", coup_de_feu: "unique", fanfare: "unique", marteau: "unique", cri: "unique", attaque: "unique", brabanconne: "unique" };
+  // Si l'enregistrement manque, ce son synthétisé le remplace
+  const REMPLACANT = { brabanconne: "fanfare" };
   const VOLUME = { medieval: 0.55, peur: 0.6, loups: 0.8, meute: 0.8, foule: 0.45, vent: 0.5, pluie: 0.5, feu: 0.6,
     grillons: 0.35, oiseaux: 0.5, coeur: 0.8, glas: 0.7, coq: 0.7 };
 
@@ -786,12 +793,14 @@
   // Ces sons restent synthétisés : les enregistrements trouvés en ligne contenaient
   // des commentaires parlés ou grésillaient.
   const TOUJOURS_SYNTHE = new Set(["coeur", "tambour"]);
-  function couche(nom, sortie) {
+  function couche(nom, sortie, volumes) {
     if (nom !== "tonnerre" && !TOUJOURS_SYNTHE.has(nom)) {
       const p = cheminEchantillon(nom);
-      if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, VOLUME[nom] ?? 0.7);
+      const vol = (volumes && volumes[nom]) ?? VOLUME[nom] ?? 0.7;
+      if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, vol);
     }
-    return SONS[nom] ? SONS[nom](sortie) : null;
+    const synthe = SONS[nom] || SONS[REMPLACANT[nom]];
+    return synthe ? synthe(sortie) : null;
   }
 
   // ---------- narrateur ----------
@@ -837,10 +846,10 @@
       setTimeout(fin, 30000);
     });
   }
-  async function narrer(liste) {
+  async function narrer(liste, delai = 0) {
     arreterVoix();
     const jeton = jetonVoix;
-    await pause(400);
+    await pause(400 + delai * 1000);
     for (const [id, cle, texte] of liste) {
       if (jeton !== jetonVoix) return;
       await dire(id, cle, texte, jeton);
@@ -877,14 +886,17 @@
       busScene = null;
     } else {
       const sortie = ctx.createGain(); sortie.connect(maitre); busScene = sortie;
-      (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie); if (c) enCours.push(c); });
+      (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
     }
     if (config.narrateur) {
       const liste = [];
-      if (precedente && precedente.id !== scene.id && precedente.quand && precedente.voix && precedente.voix.dodo)
-        liste.push([precedente.id, "dodo", precedente.voix.dodo]);
+      const dodo = precedente && precedente.id !== scene.id && precedente.quand && precedente.voix && precedente.voix.dodo
+        ? [precedente.id, "dodo", precedente.voix.dodo] : null;
+      if (dodo && !scene.dodo_apres) liste.push(dodo);
       if (scene.voix && scene.voix.reveil) liste.push([scene.id, "reveil", scene.voix.reveil]);
-      if (liste.length) narrer(liste);
+      if (dodo && scene.dodo_apres) liste.push(dodo);  // ex. l'attaque, puis « les loups se rendorment »
+      if (liste.length) narrer(liste, scene.voix_delai || 0);
+      else arreterVoix();
     }
   }
 

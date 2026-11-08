@@ -45,6 +45,8 @@ SONS = {
     "oiseaux":     (["birdsong", "dawn chorus", "bird song", "birds singing", "chant oiseaux"], 5, 1200),
     "feu":         (["fire crackling", "campfire", "crackling fire", "fireplace", "feu de bois"], 5, 1200),
     "foule":       (["crowd", "crowd noise", "people talking", "murmur", "market crowd"], 5, 1200),
+    "brabanconne": (["La Brabançonne", "Brabanconne", "Belgium national anthem", "Belgian national anthem", "hymne national belge"], 40, 600),
+    "marche":      (["market ambience", "marketplace ambience", "medieval market", "outdoor market", "bazaar ambience"], 15, 1200),
     "medieval":    (["estampie", "saltarello", "medieval music", "medieval dance", "lute music", "musique médiévale"], 30, 1800),
     "corbeau":     (["crow", "raven", "corvus corax", "corvus corone", "corbeau"], 1, 90),
     "chaudron":    (["bubbling", "boiling water", "bubbles water", "boiling"], 3, 900),
