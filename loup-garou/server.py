@@ -164,7 +164,7 @@ class AmpouleTuya:
                     print(f"  ! {self.nom} ne répond pas ({e}) -> nouvel essai automatique")
                 self.ok = False
                 self.derniere_cmd = None
-                self.prochain_essai = time.time() + min(10, 2 * self.echecs)
+                self.prochain_essai = time.time() + min(5, 1 + self.echecs)
                 try:
                     self.dev.close()
                 except Exception:
