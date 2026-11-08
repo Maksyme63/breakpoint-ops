@@ -15,9 +15,17 @@ du même nom. Tu peux aussi y déposer tes propres fichiers (ex. sounds/lib/medi
 import json
 import os
 import re
+import ssl
 import sys
 import urllib.parse
 import urllib.request
+
+# Le Python de python.org sur Mac n'a pas de certificats : on prend ceux de « certifi »
+try:
+    import certifi
+    CONTEXTE_SSL = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    CONTEXTE_SSL = ssl.create_default_context()
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 DOSSIER = os.path.join(ICI, "sounds", "lib")
@@ -57,7 +65,7 @@ FORMATS_OK = ("audio/mpeg", "audio/wav", "audio/x-wav", "audio/flac", "audio/x-f
 
 def appel(params):
     url = API + "?" + urllib.parse.urlencode({**params, "format": "json"})
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30, context=CONTEXTE_SSL) as r:
         return json.load(r)
 
 
@@ -109,7 +117,7 @@ def telecharger(nom, rang=1):
             os.remove(os.path.join(DOSSIER, vieux))
     chemin = os.path.join(DOSSIER, nom + ext)
     req = urllib.request.Request(c["url"], headers=UA)
-    with urllib.request.urlopen(req, timeout=120) as r, open(chemin, "wb") as f:
+    with urllib.request.urlopen(req, timeout=120, context=CONTEXTE_SSL) as r, open(chemin, "wb") as f:
         f.write(r.read())
     print(f"   ✅ {c['titre']} ({round(c['duree'])} s, {c['licence']})")
     return c
