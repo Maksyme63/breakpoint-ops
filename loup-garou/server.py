@@ -427,7 +427,9 @@ class Pilote(threading.Thread):
             return
         if mode == "static":
             # un seul changement net : les ampoules font elles-mêmes une transition douce
-            self.appliquer({"couleur": spec["couleur"], "lum": spec.get("lum", 100)})
+            # "couleurs" : une palette, chaque ampoule prend sa propre teinte
+            palette = spec.get("couleurs") or [spec["couleur"]]
+            self.appliquer({"couleur": palette[self.index % len(palette)], "lum": spec.get("lum", 100)})
             return
         if mode == "white":
             self.appliquer({"blanc": True, "lum": spec.get("lum", 100), "temp": spec.get("temp", 50)})
