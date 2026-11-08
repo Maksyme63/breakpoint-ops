@@ -1,0 +1,11 @@
+# Clés secrètes des ampoules : ne jamais les publier
+devices.json
+snapshot.json
+tinytuya.json
+tuya-raw.json
+config.json
+sounds/*.mp3
+sounds/*.ogg
+sounds/*.wav
+sounds/*.m4a
+__pycache__/

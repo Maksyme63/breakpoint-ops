@@ -1,0 +1,10 @@
+Dépose ici tes propres musiques / bruitages (mp3, ogg, wav, m4a).
+Ils remplacent automatiquement les sons synthétisés de la scène correspondante :
+
+  accueil.mp3   nuit.mp3      cupidon.mp3   voyante.mp3   loups.mp3
+  sorciere.mp3  salvateur.mp3 jour.mp3      victime.mp3   debat.mp3
+  vote.mp3      bucher.mp3    chasseur.mp3  orage.mp3     suspense.mp3
+  victoire_village.mp3        victoire_loups.mp3
+
+Les fichiers tournent en boucle. Sons libres de droits : pixabay.com/sound-effects,
+freesound.org, YouTube Audio Library…

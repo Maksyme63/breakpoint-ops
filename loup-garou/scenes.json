@@ -1,0 +1,103 @@
+{
+  "_aide": "Chaque scène = un bouton. 'lumiere' pilote les ampoules, 'sons' liste les sons synthétisés (voir sons.js), 'fichier' = un mp3 perso optionnel dans le dossier sounds/ (prioritaire sur les sons synthétisés s'il existe). Couleurs en [Rouge, Vert, Bleu] de 0 à 255, luminosité de 1 à 100.",
+  "scenes": [
+    {
+      "id": "accueil", "groupe": "Préparation", "nom": "Accueil au village", "emoji": "🏡", "couleur": "#c96a1b",
+      "lumiere": { "mode": "flicker", "couleur": [255, 110, 20], "min": 35, "max": 70 },
+      "sons": ["medieval", "feu"], "fichier": "sounds/accueil.mp3"
+    },
+    {
+      "id": "nuit", "groupe": "Nuit", "nom": "La nuit tombe", "emoji": "🌙", "couleur": "#1d2f80",
+      "lumiere": { "mode": "fade", "duree": 6, "etapes": [ { "couleur": [255, 120, 30], "lum": 60 }, { "couleur": [120, 40, 160], "lum": 35 }, { "couleur": [10, 30, 160], "lum": 15 } ] },
+      "sons": ["vent", "grillons", "hibou"], "fichier": "sounds/nuit.mp3"
+    },
+    {
+      "id": "cupidon", "groupe": "Nuit", "nom": "Cupidon", "emoji": "💘", "couleur": "#e0338f",
+      "lumiere": { "mode": "pulse", "couleur": [255, 30, 130], "min": 25, "max": 90, "periode": 4 },
+      "sons": ["harpe"], "fichier": "sounds/cupidon.mp3"
+    },
+    {
+      "id": "voyante", "groupe": "Nuit", "nom": "La Voyante", "emoji": "🔮", "couleur": "#7b2ff2",
+      "lumiere": { "mode": "pulse", "couleur": [130, 0, 255], "couleur2": [40, 0, 200], "min": 30, "max": 80, "periode": 5 },
+      "sons": ["mystique"], "fichier": "sounds/voyante.mp3"
+    },
+    {
+      "id": "loups", "groupe": "Nuit", "nom": "Les Loups-Garous se réveillent", "emoji": "🐺", "couleur": "#b00000", "grand": true,
+      "lumiere": { "mode": "pulse", "couleur": [255, 0, 0], "min": 15, "max": 100, "periode": 2.6,
+                   "intro": [ { "eteint": true, "duree": 0.6 }, { "couleur": [255, 0, 0], "lum": 100, "duree": 0.2 }, { "eteint": true, "duree": 0.3 } ] },
+      "sons": ["loups", "peur", "coeur"], "fichier": "sounds/loups.mp3"
+    },
+    {
+      "id": "sorciere", "groupe": "Nuit", "nom": "La Sorcière", "emoji": "🧪", "couleur": "#11a63a",
+      "lumiere": { "mode": "flicker", "couleur": [20, 255, 40], "couleur2": [120, 0, 200], "min": 25, "max": 75 },
+      "sons": ["chaudron", "mystique"], "fichier": "sounds/sorciere.mp3"
+    },
+    {
+      "id": "salvateur", "groupe": "Nuit", "nom": "Le Salvateur", "emoji": "🛡️", "couleur": "#2aa7c9",
+      "lumiere": { "mode": "pulse", "couleur": [80, 200, 255], "min": 35, "max": 70, "periode": 6 },
+      "sons": ["choeur"], "fichier": "sounds/salvateur.mp3"
+    },
+    {
+      "id": "jour", "groupe": "Jour", "nom": "Le jour se lève", "emoji": "🌅", "couleur": "#f2a516", "grand": true,
+      "lumiere": { "mode": "fade", "duree": 8, "etapes": [ { "couleur": [10, 30, 160], "lum": 10 }, { "couleur": [255, 60, 20], "lum": 40 }, { "couleur": [255, 160, 50], "lum": 75 }, { "blanc": true, "lum": 100, "temp": 40 } ] },
+      "sons": ["coq", "oiseaux"], "fichier": "sounds/jour.mp3"
+    },
+    {
+      "id": "victime", "groupe": "Jour", "nom": "La victime est découverte", "emoji": "💀", "couleur": "#5a0a0a",
+      "lumiere": { "mode": "static", "couleur": [200, 0, 0], "lum": 35,
+                   "intro": [ { "blanc": true, "lum": 100, "duree": 0.15 }, { "eteint": true, "duree": 0.15 }, { "blanc": true, "lum": 100, "duree": 0.15 }, { "eteint": true, "duree": 1.2 } ] },
+      "sons": ["cri", "glas"], "fichier": "sounds/victime.mp3"
+    },
+    {
+      "id": "debat", "groupe": "Jour", "nom": "Le débat", "emoji": "🗣️", "couleur": "#b8892d",
+      "lumiere": { "mode": "white", "lum": 85, "temp": 30 },
+      "sons": ["foule"], "fichier": "sounds/debat.mp3"
+    },
+    {
+      "id": "vote", "groupe": "Jour", "nom": "Le vote", "emoji": "⚖️", "couleur": "#d97706",
+      "lumiere": { "mode": "pulse", "couleur": [255, 120, 0], "min": 20, "max": 100, "periode": 0.9 },
+      "sons": ["tambour", "coeur"], "fichier": "sounds/vote.mp3"
+    },
+    {
+      "id": "bucher", "groupe": "Jour", "nom": "Le bûcher", "emoji": "🔥", "couleur": "#e04b0f",
+      "lumiere": { "mode": "flicker", "couleur": [255, 70, 0], "couleur2": [255, 20, 0], "min": 30, "max": 100 },
+      "sons": ["feu", "glas", "foule"], "fichier": "sounds/bucher.mp3"
+    },
+    {
+      "id": "chasseur", "groupe": "Jour", "nom": "Le Chasseur tire", "emoji": "🏹", "couleur": "#8a5a2b",
+      "lumiere": { "mode": "static", "couleur": [255, 90, 0], "lum": 45,
+                   "intro": [ { "blanc": true, "lum": 100, "duree": 0.12 }, { "eteint": true, "duree": 0.8 } ] },
+      "sons": ["coup_de_feu"], "fichier": "sounds/chasseur.mp3"
+    },
+    {
+      "id": "orage", "groupe": "Ambiances", "nom": "Orage", "emoji": "⛈️", "couleur": "#38457a",
+      "lumiere": { "mode": "lightning", "couleur": [0, 20, 90], "lum": 12 },
+      "sons": ["pluie", "vent", "tonnerre"], "fichier": "sounds/orage.mp3"
+    },
+    {
+      "id": "suspense", "groupe": "Ambiances", "nom": "Suspense", "emoji": "😨", "couleur": "#4a1d5c",
+      "lumiere": { "mode": "pulse", "couleur": [90, 0, 140], "min": 5, "max": 30, "periode": 3 },
+      "sons": ["peur", "coeur"], "fichier": "sounds/suspense.mp3"
+    },
+    {
+      "id": "victoire_village", "groupe": "Fin de partie", "nom": "Victoire du village", "emoji": "🏆", "couleur": "#1f9d55",
+      "lumiere": { "mode": "cycle", "couleurs": [ [255, 190, 0], [0, 255, 80], [255, 255, 255], [0, 140, 255] ], "lum": 100, "periode": 0.8 },
+      "sons": ["fanfare", "oiseaux"], "fichier": "sounds/victoire_village.mp3"
+    },
+    {
+      "id": "victoire_loups", "groupe": "Fin de partie", "nom": "Victoire des loups", "emoji": "🩸", "couleur": "#7a0000",
+      "lumiere": { "mode": "cycle", "couleurs": [ [255, 0, 0], "eteint", [180, 0, 0], "eteint" ], "lum": 100, "periode": 0.35 },
+      "sons": ["meute", "peur", "cri"], "fichier": "sounds/victoire_loups.mp3"
+    },
+    {
+      "id": "lumiere", "groupe": "Contrôle", "nom": "Lumière normale", "emoji": "💡", "couleur": "#6b7280",
+      "lumiere": { "mode": "white", "lum": 100, "temp": 50 },
+      "sons": []
+    },
+    {
+      "id": "stop", "groupe": "Contrôle", "nom": "Tout éteindre", "emoji": "⏹️", "couleur": "#111827",
+      "lumiere": { "mode": "off" },
+      "sons": []
+    }
+  ]
+}

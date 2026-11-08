@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pad Loup-Garou</title>
+<style>
+  :root {
+    --fond: #0b0a10;
+    --carte: #17151f;
+    --bord: #2a2635;
+    --texte: #f3eee6;
+    --doux: #9a93a8;
+    --accent: #c0262d;
+    --lueur: #000;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--fond); color: var(--texte); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: max(12px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    background: radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--lueur) 45%, transparent), transparent 70%), var(--fond);
+    background-attachment: fixed;
+    transition: background 0.8s;
+    user-select: none; -webkit-user-select: none;
+  }
+  main { max-width: 900px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  h1 { font-size: 1.35rem; margin: 0; letter-spacing: 0.02em; flex: 1; }
+  h1 span { color: var(--accent); }
+  #etat { font-size: 0.78rem; padding: 6px 10px; border-radius: 99px; background: var(--carte); border: 1px solid var(--bord); color: var(--doux); white-space: nowrap; }
+  #etat.ok { color: #7ee2a0; border-color: #1f5d37; }
+  #etat.simu { color: #f3c969; border-color: #6b5320; }
+
+  .reglages { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; }
+  .reglages label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--doux); min-width: 0; }
+  .reglages input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .reglages input[type=color] { width: 40px; height: 34px; border: none; background: none; padding: 0; }
+  #couperSon { background: #2a2635; color: var(--texte); border: 1px solid var(--bord); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--doux); margin: 18px 4px 8px; font-weight: 600; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .bouton {
+    position: relative; border: 1px solid var(--bord); border-radius: 16px; min-height: 104px; padding: 12px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 35%, var(--carte)), var(--carte) 75%);
+    color: var(--texte); font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform 0.08s, box-shadow 0.3s, border-color 0.3s;
+  }
+  .bouton:active { transform: scale(0.96); }
+  .bouton .emoji { font-size: 2rem; line-height: 1; }
+  .bouton .nom { font-size: 0.98rem; font-weight: 650; line-height: 1.2; }
+  .bouton .touche { position: absolute; top: 8px; right: 10px; font-size: 0.7rem; color: var(--doux); opacity: 0.7; }
+  .bouton.grand { grid-column: span 2; min-height: 120px; }
+  .bouton.grand .emoji { font-size: 2.6rem; }
+  .bouton.actif { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 0 28px color-mix(in srgb, var(--c) 70%, transparent); }
+  .bouton.actif::after { content: "● EN COURS"; position: absolute; bottom: 10px; right: 12px; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--texte); opacity: 0.85; }
+
+  #demarrer { position: fixed; inset: 0; background: rgba(5, 4, 8, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 10; text-align: center; padding: 24px; }
+  #demarrer button { font-size: 1.2rem; padding: 18px 34px; border-radius: 99px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-weight: 700; }
+  #demarrer p { color: var(--doux); max-width: 420px; line-height: 1.5; margin: 0; }
+  .cache { display: none !important; }
+  footer { margin-top: 26px; font-size: 0.75rem; color: var(--doux); text-align: center; line-height: 1.6; }
+
+  @media (max-width: 520px) {
+    .reglages { grid-template-columns: 1fr; }
+    .grille { grid-template-columns: 1fr 1fr; }
+    .bouton { min-height: 96px; }
+  }
+</style>
+</head>
+<body>
+<div id="demarrer">
+  <div style="font-size:4rem">🐺</div>
+  <h1 style="flex:none">Pad <span>Loup-Garou</span></h1>
+  <p>Appuie pour activer le son (les navigateurs bloquent l'audio tant qu'on n'a pas touché l'écran).</p>
+  <button id="go">Commencer la partie</button>
+</div>
+
+<main>
+  <header>
+    <h1>🐺 Pad <span>Loup-Garou</span></h1>
+    <div id="etat">Connexion…</div>
+  </header>
+
+  <section class="reglages">
+    <label>🔊 <input id="volume" type="range" min="0" max="100" value="80"></label>
+    <label>💡 <input id="lum" type="range" min="5" max="100" value="100"></label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre">
+      <button id="couperSon" title="Couper uniquement le son">🔇 Son</button>
+    </div>
+  </section>
+
+  <div id="pad"></div>
+
+  <footer>
+    Raccourcis clavier : touches indiquées sur les boutons · Espace = couper le son<br>
+    Ajoute tes propres musiques dans le dossier <code>sounds/</code> (voir README).
+  </footer>
+</main>
+
+<script src="sons.js"></script>
+<script>
+(async function () {
+  const $ = (s) => document.querySelector(s);
+  const Sons = window.SonsLoupGarou;
+  const TOUCHES = "1234567890azertyuiop";
+  let scenes = [], serveur = false, fichiers = {}, sceneActive = null, verrouEcran = null;
+
+  // --- chargement des scènes ---
+  try {
+    scenes = (await (await fetch("scenes.json", { cache: "no-store" })).json()).scenes;
+  } catch (e) {
+    $("#pad").innerHTML = "<p>Impossible de lire scenes.json. Lance le pad avec <code>python server.py</code>.</p>";
+    return;
+  }
+
+  // --- construction des boutons par groupe ---
+  const groupes = {};
+  scenes.forEach((s) => (groupes[s.groupe || "Autres"] ||= []).push(s));
+  let n = 0;
+  for (const [nom, liste] of Object.entries(groupes)) {
+    const h = document.createElement("h2"); h.textContent = nom; $("#pad").appendChild(h);
+    const g = document.createElement("div"); g.className = "grille"; $("#pad").appendChild(g);
+    liste.forEach((s) => {
+      const b = document.createElement("button");
+      b.className = "bouton" + (s.grand ? " grand" : "");
+      b.style.setProperty("--c", s.couleur || "#888");
+      b.dataset.id = s.id;
+      s.touche = TOUCHES[n++];
+      b.innerHTML = `<span class="touche">${s.touche || ""}</span><span class="emoji">${s.emoji || "•"}</span><span class="nom"></span>`;
+      b.querySelector(".nom").textContent = s.nom;
+      b.addEventListener("click", () => lancer(s));
+      g.appendChild(b);
+    });
+  }
+
+  // --- connexion au serveur des ampoules ---
+  async function api(chemin, corps) {
+    const r = await fetch(chemin, corps === undefined ? {} : {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps),
+    });
+    return r.json();
+  }
+  function afficherEtat(e) {
+    const el = $("#etat");
+    if (!e) { el.className = ""; el.textContent = "🔈 Son seul (pas de serveur)"; return; }
+    const ok = e.ampoules.filter((a) => a.ok).length;
+    el.className = e.simulation ? "simu" : "ok";
+    el.textContent = e.simulation ? "🧪 Simulation (sans ampoules)" : `💡 ${ok}/${e.ampoules.length} ampoules`;
+  }
+  try { const e = await api("api/etat"); serveur = true; afficherEtat(e); $("#lum").value = e.luminosite; }
+  catch (e) { afficherEtat(null); }
+  if (serveur) setInterval(async () => { try { afficherEtat(await api("api/etat")); } catch (e) {} }, 15000);
+
+  // --- mp3 personnalisés présents ? ---
+  if (serveur) {
+    try { const dispo = await api("api/sons"); scenes.forEach((s) => (fichiers[s.id] = dispo.includes(s.fichier))); } catch (e) {}
+  } else {
+    await Promise.all(scenes.filter((s) => s.fichier).map(async (s) => {
+      try { const r = await fetch(s.fichier, { method: "HEAD", cache: "no-store" }); fichiers[s.id] = r.ok; }
+      catch (e) { fichiers[s.id] = false; }
+    }));
+  }
+
+  // --- lancer une scène ---
+  function lancer(s) {
+    sceneActive = s.id;
+    document.querySelectorAll(".bouton").forEach((b) => b.classList.toggle("actif", b.dataset.id === s.id));
+    document.documentElement.style.setProperty("--lueur", s.id === "stop" ? "#000" : (s.couleur || "#000"));
+    Sons.jouer(s, fichiers[s.id]);
+    if (navigator.vibrate) navigator.vibrate(30);
+    if (serveur) api("api/scene/" + encodeURIComponent(s.id), {}).then(afficherEtat).catch(() => afficherEtat(null));
+  }
+
+  // --- réglages ---
+  $("#volume").addEventListener("input", (e) => Sons.volume(e.target.value / 100));
+  let minuterieLum;
+  $("#lum").addEventListener("input", (e) => {
+    clearTimeout(minuterieLum);
+    minuterieLum = setTimeout(() => serveur && api("api/luminosite", { valeur: +e.target.value }), 250);
+  });
+  $("#couleurLibre").addEventListener("change", (e) => {
+    const h = e.target.value, rgb = [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
+    document.querySelectorAll(".bouton").forEach((b) => b.classList.remove("actif"));
+    document.documentElement.style.setProperty("--lueur", h);
+    if (serveur) api("api/couleur", { couleur: rgb, lum: 100 });
+  });
+  $("#couperSon").addEventListener("click", () => Sons.toutArreter(false));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT") return;
+    if (e.code === "Space") { e.preventDefault(); Sons.toutArreter(false); return; }
+    const s = scenes.find((x) => x.touche === e.key.toLowerCase());
+    if (s) lancer(s);
+  });
+
+  // --- écran de démarrage (débloque l'audio) + écran toujours allumé ---
+  async function garderEcranAllume() {
+    try { if ("wakeLock" in navigator) verrouEcran = await navigator.wakeLock.request("screen"); } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") garderEcranAllume(); });
+  $("#go").addEventListener("click", () => {
+    Sons.init(); Sons.volume($("#volume").value / 100);
+    $("#demarrer").classList.add("cache");
+    garderEcranAllume();
+  });
+})();
+</script>
+</body>
+</html>
