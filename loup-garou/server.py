@@ -85,6 +85,10 @@ class AmpouleSimulee:
     def eteindre(self):
         self._log("éteinte")
 
+    def instantane(self, etape):
+        self._dernier = 0
+        self._log(f"éclair {etape}")
+
 
 class AmpouleTuya:
     """Vraie ampoule LSC / Tuya pilotée en local avec tinytuya.
@@ -111,14 +115,14 @@ class AmpouleTuya:
         self.dev = None
         self.raison = None
         try:
-            self._connecter()
+            self._connecter(patient=True)
         except Exception as e:
             self.ok = False
             self.raison = str(e)
         if not self.ok:
             self.echecs = 1  # on réessaiera pendant la partie
 
-    def _connecter(self):
+    def _connecter(self, patient=False):
         info = self.info
         try:
             if self.dev:
@@ -128,13 +132,20 @@ class AmpouleTuya:
         self.dev = self.tinytuya.BulbDevice(
             info["id"], info.get("ip") or "Auto", info["key"],
             version=float(info.get("version") or 3.3),
-            connection_timeout=4, connection_retry_limit=2, connection_retry_delay=1)
+            # au démarrage on est patient ; pendant la partie, une ampoule lente ne doit pas tout ralentir
+            connection_timeout=4 if patient else 1.5, connection_retry_limit=2 if patient else 1,
+            connection_retry_delay=1 if patient else 0.3)
         self.dev.set_socketPersistent(True)
         r = self.dev.status()  # détecte le type d'ampoule (DP 1-5 ou 20-24)
         # Certaines ampoules répondent à vide : seule une vraie erreur compte
         self.raison = r.get("Error") if isinstance(r, dict) else None
         self.ok = not self.raison
         self.derniere_cmd = None
+        try:
+            self.dev.set_socketTimeout(1.5)
+            self.dev.set_socketRetryLimit(1)
+        except Exception:
+            pass
         if self.ok:
             self._configurer_selon_cloud()
         return self.ok
@@ -236,6 +247,25 @@ class AmpouleTuya:
 
     def eteindre(self):
         self._envoyer(("off",), self.dev_appel("turn_off"))
+
+    def instantane(self, etape):
+        """Commande éclair : envoyée tout de suite, sans attendre la réponse (flashs d'orage)."""
+        if not self.ok:
+            return
+        with self.verrou:
+            try:
+                if etape == "eteint" or etape.get("eteint"):
+                    self.dev.turn_off(0, True)
+                elif etape.get("blanc"):
+                    self.dev.set_white_percentage(round(max(1, min(100, etape.get("lum", 100)))), etape.get("temp", 100), True)
+                else:
+                    r, g, b = [max(0, min(255, c)) / 255.0 for c in etape["couleur"]]
+                    h, sa, _ = colorsys.rgb_to_hsv(r, g, b)
+                    self.dev.set_hsv(h, sa, max(0.01, min(1.0, etape.get("lum", 100) / 100.0)), True)
+            except Exception:
+                pass
+            self.derniere_cmd = None
+            self.dernier_envoi = time.time()
 
     def dev_appel(self, nom):
         # self.dev peut être recréé lors d'une reconnexion : on le relit au moment de l'appel
@@ -377,6 +407,23 @@ class Pilote(threading.Thread):
         if mode == "off":
             self.ampoule.eteindre()
             return
+        if mode == "eclair":
+            # chaque ampoule part avec un petit décalage : l'éclair semble traverser la pièce
+            hasard = random.Random(prog.graine + self.index * 104729)
+            if hasard.random() > spec.get("proba", 0.85) and self.index != 0:
+                pass  # cette lampe reste dans l'ombre pour cet éclair
+            else:
+                if self.attendre(hasard.uniform(0, 0.18)):
+                    return
+                for etape in spec["motif"]:
+                    self.ampoule.instantane(etape)
+                    if self.attendre(etape.get("duree", 0.08)):
+                        return
+            self.actuel = None
+            retour = spec.get("retour")
+            if retour:
+                self.executer(Programme(retour, time.time(), prog.graine))
+            return
         if mode == "static":
             cible = {"couleur": spec["couleur"], "lum": spec.get("lum", 100)}
             if self.fondu_depuis_actuel(cible, prog):
@@ -432,7 +479,8 @@ class Pilote(threading.Thread):
                 f = hasard.random() ** 2
                 coul = [round(c1[k] + (c2[k] - c1[k]) * f) for k in range(3)]
                 self.ampoule.couleur(coul, self.lum(hasard.uniform(bas, haut)))
-                if self.attendre(pas + hasard.uniform(0, pas * 1.5)):
+                lenteur = float(spec.get("lenteur", 1))
+                if self.attendre(pas * lenteur + hasard.uniform(0, pas * 1.5 * lenteur)):
                     return
 
         if mode == "cycle":
@@ -487,18 +535,27 @@ def lancer_spec(spec):
         p.jouer(prog)
 
 
+MOTIFS_ECLAIR = [
+    # double flash classique
+    [{"blanc": True, "lum": 100, "duree": 0.07}, {"eteint": True, "duree": 0.09}, {"blanc": True, "lum": 100, "duree": 0.18}],
+    # long éclair aveuglant
+    [{"blanc": True, "lum": 100, "duree": 0.35}],
+    # éclair qui crépite
+    [{"blanc": True, "lum": 60, "duree": 0.05}, {"eteint": True, "duree": 0.06}, {"blanc": True, "lum": 100, "duree": 0.06},
+     {"eteint": True, "duree": 0.12}, {"blanc": True, "lum": 80, "duree": 0.15}],
+    # éclair lointain bleuté
+    [{"couleur": [150, 170, 255], "lum": 70, "duree": 0.12}, {"eteint": True, "duree": 0.1}, {"couleur": [190, 200, 255], "lum": 50, "duree": 0.1}],
+]
+
+
 def eclair():
-    """Éclair déclenché par le tonnerre de la page : flash puis retour à la scène."""
+    """Éclair déclenché par le tonnerre de la page : flash puis retour à l'ambiance d'orage."""
     spec = ETAT["derniere_spec"]
     if not spec:
         return
-    flash = dict(spec)
-    flash["intro"] = [{"blanc": True, "lum": 100, "temp": 100, "duree": 0.15},
-                      {"couleur": spec.get("couleur", [0, 20, 90]), "lum": 5, "duree": 0.1},
-                      {"blanc": True, "lum": 100, "temp": 100, "duree": 0.1}]
-    prog = Programme(flash, time.time() + 0.02, random.randrange(1 << 30))
+    motif = random.choice(MOTIFS_ECLAIR)
+    prog = Programme({"mode": "eclair", "motif": motif, "retour": spec}, time.time(), random.randrange(1 << 30))
     for p in PILOTES:
-        p.actuel = None  # pas de fondu après un éclair
         p.jouer(prog)
 
 

@@ -1092,7 +1092,8 @@
    },
    "sons": [
     "cri",
-    "glas"
+    "glas",
+    "loups"
    ],
    "fichier": "sounds/victime.mp3",
    "voix": {
@@ -1186,13 +1187,20 @@
    "emoji": "⛈️",
    "couleur": "#38457a",
    "lumiere": {
-    "mode": "static",
+    "mode": "flicker",
     "couleur": [
      0,
      20,
-     90
+     110
     ],
-    "lum": 12,
+    "couleur2": [
+     30,
+     0,
+     70
+    ],
+    "min": 3,
+    "max": 14,
+    "lenteur": 4,
     "eclairs": "son"
    },
    "sons": [

@@ -50,8 +50,6 @@ SONS = {
     "medieval":    (["estampie", "saltarello", "medieval music", "medieval dance", "lute music", "musique médiévale"], 30, 1800),
     "corbeau":     (["crow", "raven", "corvus corax", "corvus corone", "corbeau"], 1, 90),
     "chaudron":    (["bubbling", "boiling water", "bubbles water", "boiling"], 3, 900),
-    "coeur":       (["heartbeat", "heart beat", "heart sounds", "battement coeur"], 3, 600),
-    "tambour":     (["drum", "war drum", "drum roll", "timpani", "tambour"], 3, 300),
     "harpe":       (["harp", "harp glissando", "celtic harp", "harpe"], 3, 600),
     "flute":       (["flute", "recorder", "pan flute", "tin whistle", "flûte"], 5, 600),
     "coup_de_feu": (["gunshot", "musket", "rifle shot", "shotgun", "gun shot"], 0.2, 20),
@@ -108,6 +106,11 @@ def candidats(nom, rang_voulu=1):
             meta = vi.get("extmetadata") or {}
             licence = (meta.get("LicenseShortName") or {}).get("value", "") or (meta.get("License") or {}).get("value", "")
             duree = float(vi.get("duration") or 0)
+            description = re.sub(r"<[^>]+>", "", (meta.get("ImageDescription") or {}).get("value", "")).lower()
+            if re.search(r"voice|spoken|speech|narrat|comment|lecture|talk|announc|interview|explain", description + " " + p["title"].lower()):
+                ecartes.setdefault("voix parlée", 0)
+                ecartes["voix parlée"] += 1
+                continue
             if not LICENCES_OK.search(licence):
                 ecartes["licence"] += 1
                 continue
