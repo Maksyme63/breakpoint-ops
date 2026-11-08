@@ -874,7 +874,7 @@
   /** Une couche sonore : le vrai enregistrement s'il existe, sinon le son synthétisé. */
   // Ces sons restent synthétisés : les enregistrements trouvés en ligne contenaient
   // des commentaires parlés ou grésillaient.
-  const TOUJOURS_SYNTHE = new Set(["coeur", "tambour"]);
+  const TOUJOURS_SYNTHE = new Set(["coeur", "tambour", "attaque", "terreur"]);  // séquences composées : jamais remplacées
   function couche(nom, sortie, volumes) {
     if (nom !== "tonnerre" && !TOUJOURS_SYNTHE.has(nom)) {
       const p = cheminEchantillon(nom);
