@@ -57,7 +57,8 @@ pip install tinytuya
 
 ### 3. Lancer le pad
 - Windows : double-clic sur **`lancer.bat`**
-- Mac / Linux : `./lancer.sh`
+- Mac : double-clic sur **`lancer-mac.command`** (la première fois : clic droit → *Ouvrir* → *Ouvrir*)
+- Linux : `./lancer.sh`
 
 La console affiche l'adresse à ouvrir sur le téléphone, par ex. `http://192.168.1.20:8000`
 (le téléphone doit être sur le **même Wi-Fi**). Ajoute la page à l'écran d'accueil pour l'avoir comme une appli.
