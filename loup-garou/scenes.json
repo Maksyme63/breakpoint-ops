@@ -1590,6 +1590,183 @@
    ]
   },
   {
+   "id": "matin_sauve",
+   "groupe": "Jour",
+   "nom": "Personne n'est mort",
+   "emoji": "🕊️",
+   "couleur": "#f2a516",
+   "grand": false,
+   "desc": "",
+   "lsc": "blanc 100 %",
+   "lumiere": {
+    "mode": "fade",
+    "duree": 8,
+    "etapes": [
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 10
+     },
+     {
+      "couleur": [
+       255,
+       60,
+       20
+      ],
+      "lum": 40
+     },
+     {
+      "couleur": [
+       255,
+       160,
+       50
+      ],
+      "lum": 75
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 40
+     }
+    ]
+   },
+   "sons": [],
+   "enchainement": [
+    {
+     "scene": "jour",
+     "duree": 10
+    },
+    {
+     "scene": "sauvee",
+     "duree": 8
+    },
+    {
+     "scene": "debat"
+    }
+   ]
+  },
+  {
+   "id": "matin_2",
+   "groupe": "Jour",
+   "nom": "Deux victimes",
+   "emoji": "💀💀",
+   "couleur": "#f2a516",
+   "grand": false,
+   "desc": "",
+   "lsc": "blanc 100 %",
+   "lumiere": {
+    "mode": "fade",
+    "duree": 8,
+    "etapes": [
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 10
+     },
+     {
+      "couleur": [
+       255,
+       60,
+       20
+      ],
+      "lum": 40
+     },
+     {
+      "couleur": [
+       255,
+       160,
+       50
+      ],
+      "lum": 75
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 40
+     }
+    ]
+   },
+   "sons": [],
+   "enchainement": [
+    {
+     "scene": "jour",
+     "duree": 10
+    },
+    {
+     "scene": "victimes2",
+     "duree": 15
+    },
+    {
+     "scene": "debat"
+    }
+   ]
+  },
+  {
+   "id": "matin_3",
+   "groupe": "Jour",
+   "nom": "Trois victimes",
+   "emoji": "💀💀💀",
+   "couleur": "#f2a516",
+   "grand": false,
+   "desc": "",
+   "lsc": "blanc 100 %",
+   "lumiere": {
+    "mode": "fade",
+    "duree": 8,
+    "etapes": [
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 10
+     },
+     {
+      "couleur": [
+       255,
+       60,
+       20
+      ],
+      "lum": 40
+     },
+     {
+      "couleur": [
+       255,
+       160,
+       50
+      ],
+      "lum": 75
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 40
+     }
+    ]
+   },
+   "sons": [],
+   "enchainement": [
+    {
+     "scene": "jour",
+     "duree": 10
+    },
+    {
+     "scene": "victimes3",
+     "duree": 18
+    },
+    {
+     "scene": "debat"
+    }
+   ]
+  },
+  {
    "id": "jour",
    "lsc": "blanc 100 %",
    "groupe": "Jour",
@@ -2040,6 +2217,159 @@
     "mode": "off"
    },
    "sons": []
+  },
+  {
+   "id": "sauvee",
+   "groupe": "Étapes",
+   "nom": "Personne n'est mort",
+   "emoji": "🕊️",
+   "couleur": "#e8c15a",
+   "lsc": "blanc doré 80 %",
+   "lumiere": {
+    "mode": "ambiance",
+    "couleurs": [
+     [
+      255,
+      210,
+      120
+     ],
+     [
+      255,
+      240,
+      200
+     ],
+     [
+      255,
+      180,
+      80
+     ]
+    ],
+    "lum": 80
+   },
+   "sons": [
+    "oiseaux",
+    "harpe"
+   ],
+   "fichier": "sounds/sauvee.mp3",
+   "voix": {
+    "reveil": "Ce matin… un miracle. Personne n'a été tué cette nuit ! Le village respire enfin… mais pour combien de temps ?"
+   }
+  },
+  {
+   "id": "victimes2",
+   "lsc": "rouge sombre 35 %",
+   "groupe": "Étapes",
+   "nom": "Deux victimes",
+   "emoji": "💀",
+   "couleur": "#5a0a0a",
+   "lumiere": {
+    "mode": "ambiance",
+    "couleur": [
+     200,
+     0,
+     0
+    ],
+    "lum": 35,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 0.15
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 1.2
+     }
+    ],
+    "couleurs": [
+     [
+      200,
+      0,
+      0
+     ],
+     [
+      80,
+      0,
+      60
+     ]
+    ]
+   },
+   "sons": [
+    "cri",
+    "glas",
+    "loups"
+   ],
+   "fichier": "sounds/victimes2.mp3",
+   "voix": {
+    "reveil": "Quelle nuit terrible… Ce matin, le village pleure deux victimes. Le meneur va révéler leurs noms."
+   }
+  },
+  {
+   "id": "victimes3",
+   "lsc": "rouge sombre 35 %",
+   "groupe": "Étapes",
+   "nom": "Trois victimes",
+   "emoji": "💀",
+   "couleur": "#5a0a0a",
+   "lumiere": {
+    "mode": "ambiance",
+    "couleur": [
+     200,
+     0,
+     0
+    ],
+    "lum": 35,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 0.15
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 1.2
+     }
+    ],
+    "couleurs": [
+     [
+      200,
+      0,
+      0
+     ],
+     [
+      80,
+      0,
+      60
+     ]
+    ]
+   },
+   "sons": [
+    "cri",
+    "glas",
+    "loups"
+   ],
+   "fichier": "sounds/victimes3.mp3",
+   "voix": {
+    "reveil": "Une nuit de cauchemar… Trois villageois ont péri avant l'aube. Le meneur va révéler leurs noms."
+   }
   }
  ]
 }

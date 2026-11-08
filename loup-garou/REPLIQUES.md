@@ -26,6 +26,12 @@ Enregistre chaque réplique et range le fichier dans `sounds/voix/` avec le nom 
   « Contre vents et marées, les deux amoureux ont survécu. L'amour triomphe à Thiercelieux ! »
 - **🎭 Victoire d'un solitaire** — fichier `victoire_solitaire-reveil.m4a`  
   « Personne ne l'a vu venir… Un joueur solitaire remporte la partie, seul contre tous. »
+- **🕊️ Personne n'est mort** — fichier `sauvee-reveil.m4a`  
+  « Ce matin… un miracle. Personne n'a été tué cette nuit ! Le village respire enfin… mais pour combien de temps ? »
+- **💀 Deux victimes** — fichier `victimes2-reveil.m4a`  
+  « Quelle nuit terrible… Ce matin, le village pleure deux victimes. Le meneur va révéler leurs noms. »
+- **💀 Trois victimes** — fichier `victimes3-reveil.m4a`  
+  « Une nuit de cauchemar… Trois villageois ont péri avant l'aube. Le meneur va révéler leurs noms. »
 
 ## Personnages
 

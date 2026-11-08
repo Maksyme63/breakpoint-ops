@@ -240,7 +240,7 @@
     const sel = (quand) => roles.filter((r) => (choisis.has(r.id) || choisis.has(r.avec)) && quand.includes(r.quand)).sort((a, b) => a.ordre - b.ordre);
     section("Préparation", parGroupe("Préparation"));
     section("Nuit", [phase("nuit"), ...sel(["nuit1", "nuit"])].filter(Boolean), "dans l'ordre d'appel", true);
-    section("Jour", [phase("matin"), ...sel(["jour"]), ...["vote", "bucher"].map(phase)].filter(Boolean));
+    section("Jour", [phase("matin"), phase("matin_sauve"), phase("matin_2"), phase("matin_3"), ...sel(["jour"]), ...["vote", "bucher"].map(phase)].filter(Boolean));
     section("Pouvoirs pendant la partie", sel(["evenement"]));
     section("Ambiances", parGroupe("Ambiances"));
     section("Fin de partie", parGroupe("Fin de partie").filter((s) => !s.roles || s.roles.some((r) => choisis.has(r))));
