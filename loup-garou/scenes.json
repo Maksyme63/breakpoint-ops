@@ -244,6 +244,235 @@
       "eteint": true,
       "duree": 1.2,
       "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.08,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.1,
+      "vite": true
+     },
+     {
+      "couleur": [
+       60,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 1.4,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.12,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.15,
+      "vite": true
+     },
+     {
+      "couleur": [
+       60,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 1.1,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.12,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.15,
+      "vite": true
+     },
+     {
+      "couleur": [
+       60,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 1.6,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.12,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.15,
+      "vite": true
+     },
+     {
+      "couleur": [
+       60,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 0.9,
+      "vite": true
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 100,
+      "duree": 0.12,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.15,
+      "vite": true
+     },
+     {
+      "couleur": [
+       60,
+       0,
+       0
+      ],
+      "lum": 8,
+      "duree": 1.3,
+      "vite": true
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.12,
+      "vite": true
+     },
+     {
+      "eteint": true,
+      "duree": 0.15,
+      "vite": true
      }
     ]
    },
@@ -1119,14 +1348,14 @@
     ]
    },
    "sons": [
-    "brabanconne"
+    "fanfare"
    ],
    "fichier": "sounds/maire.mp3",
    "voix": {
     "reveil": "Avant toute chose, le village doit se choisir un maire. Que les candidats se présentent… Le maire portera la médaille, et sa voix comptera double lors des votes."
    },
    "volumes": {
-    "brabanconne": 0.85
+    "fanfare": 0.85
    }
   },
   {
@@ -1164,13 +1393,15 @@
     "decalage": 1
    },
    "sons": [
+    "glas",
     "fanfare",
     "foule"
    ],
    "fichier": "sounds/maire_elu.mp3",
    "voix": {
     "reveil": "Le village a choisi ! Que le nouveau maire reçoive la médaille. Longue vie au maire de Thiercelieux !"
-   }
+   },
+   "voix_delai": 6
   },
   {
    "id": "succession",
