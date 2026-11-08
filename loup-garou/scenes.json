@@ -1300,6 +1300,65 @@
    }
   },
   {
+   "id": "matin",
+   "groupe": "Jour",
+   "nom": "Le jour se lève",
+   "emoji": "🌅",
+   "couleur": "#f2a516",
+   "grand": true,
+   "desc": "Lever du soleil, puis la victime est découverte, puis le débat.",
+   "lsc": "blanc 100 %",
+   "lumiere": {
+    "mode": "fade",
+    "duree": 8,
+    "etapes": [
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 10
+     },
+     {
+      "couleur": [
+       255,
+       60,
+       20
+      ],
+      "lum": 40
+     },
+     {
+      "couleur": [
+       255,
+       160,
+       50
+      ],
+      "lum": 75
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 40
+     }
+    ]
+   },
+   "sons": [],
+   "enchainement": [
+    {
+     "scene": "jour",
+     "duree": 10
+    },
+    {
+     "scene": "victime",
+     "duree": 12
+    },
+    {
+     "scene": "debat"
+    }
+   ]
+  },
+  {
    "id": "jour",
    "lsc": "blanc 100 %",
    "groupe": "Jour",

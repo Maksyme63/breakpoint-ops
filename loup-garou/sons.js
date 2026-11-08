@@ -944,7 +944,7 @@
       if (dodo && !scene.dodo_apres) liste.push(dodo);
       if (scene.voix && scene.voix.reveil) liste.push([scene.id, "reveil", scene.voix.reveil]);
       if (dodo && scene.dodo_apres) liste.push(dodo);  // ex. l'attaque, puis « les loups se rendorment »
-      if (liste.length) narrer(liste, scene.voix_delai || 0);
+      if (liste.length) return narrer(liste, scene.voix_delai || 0);
       else arreterVoix();
     }
   }
