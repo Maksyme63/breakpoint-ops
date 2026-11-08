@@ -644,6 +644,27 @@
     return arretAvecFondu(g, noeuds, [stop], 2.5);
   };
 
+  /** Tic-tac d'une vieille horloge qui accélère (le vote). */
+  SONS.horloge = (sortie) => {
+    const b = bus(sortie, 0.55, 0.25);
+    let actif = true, timer, intervalle = 0.62, tic = true;
+    const coup = (t, aigu) => {
+      const n = bruit(false), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      bp.type = "bandpass"; bp.frequency.value = aigu ? 3200 : 2300; bp.Q.value = 9;
+      env(g.gain, t, 0.9, 0.001, 0.045); n.connect(bp); bp.connect(g); g.connect(b.entree); n.stop(t + 0.08);
+      const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = aigu ? 1900 : 1500;
+      env(og.gain, t, 0.12, 0.001, 0.03); o.connect(og); og.connect(b.entree); o.start(t); o.stop(t + 0.05);
+    };
+    const tick = () => {
+      if (!actif) return;
+      coup(ctx.currentTime + 0.02, tic); tic = !tic;
+      intervalle = Math.max(0.33, intervalle * 0.994);
+      timer = setTimeout(tick, intervalle * 1000);
+    };
+    tick();
+    return arretAvecFondu(b.gain, [], [() => { actif = false; clearTimeout(timer); }], 1.2);
+  };
+
   /** Croassements de corbeau. */
   SONS.corbeau = (sortie) => {
     const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
