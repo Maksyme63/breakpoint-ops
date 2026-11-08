@@ -37,8 +37,6 @@ SONS = {
     "loups":       (["wolf howl", "wolves howling", "howling wolf", "canis lupus howl", "loup hurlement"], 2, 300),
     "meute":       (["wolves howling", "wolf pack", "wolf chorus", "howling wolves"], 5, 600),
     "attaque":     (["wolf growl", "dog growling", "growl", "snarl", "dog barking aggressive"], 1, 60),
-    "hibou":       (["owl", "tawny owl", "owl hoot", "strix aluco", "chouette"], 1, 120),
-    "grillons":    (["crickets", "cricket", "night insects", "grillon", "cicada night"], 5, 900),
     "vent":        (["wind", "wind howling", "storm wind", "vent"], 5, 900),
     "pluie":       (["rain", "rain falling", "rainfall", "pluie"], 5, 1200),
     "tonnerre":    (["thunder", "thunderstorm", "thunderclap", "orage tonnerre"], 2, 120),
