@@ -7,7 +7,7 @@
   "chasseur",
   "cupidon",
   "petite_fille",
-  "salvateur"
+  "maire"
  ],
  "roles": [
   {
@@ -166,37 +166,6 @@
    "fichier": "sounds/attaque.mp3",
    "voix": {
     "reveil": "Les loups bondissent sur leur proie… Un cri déchire la nuit, puis plus rien. Seul le silence."
-   }
-  },
-  {
-   "id": "voleur",
-   "nom": "Le Voleur",
-   "emoji": "🃏",
-   "couleur": "#6c4ab6",
-   "camp": "village",
-   "quand": "nuit1",
-   "ordre": 10,
-   "desc": "Peut échanger sa carte avec une carte restée au centre.",
-   "lsc": "violet 60 %",
-   "lumiere": {
-    "mode": "pulse",
-    "couleur": [
-     110,
-     60,
-     200
-    ],
-    "min": 20,
-    "max": 60,
-    "periode": 4
-   },
-   "sons": [
-    "mystique",
-    "coeur"
-   ],
-   "fichier": "sounds/voleur.mp3",
-   "voix": {
-    "reveil": "Le Voleur se réveille. Il peut, s'il le souhaite, échanger sa carte avec l'une de celles restées au centre.",
-    "dodo": "Le Voleur se rendort."
    }
   },
   {
@@ -368,36 +337,6 @@
    }
   },
   {
-   "id": "freres",
-   "nom": "Les Trois Frères",
-   "emoji": "👬",
-   "couleur": "#4dabf7",
-   "camp": "village",
-   "quand": "nuit",
-   "ordre": 31,
-   "desc": "Se réveillent pour se reconnaître et se concerter.",
-   "lsc": "bleu 70 %",
-   "lumiere": {
-    "mode": "pulse",
-    "couleur": [
-     80,
-     160,
-     255
-    ],
-    "min": 30,
-    "max": 70,
-    "periode": 5
-   },
-   "sons": [
-    "choeur"
-   ],
-   "fichier": "sounds/freres.mp3",
-   "voix": {
-    "reveil": "Les trois frères se réveillent. Ils se reconnaissent et peuvent se concerter en silence.",
-    "dodo": "Les trois frères se rendorment."
-   }
-  },
-  {
    "id": "voyante",
    "nom": "La Voyante",
    "emoji": "🔮",
@@ -460,36 +399,6 @@
    "voix": {
     "reveil": "Le Renard se réveille. Il flaire un groupe de trois voisins, à la recherche d'une odeur de loup.",
     "dodo": "Le Renard se rendort."
-   }
-  },
-  {
-   "id": "salvateur",
-   "nom": "Le Salvateur",
-   "emoji": "🛡️",
-   "couleur": "#2aa7c9",
-   "camp": "village",
-   "quand": "nuit",
-   "ordre": 45,
-   "desc": "Protège un joueur des loups pour la nuit.",
-   "lsc": "bleu ciel 70 %",
-   "lumiere": {
-    "mode": "pulse",
-    "couleur": [
-     80,
-     200,
-     255
-    ],
-    "min": 35,
-    "max": 70,
-    "periode": 6
-   },
-   "sons": [
-    "choeur"
-   ],
-   "fichier": "sounds/salvateur.mp3",
-   "voix": {
-    "reveil": "Le Salvateur se réveille. Il choisit un joueur qu'il protégera des loups cette nuit.",
-    "dodo": "Le Salvateur se rendort."
    }
   },
   {
@@ -727,36 +636,6 @@
    }
   },
   {
-   "id": "corbeau",
-   "nom": "Le Corbeau",
-   "emoji": "🐦‍⬛",
-   "couleur": "#343a40",
-   "camp": "village",
-   "quand": "nuit",
-   "ordre": 80,
-   "desc": "Désigne un joueur qui aura deux voix contre lui.",
-   "lsc": "violet très sombre 20 %",
-   "lumiere": {
-    "mode": "flicker",
-    "couleur": [
-     60,
-     0,
-     90
-    ],
-    "min": 5,
-    "max": 30
-   },
-   "sons": [
-    "corbeau",
-    "vent"
-   ],
-   "fichier": "sounds/corbeau.mp3",
-   "voix": {
-    "reveil": "Le Corbeau se réveille. Il désigne un joueur qui portera sa marque demain au vote.",
-    "dodo": "Le Corbeau se rendort."
-   }
-  },
-  {
    "id": "montreur_ours",
    "nom": "Le Montreur d'Ours",
    "emoji": "🐻",
@@ -911,136 +790,6 @@
    }
   },
   {
-   "id": "idiot",
-   "nom": "L'Idiot du Village",
-   "emoji": "🤪",
-   "couleur": "#fab005",
-   "camp": "village",
-   "quand": "evenement",
-   "ordre": 113,
-   "desc": "Désigné au vote, il est gracié mais perd sa voix.",
-   "lsc": "jaune 100 %",
-   "lumiere": {
-    "mode": "pulse",
-    "couleur": [
-     255,
-     210,
-     0
-    ],
-    "min": 40,
-    "max": 100,
-    "periode": 0.8
-   },
-   "sons": [
-    "foule",
-    "fanfare"
-   ],
-   "fichier": "sounds/idiot.mp3",
-   "voix": {
-    "reveil": "C'est l'Idiot du village ! On ne tue pas un idiot… il est gracié, mais perd son droit de vote."
-   }
-  },
-  {
-   "id": "bouc_emissaire",
-   "nom": "Le Bouc Émissaire",
-   "emoji": "🐐",
-   "couleur": "#e67700",
-   "camp": "village",
-   "quand": "evenement",
-   "ordre": 114,
-   "desc": "En cas d'égalité au vote, c'est lui qui est éliminé.",
-   "lsc": "orange 90 %",
-   "lumiere": {
-    "mode": "pulse",
-    "couleur": [
-     255,
-     90,
-     0
-    ],
-    "min": 20,
-    "max": 90,
-    "periode": 1
-   },
-   "sons": [
-    "tambour"
-   ],
-   "fichier": "sounds/bouc_emissaire.mp3",
-   "voix": {
-    "reveil": "Égalité ! Le Bouc Émissaire est désigné pour payer à la place des autres."
-   }
-  },
-  {
-   "id": "juge_begue",
-   "nom": "Le Juge Bègue",
-   "emoji": "🔨",
-   "couleur": "#5f3dc4",
-   "camp": "village",
-   "quand": "evenement",
-   "ordre": 115,
-   "desc": "Peut déclencher un second vote dans la journée.",
-   "lsc": "violet 80 %",
-   "lumiere": {
-    "mode": "static",
-    "couleur": [
-     100,
-     60,
-     200
-    ],
-    "lum": 80,
-    "intro": [
-     {
-      "blanc": true,
-      "lum": 100,
-      "duree": 0.1
-     },
-     {
-      "eteint": true,
-      "duree": 0.2
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "duree": 0.1
-     },
-     {
-      "eteint": true,
-      "duree": 0.3
-     }
-    ]
-   },
-   "sons": [
-    "marteau",
-    "tambour"
-   ],
-   "fichier": "sounds/juge_begue.mp3",
-   "voix": {
-    "reveil": "Le Juge Bègue fait un signe… Un second vote aura lieu immédiatement !"
-   }
-  },
-  {
-   "id": "servante",
-   "nom": "La Servante Dévouée",
-   "emoji": "🙇",
-   "couleur": "#f1f3f5",
-   "camp": "village",
-   "quand": "evenement",
-   "ordre": 116,
-   "desc": "Peut prendre le rôle du joueur éliminé au vote.",
-   "lsc": "blanc 70 %",
-   "lumiere": {
-    "mode": "white",
-    "lum": 70,
-    "temp": 60
-   },
-   "sons": [
-    "choeur"
-   ],
-   "fichier": "sounds/servante.mp3",
-   "voix": {
-    "reveil": "La Servante Dévouée s'avance. Elle peut prendre la place du condamné et hériter de son rôle."
-   }
-  },
-  {
    "id": "ange",
    "nom": "L'Ange",
    "emoji": "👼",
@@ -1068,6 +817,114 @@
    "fichier": "sounds/ange.mp3",
    "voix": {
     "reveil": "L'Ange a été éliminé dès le premier tour… Il remporte la partie, seul !"
+   }
+  },
+  {
+   "id": "maire",
+   "nom": "Élection du maire",
+   "emoji": "🏅",
+   "couleur": "#d4a017",
+   "camp": "village",
+   "quand": "jour",
+   "ordre": 99,
+   "desc": "Le premier jour, le village élit un maire dont la voix compte double.",
+   "lsc": "or 90 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     190,
+     40
+    ],
+    "couleur2": [
+     255,
+     140,
+     0
+    ],
+    "min": 50,
+    "max": 100,
+    "periode": 2.5
+   },
+   "sons": [
+    "foule",
+    "tambour"
+   ],
+   "fichier": "sounds/maire.mp3",
+   "voix": {
+    "reveil": "Avant toute chose, le village doit se choisir un maire. Que les candidats se présentent… Le maire portera la médaille, et sa voix comptera double lors des votes."
+   }
+  },
+  {
+   "id": "maire_elu",
+   "nom": "Le maire est élu",
+   "emoji": "🎖️",
+   "couleur": "#e0b000",
+   "camp": "village",
+   "quand": "jour",
+   "ordre": 99.5,
+   "avec": "maire",
+   "desc": "",
+   "lsc": "or 100 %",
+   "lumiere": {
+    "mode": "cycle",
+    "couleurs": [
+     [
+      255,
+      200,
+      0
+     ],
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      160,
+      0
+     ]
+    ],
+    "lum": 100,
+    "periode": 0.6,
+    "decalage": 1
+   },
+   "sons": [
+    "fanfare",
+    "foule"
+   ],
+   "fichier": "sounds/maire_elu.mp3",
+   "voix": {
+    "reveil": "Le village a choisi ! Que le nouveau maire reçoive la médaille. Longue vie au maire de Thiercelieux !"
+   }
+  },
+  {
+   "id": "succession",
+   "nom": "Le maire transmet sa médaille",
+   "emoji": "🤝",
+   "couleur": "#b8860b",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 118,
+   "avec": "maire",
+   "desc": "",
+   "lsc": "or 60 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     220,
+     160,
+     20
+    ],
+    "min": 30,
+    "max": 70,
+    "periode": 3
+   },
+   "sons": [
+    "glas"
+   ],
+   "fichier": "sounds/succession.mp3",
+   "voix": {
+    "reveil": "Le maire est tombé… Avant de rendre son dernier souffle, il désigne celui qui portera la médaille à sa place."
    }
   }
  ],

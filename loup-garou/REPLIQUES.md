@@ -1,8 +1,6 @@
 # Répliques du narrateur
 
-Enregistre chaque réplique (Dictaphone de l'iPhone par exemple) et range le fichier dans
-`sounds/voix/` avec le nom indiqué (`.m4a` ou `.mp3`). Parle lentement, voix grave, en
-marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse la musique.
+Enregistre chaque réplique et range le fichier dans `sounds/voix/` avec le nom indiqué (`.m4a` ou `.mp3`). Parle lentement, voix grave, en marquant les pauses sur les « … ».
 
 ## Moments du jeu
 
@@ -31,10 +29,6 @@ marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse
 
 ## Personnages
 
-- **🃏 Le Voleur** — fichier `voleur-reveil.m4a`  
-  « Le Voleur se réveille. Il peut, s'il le souhaite, échanger sa carte avec l'une de celles restées au centre. »
-- **🃏 Le Voleur** — fichier `voleur-dodo.m4a`  
-  « Le Voleur se rendort. »
 - **💘 Cupidon** — fichier `cupidon-reveil.m4a`  
   « Cupidon se réveille. Il décoche ses flèches et désigne deux joueurs qui seront amoureux jusqu'à la mort. »
 - **💘 Cupidon** — fichier `cupidon-dodo.m4a`  
@@ -55,10 +49,6 @@ marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse
   « Les deux sœurs se réveillent. Elles se reconnaissent et peuvent se concerter en silence. »
 - **👭 Les Deux Sœurs** — fichier `soeurs-dodo.m4a`  
   « Les deux sœurs se rendorment. »
-- **👬 Les Trois Frères** — fichier `freres-reveil.m4a`  
-  « Les trois frères se réveillent. Ils se reconnaissent et peuvent se concerter en silence. »
-- **👬 Les Trois Frères** — fichier `freres-dodo.m4a`  
-  « Les trois frères se rendorment. »
 - **🔮 La Voyante** — fichier `voyante-reveil.m4a`  
   « La Voyante se réveille. Elle désigne un joueur dont elle veut connaître la véritable nature. »
 - **🔮 La Voyante** — fichier `voyante-dodo.m4a`  
@@ -67,10 +57,6 @@ marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse
   « Le Renard se réveille. Il flaire un groupe de trois voisins, à la recherche d'une odeur de loup. »
 - **🦊 Le Renard** — fichier `renard-dodo.m4a`  
   « Le Renard se rendort. »
-- **🛡️ Le Salvateur** — fichier `salvateur-reveil.m4a`  
-  « Le Salvateur se réveille. Il choisit un joueur qu'il protégera des loups cette nuit. »
-- **🛡️ Le Salvateur** — fichier `salvateur-dodo.m4a`  
-  « Le Salvateur se rendort. »
 - **🐺 Les Loups-Garous** — fichier `loups-reveil.m4a`  
   « Les loups-garous se réveillent… Ils se reconnaissent, et choisissent en silence leur victime de la nuit. »
 - **🐺 Les Loups-Garous** — fichier `loups-dodo.m4a`  
@@ -103,10 +89,10 @@ marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse
   « Le meneur touche les joueurs ensorcelés. Ensorcelés, ouvrez les yeux et reconnaissez-vous. »
 - **🌀 Les Ensorcelés se reconnaissent** — fichier `ensorceles-dodo.m4a`  
   « Les ensorcelés se rendorment. »
-- **🐦‍⬛ Le Corbeau** — fichier `corbeau-reveil.m4a`  
-  « Le Corbeau se réveille. Il désigne un joueur qui portera sa marque demain au vote. »
-- **🐦‍⬛ Le Corbeau** — fichier `corbeau-dodo.m4a`  
-  « Le Corbeau se rendort. »
+- **🏅 Élection du maire** — fichier `maire-reveil.m4a`  
+  « Avant toute chose, le village doit se choisir un maire. Que les candidats se présentent… Le maire portera la médaille, et sa voix comptera double lors des votes. »
+- **🎖️ Le maire est élu** — fichier `maire_elu-reveil.m4a`  
+  « Le village a choisi ! Que le nouveau maire reçoive la médaille. Longue vie au maire de Thiercelieux ! »
 - **🐻 Le Montreur d'Ours** — fichier `montreur_ours-reveil.m4a`  
   « Écoutez… L'ours du montreur s'agite. Grogne-t-il ce matin ? »
 - **👴 L'Ancien** — fichier `ancien-reveil.m4a`  
@@ -115,13 +101,7 @@ marquant les pauses sur les « … ». Le pad ajoute lui-même l'écho et baisse
   « Le Chasseur est mort… mais d'un dernier geste, il épaule son fusil et emporte quelqu'un avec lui. »
 - **⚔️ Le Chevalier à l'Épée Rouillée** — fichier `chevalier-reveil.m4a`  
   « Le Chevalier tombe… mais son épée rouillée a blessé le loup qui l'a attaqué. »
-- **🤪 L'Idiot du Village** — fichier `idiot-reveil.m4a`  
-  « C'est l'Idiot du village ! On ne tue pas un idiot… il est gracié, mais perd son droit de vote. »
-- **🐐 Le Bouc Émissaire** — fichier `bouc_emissaire-reveil.m4a`  
-  « Égalité ! Le Bouc Émissaire est désigné pour payer à la place des autres. »
-- **🔨 Le Juge Bègue** — fichier `juge_begue-reveil.m4a`  
-  « Le Juge Bègue fait un signe… Un second vote aura lieu immédiatement ! »
-- **🙇 La Servante Dévouée** — fichier `servante-reveil.m4a`  
-  « La Servante Dévouée s'avance. Elle peut prendre la place du condamné et hériter de son rôle. »
 - **👼 L'Ange** — fichier `ange-reveil.m4a`  
   « L'Ange a été éliminé dès le premier tour… Il remporte la partie, seul ! »
+- **🤝 Le maire transmet sa médaille** — fichier `succession-reveil.m4a`  
+  « Le maire est tombé… Avant de rendre son dernier souffle, il désigne celui qui portera la médaille à sa place. »
