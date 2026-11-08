@@ -134,7 +134,43 @@ class AmpouleTuya:
         self.raison = r.get("Error") if isinstance(r, dict) else None
         self.ok = not self.raison
         self.derniere_cmd = None
+        if self.ok:
+            self._configurer_selon_cloud()
         return self.ok
+
+    def _configurer_selon_cloud(self):
+        """Rubans LED (RGBIC…) : la détection automatique échoue souvent.
+        On utilise alors la liste des fonctions fournie par le cloud Tuya
+        (champ "mapping" de devices.json) pour savoir quel numéro pilote quoi."""
+        d = self.dev
+        if d.bulb_configured and d.bulb_type not in (None, "None") and d.dpset.get("colour"):
+            return  # ampoule classique bien reconnue
+        codes = {}
+        for dp, v in (self.info.get("mapping") or {}).items():
+            if isinstance(v, dict) and v.get("code"):
+                codes[v["code"]] = str(dp)
+
+        def choisir(*noms):
+            return next((codes[n] for n in noms if n in codes), None)
+
+        caps = {
+            "switch": choisir("switch_led", "switch_led_1", "led_switch", "switch"),
+            "mode": choisir("work_mode"),
+            "brightness": choisir("bright_value_v2", "bright_value", "bright_value_1"),
+            "colourtemp": choisir("temp_value_v2", "temp_value"),
+            "colour": choisir("colour_data_v2", "colour_data"),
+        }
+        if not caps["switch"] or not (caps["colour"] or caps["brightness"]):
+            return
+        v2 = any(c in codes for c in ("colour_data_v2", "bright_value_v2"))
+        caps.update({"value_min": 10 if v2 else 25, "value_max": 1000 if v2 else 255,
+                     "value_hexformat": "hsv16" if v2 else "rgb8"})
+        if d.bulb_type in (None, "None"):
+            d.bulb_type = "B" if caps["switch"] == "20" else "A"
+        d.set_bulb_capabilities(caps)
+        d.bulb_configured = True
+        print(f"   ℹ️  {self.nom} : réglages lus depuis le cloud Tuya ({', '.join(f'{k}={v}' for k, v in caps.items() if not k.startswith('value'))})")
+
 
     def _envoyer(self, cle, fn, *args):
         with self.verrou:
