@@ -51,7 +51,7 @@ def charger_json(nom, defaut=None):
 CONFIG = {
     # Délai minimum entre deux commandes envoyées à une même ampoule pendant un effet.
     # Augmente-le (0.4, 0.5…) si les ampoules saccadent ou décrochent.
-    "intervalle_effets": 0.25,
+    "intervalle_effets": 0.4,
     # Liste de noms d'ampoules à utiliser (vide = toutes les lumières de devices.json)
     "ampoules": [],
 }
@@ -86,41 +86,106 @@ class AmpouleSimulee:
 
 
 class AmpouleTuya:
-    """Vraie ampoule LSC / Tuya pilotée en local avec tinytuya."""
+    """Vraie ampoule LSC / Tuya pilotée en local avec tinytuya.
+
+    Les ampoules Tuya saturent si on les bombarde de commandes sans lire leurs
+    réponses : elles coupent alors la connexion et n'obéissent plus. Ici chaque
+    commande attend la réponse de l'ampoule, les envois sont espacés, les
+    commandes identiques ne sont pas renvoyées, et en cas de coupure on se
+    reconnecte automatiquement.
+    """
 
     def __init__(self, info):
         import tinytuya
 
+        self.tinytuya = tinytuya
+        self.info = info
         self.nom = info.get("name") or info["id"]
-        ip = info.get("ip") or "Auto"
-        version = float(info.get("version") or 3.3)
-        self.dev = tinytuya.BulbDevice(info["id"], ip, info["key"], version=version,
-                                       connection_timeout=3, connection_retry_limit=2,
-                                       connection_retry_delay=1)
-        self.dev.set_socketPersistent(True)
-        self.dev.status()  # détecte le type d'ampoule (DP 1-5 ou 20-24)
-        self.ok = True
-
-    def _essayer(self, fn, *args):
+        self.verrou = threading.Lock()
+        self.dernier_envoi = 0.0
+        self.derniere_cmd = None
+        self.echecs = 0
+        self.prochain_essai = 0.0
+        self.ok = False
+        self.dev = None
         try:
-            fn(*args)
-            self.ok = True
-        except Exception as e:  # une ampoule qui décroche ne doit pas tout bloquer
+            self._connecter()
+        except Exception:
             self.ok = False
-            print(f"  ! {self.nom}: {e}")
+        if not self.ok:
+            self.echecs = 1  # on réessaiera pendant la partie
+
+    def _connecter(self):
+        info = self.info
+        try:
+            if self.dev:
+                self.dev.close()
+        except Exception:
+            pass
+        self.dev = self.tinytuya.BulbDevice(
+            info["id"], info.get("ip") or "Auto", info["key"],
+            version=float(info.get("version") or 3.3),
+            connection_timeout=2, connection_retry_limit=1, connection_retry_delay=0.5)
+        self.dev.set_socketPersistent(True)
+        r = self.dev.status()  # détecte le type d'ampoule (DP 1-5 ou 20-24)
+        self.ok = isinstance(r, dict) and "Error" not in r
+        self.derniere_cmd = None
+        return self.ok
+
+    def _envoyer(self, cle, fn, *args):
+        with self.verrou:
+            now = time.time()
+            # Inutile de renvoyer la même chose (sauf toutes les 20 s pour garder la connexion)
+            if cle == self.derniere_cmd and now - self.dernier_envoi < 20:
+                return
+            attente = float(CONFIG["intervalle_effets"]) - (now - self.dernier_envoi)
+            if attente > 0:
+                time.sleep(attente)
+            try:
+                if not self.ok and time.time() < self.prochain_essai:
+                    return  # ampoule injoignable : on réessaie un peu plus tard
+                if not self.ok and not self._connecter():
+                    raise RuntimeError("toujours injoignable")
+                r = fn(*args)  # attend la réponse de l'ampoule
+                if isinstance(r, dict) and r.get("Error"):
+                    raise RuntimeError(r.get("Error"))
+                if not self.ok or self.echecs:
+                    print(f"  ✅ {self.nom} répond de nouveau")
+                self.ok = True
+                self.echecs = 0
+                self.derniere_cmd = cle
+            except Exception as e:
+                self.echecs += 1
+                if self.ok or self.echecs == 1:
+                    print(f"  ! {self.nom} ne répond plus ({e}) -> reconnexion automatique")
+                self.ok = False
+                self.derniere_cmd = None
+                self.prochain_essai = time.time() + min(10, 2 * self.echecs)
+                try:
+                    self.dev.close()
+                except Exception:
+                    pass
+            finally:
+                self.dernier_envoi = time.time()
 
     def couleur(self, rgb, lum):
         r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
         h, s, _ = colorsys.rgb_to_hsv(r, g, b)
-        v = max(0.01, min(1.0, lum / 100.0))
-        self._essayer(self.dev.set_hsv, h, s, v, True)
+        h, s = round(h, 3), round(s, 2)
+        v = round(max(0.01, min(1.0, lum / 100.0)), 2)
+        self._envoyer(("c", h, s, v), self.dev_appel("set_hsv"), h, s, v)
 
     def blanc(self, lum, temp):
-        lum = max(1, min(100, lum))
-        self._essayer(self.dev.set_white_percentage, lum, max(0, min(100, temp)), True)
+        lum = round(max(1, min(100, lum)))
+        temp = round(max(0, min(100, temp)))
+        self._envoyer(("b", lum, temp), self.dev_appel("set_white_percentage"), lum, temp)
 
     def eteindre(self):
-        self._essayer(self.dev.turn_off, 0, True)
+        self._envoyer(("off",), self.dev_appel("turn_off"))
+
+    def dev_appel(self, nom):
+        # self.dev peut être recréé lors d'une reconnexion : on le relit au moment de l'appel
+        return lambda *a: getattr(self.dev, nom)(*a)
 
 
 def charger_ampoules():
@@ -154,8 +219,9 @@ def charger_ampoules():
                 info["version"] = ips[info["id"]][1]
         try:
             print(f"🔌 Connexion à « {info.get('name')} » ({info.get('ip') or 'recherche auto'})…")
-            ampoules.append(AmpouleTuya(info))
-            print("   ✅ OK")
+            a = AmpouleTuya(info)
+            ampoules.append(a)
+            print("   ✅ OK" if a.ok else "   ⚠️  Pas de réponse pour l'instant (allumée à l'interrupteur ?) : nouvel essai pendant la partie")
         except Exception as e:
             print(f"   ❌ Impossible de joindre cette ampoule : {e}")
 

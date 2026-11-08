@@ -107,7 +107,7 @@ pour couper le son. Sur PC : raccourcis clavier (chiffres/lettres affichés sur 
 - **Une ampoule ne répond pas** : vérifie qu'elle est allumée à l'interrupteur, relance
   `python -m tinytuya scan` pour mettre à jour `snapshot.json`, et ferme l'appli LSC sur
   les téléphones (certaines ampoules n'acceptent qu'une connexion locale à la fois).
-- **Effets saccadés** : mets `"intervalle_effets": 0.4` dans `config.json`.
+- **Effets saccadés** : mets `"intervalle_effets": 0.6` dans `config.json` (copie de `config.exemple.json`).
 - **Pas de son sur iPhone** : désactive le mode silencieux (bouton sur le côté) et touche
   « Commencer la partie ».
 - **Le téléphone n'ouvre pas la page** : même Wi-Fi que le PC ? Autorise Python dans le pare-feu Windows (réseau privé).

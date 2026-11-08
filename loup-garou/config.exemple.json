@@ -1,4 +1,4 @@
 {
-  "intervalle_effets": 0.25,
+  "intervalle_effets": 0.4,
   "ampoules": ["Salon 1", "Salon 2", "Cuisine"]
 }
