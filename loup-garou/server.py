@@ -145,10 +145,17 @@ class AmpouleTuya:
         d = self.dev
         if d.bulb_configured and d.bulb_type not in (None, "None") and d.dpset.get("colour"):
             return  # ampoule classique bien reconnue
-        codes = {}
+        codes, valeurs = {}, {}
         for dp, v in (self.info.get("mapping") or {}).items():
             if isinstance(v, dict) and v.get("code"):
                 codes[v["code"]] = str(dp)
+                val = v.get("values")
+                if isinstance(val, str):
+                    try:
+                        val = json.loads(val)
+                    except ValueError:
+                        val = {}
+                valeurs[v["code"]] = val if isinstance(val, dict) else {}
 
         def choisir(*noms):
             return next((codes[n] for n in noms if n in codes), None)
@@ -162,9 +169,15 @@ class AmpouleTuya:
         }
         if not caps["switch"] or not (caps["colour"] or caps["brightness"]):
             return
-        v2 = any(c in codes for c in ("colour_data_v2", "bright_value_v2"))
-        caps.update({"value_min": 10 if v2 else 25, "value_max": 1000 if v2 else 255,
-                     "value_hexformat": "hsv16" if v2 else "rgb8"})
+        # Échelle : 0-1000 (format récent « hsv16 ») ou 0-255 (ancien format)
+        nom_lum = next((n for n in ("bright_value_v2", "bright_value", "bright_value_1") if n in codes), None)
+        nom_coul = next((n for n in ("colour_data_v2", "colour_data") if n in codes), None)
+        lum = valeurs.get(nom_lum, {}) if nom_lum else {}
+        sat = (valeurs.get(nom_coul, {}) or {}).get("s", {}) if nom_coul else {}
+        maxi = int(lum.get("max") or (1000 if "_v2" in (nom_lum or "") else 255))
+        grand = maxi >= 1000 or int((sat or {}).get("max") or 0) >= 1000 or "_v2" in (nom_coul or "")
+        caps.update({"value_min": int(lum.get("min") or (10 if grand else 25)), "value_max": maxi,
+                     "value_hexformat": "hsv16" if grand else "rgb8"})
         if d.bulb_type in (None, "None"):
             d.bulb_type = "B" if caps["switch"] == "20" else "A"
         d.set_bulb_capabilities(caps)
