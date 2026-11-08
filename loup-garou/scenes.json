@@ -21,35 +21,22 @@
    "desc": "Se réveillent ensemble et choisissent une victime.",
    "lsc": "rouge 100 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "battement",
     "couleur": [
      255,
      0,
      0
     ],
-    "min": 15,
-    "max": 100,
-    "periode": 2.6,
+    "lum_base": 10,
+    "lum_flash": 100,
+    "periode": 1.1,
+    "double": true,
     "intro": [
      {
       "eteint": true,
       "duree": 0.6
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.2
-     },
-     {
-      "eteint": true,
-      "duree": 0.3
      }
-    ],
-    "decalage": 0.25
+    ]
    },
    "sons": [
     "loups",
@@ -74,15 +61,13 @@
    "desc": "Les loups se jettent sur leur victime.",
    "lsc": "rouge sombre 20 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      140,
      0,
      0
     ],
-    "min": 5,
-    "max": 25,
-    "periode": 4,
+    "lum": 15,
     "intro": [
      {
       "eteint": true,
@@ -179,15 +164,13 @@
    "desc": "Désigne deux amoureux liés jusqu'à la mort.",
    "lsc": "rose 90 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      30,
      130
     ],
-    "min": 25,
-    "max": 90,
-    "periode": 4
+    "lum": 80
    },
    "sons": [
     "harpe"
@@ -209,20 +192,13 @@
    "desc": "Les deux amoureux ouvrent les yeux et se reconnaissent.",
    "lsc": "rose 100 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      60,
      150
     ],
-    "couleur2": [
-     180,
-     0,
-     90
-    ],
-    "min": 40,
-    "max": 100,
-    "periode": 2.5
+    "lum": 90
    },
    "sons": [
     "harpe",
@@ -246,19 +222,13 @@
    "desc": "Choisit un modèle ; s'il meurt, l'enfant devient loup.",
    "lsc": "vert 60 %",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      40,
      180,
      30
     ],
-    "couleur2": [
-     90,
-     140,
-     0
-    ],
-    "min": 25,
-    "max": 60
+    "lum": 60
    },
    "sons": [
     "oiseaux",
@@ -281,20 +251,13 @@
    "desc": "Choisit son camp : chien fidèle ou loup.",
    "lsc": "orange 80 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      120,
      30
     ],
-    "couleur2": [
-     200,
-     0,
-     0
-    ],
-    "min": 20,
-    "max": 80,
-    "periode": 3
+    "lum": 70
    },
    "sons": [
     "coeur",
@@ -317,15 +280,13 @@
    "desc": "Se réveillent pour se reconnaître et se concerter.",
    "lsc": "mauve 70 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      230,
      150,
      255
     ],
-    "min": 30,
-    "max": 70,
-    "periode": 5
+    "lum": 65
    },
    "sons": [
     "choeur"
@@ -347,20 +308,13 @@
    "desc": "Découvre en secret le rôle d'un joueur.",
    "lsc": "violet 80 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      130,
      0,
      255
     ],
-    "couleur2": [
-     40,
-     0,
-     200
-    ],
-    "min": 30,
-    "max": 80,
-    "periode": 5
+    "lum": 75
    },
    "sons": [
     "mystique"
@@ -382,14 +336,13 @@
    "desc": "Flaire un groupe de trois joueurs pour y sentir un loup.",
    "lsc": "orange 70 %",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      255,
      100,
      0
     ],
-    "min": 30,
-    "max": 70
+    "lum": 65
    },
    "sons": [
     "vent",
@@ -412,14 +365,13 @@
    "desc": "Peut espionner les loups… à ses risques et périls.",
    "lsc": "rouge 15 %",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      200,
      0,
      40
     ],
-    "min": 5,
-    "max": 25
+    "lum": 15
    },
    "sons": [
     "coeur",
@@ -441,20 +393,13 @@
    "desc": "Peut transformer la victime des loups en loup-garou.",
    "lsc": "vert acide 90 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      120,
      255,
      0
     ],
-    "couleur2": [
-     200,
-     0,
-     0
-    ],
-    "min": 20,
-    "max": 90,
-    "periode": 1.8
+    "lum": 80
    },
    "sons": [
     "chaudron",
@@ -477,15 +422,13 @@
    "desc": "Dévore une victime de plus tant qu'aucun loup n'est mort.",
    "lsc": "rouge 100 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      180,
      0,
      0
     ],
-    "min": 5,
-    "max": 100,
-    "periode": 1.2
+    "lum": 90
    },
    "sons": [
     "meute",
@@ -508,20 +451,13 @@
    "desc": "Une nuit sur deux, peut dévorer un autre loup.",
    "lsc": "blanc 100 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
-     255,
-     255
+     230,
+     230
     ],
-    "couleur2": [
-     255,
-     0,
-     0
-    ],
-    "min": 20,
-    "max": 100,
-    "periode": 2.2
+    "lum": 70
    },
    "sons": [
     "loups",
@@ -544,19 +480,13 @@
    "desc": "Une potion pour sauver, une potion pour tuer.",
    "lsc": "vert 75 %",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      20,
      255,
      40
     ],
-    "couleur2": [
-     120,
-     0,
-     200
-    ],
-    "min": 25,
-    "max": 75
+    "lum": 70
    },
    "sons": [
     "chaudron",
@@ -579,20 +509,13 @@
    "desc": "Ensorcelle deux joueurs chaque nuit.",
    "lsc": "turquoise 80 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      0,
      220,
      180
     ],
-    "couleur2": [
-     120,
-     0,
-     200
-    ],
-    "min": 25,
-    "max": 80,
-    "periode": 3
+    "lum": 75
    },
    "sons": [
     "flute",
@@ -615,15 +538,13 @@
    "desc": "Les joueurs charmés ouvrent les yeux et se reconnaissent.",
    "lsc": "turquoise 70 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      0,
      200,
      160
     ],
-    "min": 20,
-    "max": 70,
-    "periode": 2
+    "lum": 60
    },
    "sons": [
     "flute"
@@ -800,15 +721,13 @@
    "desc": "Gagne seul s'il est éliminé au premier tour.",
    "lsc": "blanc doré 100 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      240,
      200
     ],
-    "min": 40,
-    "max": 100,
-    "periode": 3
+    "lum": 90
    },
    "sons": [
     "choeur",
@@ -830,20 +749,13 @@
    "desc": "Le premier jour, le village élit un maire dont la voix compte double.",
    "lsc": "or 90 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      190,
      40
     ],
-    "couleur2": [
-     255,
-     140,
-     0
-    ],
-    "min": 50,
-    "max": 100,
-    "periode": 2.5
+    "lum": 90
    },
    "sons": [
     "foule",
@@ -909,15 +821,13 @@
    "desc": "",
    "lsc": "or 60 %",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      220,
      160,
      20
     ],
-    "min": 30,
-    "max": 70,
-    "periode": 3
+    "lum": 60
    },
    "sons": [
     "glas"
@@ -937,14 +847,13 @@
    "emoji": "🏡",
    "couleur": "#c96a1b",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      255,
      110,
      20
     ],
-    "min": 35,
-    "max": 70
+    "lum": 60
    },
    "sons": [
     "medieval",
@@ -1139,8 +1048,8 @@
     "periode": 0.9
    },
    "sons": [
-    "tambour",
-    "coeur"
+    "horloge",
+    "peur"
    ],
    "fichier": "sounds/vote.mp3",
    "voix": {
@@ -1155,19 +1064,13 @@
    "emoji": "🔥",
    "couleur": "#e04b0f",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      255,
-     70,
+     60,
      0
     ],
-    "couleur2": [
-     255,
-     20,
-     0
-    ],
-    "min": 30,
-    "max": 100
+    "lum": 90
    },
    "sons": [
     "feu",
@@ -1187,20 +1090,13 @@
    "emoji": "⛈️",
    "couleur": "#38457a",
    "lumiere": {
-    "mode": "flicker",
+    "mode": "static",
     "couleur": [
      0,
      20,
      110
     ],
-    "couleur2": [
-     30,
-     0,
-     70
-    ],
-    "min": 3,
-    "max": 14,
-    "lenteur": 4,
+    "lum": 10,
     "eclairs": "son"
    },
    "sons": [
@@ -1218,15 +1114,13 @@
    "emoji": "😨",
    "couleur": "#4a1d5c",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      90,
      0,
      140
     ],
-    "min": 5,
-    "max": 30,
-    "periode": 3
+    "lum": 20
    },
    "sons": [
     "peur",

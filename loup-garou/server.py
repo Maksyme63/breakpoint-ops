@@ -76,7 +76,7 @@ class AmpouleSimulee:
             print(f"  [simu] {self.nom}: {txt}")
             self._dernier = now
 
-    def couleur(self, rgb, lum):
+    def couleur(self, rgb, lum, rapide=False):
         self._log(f"couleur {rgb} {round(lum)}%")
 
     def blanc(self, lum, temp):
@@ -197,13 +197,14 @@ class AmpouleTuya:
         print(f"   ℹ️  {self.nom} : réglages lus depuis le cloud Tuya ({', '.join(f'{k}={v}' for k, v in caps.items() if not k.startswith('value'))})")
 
 
-    def _envoyer(self, cle, fn, *args):
+    def _envoyer(self, cle, fn, *args, rapide=False):
         with self.verrou:
             now = time.time()
             # Inutile de renvoyer la même chose (sauf toutes les 20 s pour garder la connexion)
             if cle == self.derniere_cmd and now - self.dernier_envoi < 20:
                 return
-            attente = float(CONFIG["intervalle_effets"]) - (now - self.dernier_envoi)
+            ecart = 0.08 if rapide else float(CONFIG["intervalle_effets"])
+            attente = ecart - (now - self.dernier_envoi)
             if attente > 0:
                 time.sleep(attente)
             try:
@@ -233,12 +234,12 @@ class AmpouleTuya:
             finally:
                 self.dernier_envoi = time.time()
 
-    def couleur(self, rgb, lum):
+    def couleur(self, rgb, lum, rapide=False):
         r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
         h, s, _ = colorsys.rgb_to_hsv(r, g, b)
         h, s = round(h, 3), round(s, 2)
         v = round(max(0.01, min(1.0, lum / 100.0)), 2)
-        self._envoyer(("c", h, s, v), self.dev_appel("set_hsv"), h, s, v)
+        self._envoyer(("c", h, s, v), self.dev_appel("set_hsv"), h, s, v, rapide=rapide)
 
     def blanc(self, lum, temp):
         lum = round(max(1, min(100, lum)))
@@ -425,10 +426,8 @@ class Pilote(threading.Thread):
                 self.executer(Programme(retour, time.time(), prog.graine))
             return
         if mode == "static":
-            cible = {"couleur": spec["couleur"], "lum": spec.get("lum", 100)}
-            if self.fondu_depuis_actuel(cible, prog):
-                return
-            self.appliquer(cible)
+            # un seul changement net : les ampoules font elles-mêmes une transition douce
+            self.appliquer({"couleur": spec["couleur"], "lum": spec.get("lum", 100)})
             return
         if mode == "white":
             self.appliquer({"blanc": True, "lum": spec.get("lum", 100), "temp": spec.get("temp", 50)})
@@ -452,8 +451,27 @@ class Pilote(threading.Thread):
                 if x >= len(etapes) - 1:
                     self.appliquer(etapes[-1])
                     return
-                if self.attendre(pas * 1.6):
+                if self.attendre(max(1.0, pas * 2.5)):
                     return
+
+        if mode == "battement":
+            # battement de cœur : flashs très courts sur une lumière sombre, synchronisés entre les lampes
+            c = spec["couleur"]
+            base, flash = spec.get("lum_base", 10), spec.get("lum_flash", 100)
+            periode = float(spec.get("periode", 1.1))
+            self.ampoule.couleur(c, self.lum(base), rapide=True)
+            k = int((time.time() - prog.depart) / periode) + 1
+            while True:
+                if self.attendre(prog.depart + k * periode - time.time()):
+                    return
+                self.ampoule.couleur(c, self.lum(flash), rapide=True)
+                self.ampoule.couleur(c, self.lum(base), rapide=True)
+                if spec.get("double"):
+                    if self.attendre(0.12):
+                        return
+                    self.ampoule.couleur(c, self.lum(flash * 0.6), rapide=True)
+                    self.ampoule.couleur(c, self.lum(base), rapide=True)
+                k = max(k + 1, int((time.time() - prog.depart) / periode) + 1)
 
         if mode == "pulse":
             c1 = spec["couleur"]
