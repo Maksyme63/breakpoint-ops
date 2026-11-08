@@ -9,8 +9,41 @@
 
   let ctx = null, maitre = null, reverb = null, bruitBlanc = null;
 
+  // --- Déblocage iOS ---
+  // Sur iPhone, le son Web Audio est coupé par le bouton silencieux et mis en pause
+  // (état "interrupted") quand on change d'appli. On joue en boucle un fichier
+  // audio muet : iOS considère alors la page comme un lecteur de musique.
+  let audioMuet = null;
+  function wavMuet() {
+    const n = 8000, buf = new Uint8Array(44 + n), v = new DataView(buf.buffer);
+    const txt = (o, t) => { for (let i = 0; i < t.length; i++) buf[o + i] = t.charCodeAt(i); };
+    txt(0, "RIFF"); v.setUint32(4, 36 + n, true); txt(8, "WAVEfmt "); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true);
+    v.setUint16(32, 1, true); v.setUint16(34, 8, true); txt(36, "data"); v.setUint32(40, n, true);
+    buf.fill(128, 44);
+    let b = ""; buf.forEach((c) => (b += String.fromCharCode(c)));
+    return "data:audio/wav;base64," + btoa(b);
+  }
+  function debloquer() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    try {
+      if (!audioMuet) {
+        audioMuet = document.createElement("audio");
+        audioMuet.src = wavMuet(); audioMuet.loop = true;
+        audioMuet.setAttribute("playsinline", ""); audioMuet.setAttribute("x-webkit-airplay", "deny");
+      }
+      if (audioMuet.paused) audioMuet.play().catch(() => {});
+    } catch (e) {}
+    if (ctx) {
+      if (ctx.state !== "running") ctx.resume().catch(() => {});
+      // un tout petit son vide lancé pendant le toucher finit de déverrouiller iOS
+      const b = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource();
+      src.buffer = b; src.connect(ctx.destination); src.start(0);
+    }
+  }
+
   function init() {
-    if (ctx) { if (ctx.state === "suspended") ctx.resume(); return ctx; }
+    if (ctx) { debloquer(); return ctx; }
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 4;
@@ -30,6 +63,7 @@
     bruitBlanc = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
     const b = bruitBlanc.getChannelData(0);
     for (let i = 0; i < b.length; i++) b[i] = Math.random() * 2 - 1;
+    debloquer();
     return ctx;
   }
 
@@ -564,5 +598,15 @@
     if (audioFichier) audioFichier.volume = v;
   }
 
-  window.SonsLoupGarou = { init, jouer, toutArreter, volume, liste: () => Object.keys(SONS), SONS };
+  function test() {
+    init();
+    const t = ctx.currentTime + 0.05;
+    [0, 0.18].forEach((d, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = i ? 880 : 660;
+      env(g.gain, t + d, 0.4, 0.01, 0.3); o.connect(g); g.connect(maitre); o.start(t + d); o.stop(t + d + 0.4);
+    });
+    return ctx.state;
+  }
+
+  window.SonsLoupGarou = { init, jouer, toutArreter, volume, test, etat: () => (ctx ? ctx.state : "non démarré"), liste: () => Object.keys(SONS), SONS };
 })();
