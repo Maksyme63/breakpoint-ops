@@ -201,7 +201,7 @@ class AmpouleTuya:
         with self.verrou:
             now = time.time()
             # Inutile de renvoyer la même chose (sauf toutes les 20 s pour garder la connexion)
-            if cle == self.derniere_cmd and now - self.dernier_envoi < 20:
+            if cle is not None and cle == self.derniere_cmd and now - self.dernier_envoi < 20:
                 return
             ecart = 0.08 if rapide else float(CONFIG["intervalle_effets"])
             attente = ecart - (now - self.dernier_envoi)
@@ -234,39 +234,77 @@ class AmpouleTuya:
             finally:
                 self.dernier_envoi = time.time()
 
+    def _etat_complet(self, etape):
+        """Ordre complet (allumage + mode + couleur/intensité) pour une étape.
+        On n'utilise pas la mémoire interne de la bibliothèque, qui peut se tromper
+        sur l'état réel de la lampe (lampe restée éteinte ou bloquée sur une couleur)."""
+        ds = self.dev.dpset
+        sw = ds.get("switch")
+        if not sw:
+            return None
+        if etape == "eteint" or etape.get("eteint"):
+            return {sw: False}
+        hexf = ds.get("value_hexformat") or "hsv16"
+        vmax = ds.get("value_max") or -1
+        if vmax <= 0:
+            vmax = 1000 if hexf == "hsv16" else 255
+        vmin = ds.get("value_min") or -1
+        if vmin < 0:
+            vmin = 10 if vmax >= 1000 else 25
+        lum = max(1, min(100, etape.get("lum", 100)))
+        valeurs = {sw: True}
+        if etape.get("blanc") or not ds.get("colour"):
+            if ds.get("mode"):
+                valeurs[ds["mode"]] = "white"
+            if ds.get("brightness"):
+                valeurs[ds["brightness"]] = int(vmin + (vmax - vmin) * lum / 100)
+            if ds.get("colourtemp"):
+                valeurs[ds["colourtemp"]] = int(vmax * max(0, min(100, etape.get("temp", 50))) / 100)
+        else:
+            r, g, b = [max(0, min(255, c)) / 255.0 for c in etape["couleur"]]
+            h, s, _ = colorsys.rgb_to_hsv(r, g, b)
+            if ds.get("mode"):
+                valeurs[ds["mode"]] = "colour"
+            valeurs[ds["colour"]] = self.dev.hsv_to_hexvalue(h, s, max(0.01, min(1.0, lum / 100.0)), hexf)
+        return valeurs
+
     def couleur(self, rgb, lum, rapide=False):
         r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
         h, s, _ = colorsys.rgb_to_hsv(r, g, b)
         h, s = round(h, 3), round(s, 2)
         v = round(max(0.01, min(1.0, lum / 100.0)), 2)
-        self._envoyer(("c", h, s, v), self.dev_appel("set_hsv"), h, s, v, rapide=rapide)
+        etat = self._etat_complet({"couleur": rgb, "lum": lum}) if self.dev else None
+        if etat:
+            self._envoyer(("c", h, s, v), self.dev_appel("set_multiple_values"), etat, rapide=rapide)
+        else:
+            self._envoyer(("c", h, s, v), self.dev_appel("set_hsv"), h, s, v, rapide=rapide)
 
     def blanc(self, lum, temp):
         lum = round(max(1, min(100, lum)))
         temp = round(max(0, min(100, temp)))
-        self._envoyer(("b", lum, temp), self.dev_appel("set_white_percentage"), lum, temp)
+        etat = self._etat_complet({"blanc": True, "lum": lum, "temp": temp}) if self.dev else None
+        if etat:
+            self._envoyer(("b", lum, temp), self.dev_appel("set_multiple_values"), etat)
+        else:
+            self._envoyer(("b", lum, temp), self.dev_appel("set_white_percentage"), lum, temp)
 
     def eteindre(self):
-        self._envoyer(("off",), self.dev_appel("turn_off"))
+        etat = self._etat_complet("eteint") if self.dev else None
+        if etat:
+            self._envoyer(("off",), self.dev_appel("set_multiple_values"), etat)
+        else:
+            self._envoyer(("off",), self.dev_appel("turn_off"))
 
     def instantane(self, etape):
-        """Commande éclair : envoyée tout de suite, sans attendre la réponse (flashs d'orage)."""
+        """Flash : envoyé immédiatement (écart minimal), en attendant la confirmation de la lampe
+        pour que ses réponses ne se mélangent pas avec les ordres suivants."""
         if not self.ok:
             return
-        with self.verrou:
-            try:
-                if etape == "eteint" or etape.get("eteint"):
-                    self.dev.turn_off(0, True)
-                elif etape.get("blanc"):
-                    self.dev.set_white_percentage(round(max(1, min(100, etape.get("lum", 100)))), etape.get("temp", 100), True)
-                else:
-                    r, g, b = [max(0, min(255, c)) / 255.0 for c in etape["couleur"]]
-                    h, sa, _ = colorsys.rgb_to_hsv(r, g, b)
-                    self.dev.set_hsv(h, sa, max(0.01, min(1.0, etape.get("lum", 100) / 100.0)), True)
-            except Exception:
-                pass
-            self.derniere_cmd = None
-            self.dernier_envoi = time.time()
+        etat = self._etat_complet(etape) if self.dev else None
+        if etat:
+            self._envoyer(None, self.dev_appel("set_multiple_values"), etat, rapide=True)
+        elif etape == "eteint" or etape.get("eteint"):
+            self._envoyer(None, self.dev_appel("turn_off"), rapide=True)
 
     def dev_appel(self, nom):
         # self.dev peut être recréé lors d'une reconnexion : on le relit au moment de l'appel
