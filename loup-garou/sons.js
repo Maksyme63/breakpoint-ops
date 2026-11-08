@@ -851,12 +851,17 @@
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (type === "boucle" ? 2.5 : 0.05));
     const sources = []; let actif = true, timer;
     if (type === "boucle") {
-      charger(url).then((buf) => {
-        if (!actif) return;
-        const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g);
-        const r = ctx.createGain(); r.gain.value = 0.15; g.connect(r); r.connect(reverb);
-        src.start(0, rnd(0, buf.duration * 0.6)); sources.push(src);
-      }).catch(() => {});
+      // Lecture en continu (comme un lecteur de musique) : marche aussi pour les très longs fichiers,
+      // sans tout charger en mémoire.
+      const a = new Audio(); a.src = url; a.loop = true; a.preload = "auto"; a.crossOrigin = "anonymous";
+      const src = ctx.createMediaElementSource(a); src.connect(g);
+      const r = ctx.createGain(); r.gain.value = 0.15; g.connect(r); r.connect(reverb);
+      a.addEventListener("loadedmetadata", () => {
+        // départ au hasard dans les ambiances courtes, au début pour les longues musiques
+        if (a.duration && a.duration < 300) { try { a.currentTime = rnd(0, a.duration * 0.6); } catch (e) {} }
+      }, { once: true });
+      a.play().catch(() => {});
+      sources.push({ stop() { a.pause(); a.removeAttribute("src"); a.load(); }, disconnect() { try { src.disconnect(); } catch (e) {} } });
     } else if (type === "unique") {
       jouerUneFois(url, g, 1).then((x) => x && sources.push(x.src));
     } else {

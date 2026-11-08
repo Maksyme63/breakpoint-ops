@@ -650,6 +650,49 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(corps)
 
+    def envoyer_fichier(self, chemin, type_):
+        """Envoie un fichier audio par morceaux (en-tête Range), indispensable à Safari pour lire
+        les longues musiques en continu sans tout charger."""
+        import re as _re
+        taille = os.path.getsize(chemin)
+        debut, fin, code = 0, taille - 1, 200
+        m = _re.match(r"bytes=(\d*)-(\d*)", self.headers.get("Range") or "")
+        if m and (m.group(1) or m.group(2)):
+            if m.group(1):
+                debut = int(m.group(1))
+                fin = min(int(m.group(2)), taille - 1) if m.group(2) else taille - 1
+            else:  # « les N derniers octets »
+                debut = max(0, taille - int(m.group(2)))
+            if debut > fin or debut >= taille:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{taille}")
+                self.end_headers()
+                return
+            code = 206
+        longueur = fin - debut + 1
+        self.send_response(code)
+        self.send_header("Content-Type", type_)
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(longueur))
+        if code == 206:
+            self.send_header("Content-Range", f"bytes {debut}-{fin}/{taille}")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        if self.command == "HEAD":
+            return
+        try:
+            with open(chemin, "rb") as f:
+                f.seek(debut)
+                reste = longueur
+                while reste > 0:
+                    bloc = f.read(min(256 * 1024, reste))
+                    if not bloc:
+                        break
+                    self.wfile.write(bloc)
+                    reste -= len(bloc)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # le navigateur a arrêté la lecture : normal
+
     def etat(self):
         return {
             "simulation": SIMULATION,
@@ -691,8 +734,7 @@ class Handler(BaseHTTPRequestHandler):
             fichier = os.path.realpath(os.path.join(ICI, unquote(chemin).lstrip("/")))
             ext = os.path.splitext(fichier)[1].lower()
             if fichier.startswith(dossier + os.sep) and ext in TYPES_AUDIO and os.path.isfile(fichier):
-                with open(fichier, "rb") as f:
-                    return self.envoyer(200, f.read(), TYPES_AUDIO[ext])
+                return self.envoyer_fichier(fichier, TYPES_AUDIO[ext])
         self.envoyer(404, {"erreur": "introuvable"})
 
     def do_POST(self):
