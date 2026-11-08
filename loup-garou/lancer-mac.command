@@ -14,5 +14,4 @@ if ! python3 -c "import tinytuya" 2>/dev/null; then
   # Chiffrement rapide seulement s'il existe déjà compilé (jamais de compilation Rust)
   $PIP --user --only-binary=:all: cryptography 2>/dev/null || $PIP --only-binary=:all: cryptography 2>/dev/null || true
 fi
-(sleep 3; open "http://localhost:8000") &
-python3 server.py
+OUVRIR_NAVIGATEUR=1 python3 server.py

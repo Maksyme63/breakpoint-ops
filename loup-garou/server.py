@@ -578,6 +578,9 @@ if __name__ == "__main__":
     print(f"    Ampoules         : {len(AMPOULES)} {'(SIMULATION)' if SIMULATION else ''}")
     print("    Ctrl+C pour arrêter.")
     print()
+    if os.environ.get("OUVRIR_NAVIGATEUR"):  # lanceur Mac : ouvre le pad une fois prêt
+        import webbrowser
+        threading.Timer(0.5, lambda: webbrowser.open(f"http://localhost:{PORT}")).start()
     try:
         serveur.serve_forever()
     except KeyboardInterrupt:
