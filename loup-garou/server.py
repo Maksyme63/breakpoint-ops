@@ -127,7 +127,7 @@ class AmpouleTuya:
         self.dev = self.tinytuya.BulbDevice(
             info["id"], info.get("ip") or "Auto", info["key"],
             version=float(info.get("version") or 3.3),
-            connection_timeout=2, connection_retry_limit=1, connection_retry_delay=0.5)
+            connection_timeout=4, connection_retry_limit=2, connection_retry_delay=1)
         self.dev.set_socketPersistent(True)
         r = self.dev.status()  # détecte le type d'ampoule (DP 1-5 ou 20-24)
         # Certaines ampoules répondent à vide : seule une vraie erreur compte
