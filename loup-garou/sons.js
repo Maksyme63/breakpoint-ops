@@ -573,113 +573,23 @@
     return arretAvecFondu(b.gain, bourdon, [() => { actif = false; clearTimeout(timer); }], 2);
   };
 
-  /** Attaque des loups : grognements, bond, morsure, cri. */
+  /** Attaque des loups : uniquement de vrais enregistrements (dossier sounds/lib), aux bons instants. */
   SONS.attaque = (sortie) => {
     const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
-    // d'abord la meute hurle dans le noir…
-    const p = cheminEchantillon("meute") || cheminEchantillon("loups");
-    if (p) jouerUneFois(p, g, 0.9);
-    else { hurlement(g, -0.6, 360, 2.6); setTimeout(() => hurlement(g, 0.6, 300, 2.4), 350); setTimeout(() => hurlement(g, 0, 420, 2.2), 800); }
-    // … puis l'attaque, synchronisée avec les flashs des lampes
-    const t0 = ctx.currentTime + 2.4;
-    const grogne = (t, d, f, pan, vol) => {
-      const b = bus(g, vol, 0.35, pan), o = ctx.createOscillator(), n = bruit(false);
-      const lp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), eg = ctx.createGain(), ng = ctx.createGain();
-      o.type = "sawtooth"; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * rnd(1.3, 1.8), t + d * 0.6);
-      o.frequency.linearRampToValueAtTime(f * 0.8, t + d);
-      const am = ctx.createOscillator(), amg = ctx.createGain(); am.frequency.value = rnd(28, 40); amg.gain.value = 0.5;
-      am.connect(amg); amg.connect(eg.gain);
-      lp.type = "lowpass"; lp.frequency.value = 900; lp.Q.value = 6; bp.type = "bandpass"; bp.frequency.value = 600; bp.Q.value = 1; ng.gain.value = 0.5;
-      o.connect(lp); n.connect(bp); bp.connect(ng); ng.connect(lp); lp.connect(eg); eg.connect(b.entree);
-      eg.gain.setValueAtTime(0.0001, t); eg.gain.linearRampToValueAtTime(0.9, t + 0.12);
-      eg.gain.setValueAtTime(0.9, t + d * 0.8); eg.gain.exponentialRampToValueAtTime(0.0001, t + d);
-      o.start(t); am.start(t); o.stop(t + d + 0.05); am.stop(t + d + 0.05); n.stop(t + d + 0.05);
-    };
-    const vraiGrognement = enregistrementA("grognement_loup", g, 2.4, 1.0);
-    if (vraiGrognement) enregistrementA("grognement_loup", g, 4.2, 0.8);
-    if (!vraiGrognement) {
-      // la meute encercle la proie
-      grogne(t0, 1.6, 95, -0.6, 0.5); grogne(t0 + 0.5, 1.4, 110, 0.6, 0.5); grogne(t0 + 1.0, 1.2, 85, 0, 0.6);
-      // le bond : rugissement qui monte
-      grogne(t0 + 2.0, 0.9, 140, -0.2, 0.9); grogne(t0 + 2.05, 0.9, 170, 0.3, 0.8);
-    }
-    // morsures
-    const vraieMorsure = enregistrementA("morsure", g, 2.4 + 2.7, 1.0);
-    if (vraieMorsure) { enregistrementA("morsure", g, 2.4 + 3.1, 0.8); }
-    if (!vraieMorsure) [2.7, 2.95, 3.3].forEach((d) => {
-      const t = t0 + d, n = bruit(false), hp = ctx.createBiquadFilter(), ng = ctx.createGain(), o = ctx.createOscillator(), og = ctx.createGain();
-      hp.type = "bandpass"; hp.frequency.value = rnd(1200, 2500); hp.Q.value = 2; env(ng.gain, t, 0.9, 0.002, 0.12);
-      n.connect(hp); hp.connect(ng); ng.connect(g); n.stop(t + 0.2);
-      o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-      env(og.gain, t, 1, 0.003, 0.2); o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.25);
-    });
-    // cri de la victime
-    const vraiCri = enregistrementA("cri_victime", g, 2.4 + 2.6, 0.9);
-    if (!vraiCri) {
-    const tc = t0 + 2.6, cb = bus(g, 0.22, 0.8, 0.1), voix = ctx.createOscillator(), f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), ce = ctx.createGain();
-    voix.type = "sawtooth"; voix.frequency.setValueAtTime(700, tc); voix.frequency.linearRampToValueAtTime(1050, tc + 0.3);
-    voix.frequency.linearRampToValueAtTime(600, tc + 1.4);
-    const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 7; vg.gain.value = 25; vib.connect(vg); vg.connect(voix.frequency);
-    f1.type = "bandpass"; f1.frequency.value = 900; f1.Q.value = 5; f2.type = "bandpass"; f2.frequency.value = 2600; f2.Q.value = 6;
-    voix.connect(f1); voix.connect(f2); f1.connect(ce); f2.connect(ce); ce.connect(cb.entree);
-    ce.gain.setValueAtTime(0.0001, tc); ce.gain.linearRampToValueAtTime(1, tc + 0.08); ce.gain.setValueAtTime(1, tc + 0.9); ce.gain.exponentialRampToValueAtTime(0.0001, tc + 1.5);
-    voix.start(tc); vib.start(tc); voix.stop(tc + 1.6); vib.stop(tc + 1.6);
-    }
-    // la meute dévore sa proie : craquements, déchirures, mastication, grognements
-    const devore = ctx.createGain(); devore.gain.value = 0.9; devore.connect(g);
-    const craque = (t, v) => { // os qui craque : salve de petits clics secs
-      for (let i = 0; i < 6; i++) {
-        const n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain(), tt = t + i * rnd(0.008, 0.025);
-        bp.type = "bandpass"; bp.frequency.value = rnd(1800, 4500); bp.Q.value = 3;
-        env(ng.gain, tt, v * rnd(0.4, 1), 0.001, rnd(0.01, 0.03)); n.connect(bp); bp.connect(ng); ng.connect(devore); n.stop(tt + 0.05);
-      }
-    };
-    const dechire = (t, d) => { // chair déchirée : souffle humide qui glisse
-      const n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
-      bp.type = "bandpass"; bp.Q.value = 2; bp.frequency.setValueAtTime(rnd(500, 900), t); bp.frequency.exponentialRampToValueAtTime(rnd(1500, 2600), t + d);
-      ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.5, t + 0.04);
-      const am = ctx.createOscillator(), amg = ctx.createGain(); am.frequency.value = rnd(40, 70); amg.gain.value = 0.3;
-      am.connect(amg); amg.connect(ng.gain); am.start(t); am.stop(t + d);
-      ng.gain.exponentialRampToValueAtTime(0.0001, t + d); n.connect(bp); bp.connect(ng); ng.connect(devore); n.stop(t + d + 0.05);
-    };
-    const mache = (t) => { // mastication humide : bruit grave qui claque
-      const n = bruit(false), lp = ctx.createBiquadFilter(), ng = ctx.createGain();
-      lp.type = "lowpass"; lp.frequency.setValueAtTime(rnd(300, 600), t); lp.frequency.exponentialRampToValueAtTime(150, t + 0.15); lp.Q.value = 8;
-      env(ng.gain, t, rnd(0.5, 0.9), 0.01, rnd(0.1, 0.18)); n.connect(lp); lp.connect(ng); ng.connect(devore); n.stop(t + 0.25);
-    };
-    const td = t0 + 3.6;
-    const vraiFestin = enregistrementA("devorement", devore, 2.4 + 3.6, 1.0, 9);
-    if (!vraiFestin) for (let k = 0; k < 26; k++) {
-      const t = td + k * rnd(0.22, 0.38);
-      const x = Math.random();
-      if (x < 0.35) mache(t); else if (x < 0.6) craque(t, 0.8); else if (x < 0.8) dechire(t, rnd(0.25, 0.5)); else mache(t);
-    }
-    for (let k = 0; k < 5; k++) grogne(td + 0.4 + k * rnd(1.2, 1.8), rnd(0.8, 1.3), rnd(80, 120), rnd(-0.8, 0.8), 0.45);
-    devore.gain.setValueAtTime(0.9, td + 8); devore.gain.linearRampToValueAtTime(0.0001, td + 11);
-    // puis un dernier hurlement au loin
-    if (!enregistrementA("loups", g, 12.5, 0.5)) setTimeout(() => hurlement(g, 0.7, 330, 3.5), 12500);
+    // 0 s : la meute hurle dans le noir
+    enregistrementA("meute", g, 0, 0.9) || enregistrementA("loups", g, 0, 0.9);
+    // 2,4 s : bond et grognements (synchronisés avec les flashs des lampes)
+    enregistrementA("grognement_loup", g, 2.4, 1.0);
+    enregistrementA("grognement_loup", g, 4.2, 0.8);
+    // 5 s : cri de la victime, morsures
+    enregistrementA("cri_victime", g, 5.0, 0.9);
+    enregistrementA("morsure", g, 5.1, 1.0);
+    enregistrementA("morsure", g, 5.5, 0.8);
+    // 6 s : la meute dévore sa proie pendant 9 s
+    enregistrementA("devorement", g, 6.0, 1.0, 9);
+    // 12,5 s : un dernier hurlement au loin
+    enregistrementA("loups", g, 12.5, 0.5);
     return arretAvecFondu(g, [], [], 1.5);
-  };
-
-  /** Tic-tac d'une vieille horloge qui accélère (le vote). */
-  SONS.horloge = (sortie) => {
-    const b = bus(sortie, 0.55, 0.25);
-    let actif = true, timer, intervalle = 0.62, tic = true;
-    const coup = (t, aigu) => {
-      const n = bruit(false), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-      bp.type = "bandpass"; bp.frequency.value = aigu ? 3200 : 2300; bp.Q.value = 9;
-      env(g.gain, t, 0.9, 0.001, 0.045); n.connect(bp); bp.connect(g); g.connect(b.entree); n.stop(t + 0.08);
-      const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = aigu ? 1900 : 1500;
-      env(og.gain, t, 0.12, 0.001, 0.03); o.connect(og); og.connect(b.entree); o.start(t); o.stop(t + 0.05);
-    };
-    const tick = () => {
-      if (!actif) return;
-      coup(ctx.currentTime + 0.02, tic); tic = !tic;
-      intervalle = Math.max(0.33, intervalle * 0.994);
-      timer = setTimeout(tick, intervalle * 1000);
-    };
-    tick();
-    return arretAvecFondu(b.gain, [], [() => { actif = false; clearTimeout(timer); }], 1.2);
   };
 
   /** Musique de terreur pour l'attaque : montée, explosion, puis menace continue (aucun silence). */
@@ -910,7 +820,7 @@
   /** Une couche sonore : le vrai enregistrement s'il existe, sinon le son synthétisé. */
   // Ces sons restent synthétisés : les enregistrements trouvés en ligne contenaient
   // des commentaires parlés ou grésillaient.
-  const TOUJOURS_SYNTHE = new Set(["coeur", "tambour", "attaque", "terreur"]);  // séquences composées : jamais remplacées
+  const TOUJOURS_SYNTHE = new Set(["coeur", "tambour", "attaque"]);  // séquences composées : jamais remplacées
   function couche(nom, sortie, volumes) {
     if (nom !== "tonnerre" && !TOUJOURS_SYNTHE.has(nom)) {
       const p = cheminEchantillon(nom);

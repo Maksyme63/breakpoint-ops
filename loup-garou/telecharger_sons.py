@@ -44,6 +44,7 @@ SONS = {
     "oiseaux":     (["birdsong", "dawn chorus", "bird song", "birds singing", "chant oiseaux"], 5, 1200),
     "feu":         (["fire crackling", "campfire", "crackling fire", "fireplace", "feu de bois"], 5, 1200),
     "foule":       (["crowd", "crowd noise", "people talking", "murmur", "market crowd"], 5, 1200),
+    "horreur":     (["horror music", "scary music", "creepy music", "suspense music", "dark ambient music"], 30, 1200),
     "grognement_loup": (["wolf growl", "wolf snarl", "dog growling", "dog snarling", "growling dog"], 1, 40),
     "morsure":     (["bone crunch", "bone breaking", "crunch", "bite apple", "celery crunch"], 0.2, 20),
     "cri_victime": (["scream", "woman screaming", "man screaming", "horror scream", "terrified scream"], 0.5, 15),
