@@ -397,7 +397,8 @@ for p in PILOTES:
     p.start()
 
 def scenes():
-    return {s["id"]: s for s in charger_json("scenes.json", {"scenes": []})["scenes"]}
+    donnees = charger_json("scenes.json", {"scenes": []})
+    return {s["id"]: s for s in donnees.get("roles", []) + donnees["scenes"]}
 
 
 def lancer_spec(spec):

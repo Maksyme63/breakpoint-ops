@@ -66,6 +66,16 @@ La console affiche l'adresse à ouvrir sur le téléphone, par ex. `http://192.1
 Sans `devices.json`, le pad démarre en **mode simulation** : les sons marchent, les
 commandes lumière s'affichent dans la console. Parfait pour tester avant la soirée.
 
+## Choisir les personnages
+
+Au lancement, le pad affiche la liste des personnages (Loups-Garous, Voyante, Sorcière,
+Cupidon, Petite Fille, Salvateur, Chasseur, Infect Père des Loups, Grand Méchant Loup,
+Loup-Garou Blanc, Voleur, Enfant Sauvage, Chien-Loup, Deux Sœurs, Trois Frères, Renard,
+Corbeau, Joueur de Flûte, Montreur d'Ours, Ancien, Chevalier, Idiot, Bouc Émissaire,
+Juge Bègue, Servante, Ange). Coche ceux de ta partie : le pad n'affiche que leurs boutons,
+la nuit dans l'ordre d'appel (« APPEL 1, 2, 3… »). Le choix est mémorisé ; le bouton
+👥 Personnages permet de le changer.
+
 ## Les scènes
 
 | Groupe | Bouton | Lumière | Son |

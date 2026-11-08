@@ -15,6 +15,7 @@
     --texte: #f3eee6;
     --doux: #9a93a8;
     --accent: #c0262d;
+    --ok: #7ee2a0;
     --lueur: #000;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -29,83 +30,122 @@
     user-select: none; -webkit-user-select: none;
   }
   main { max-width: 900px; margin: 0 auto; }
-  header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  h1 { font-size: 1.35rem; margin: 0; letter-spacing: 0.02em; flex: 1; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  h1 { font-size: 1.35rem; margin: 0; letter-spacing: 0.02em; flex: 1; min-width: 0; }
   h1 span { color: var(--accent); }
   #etat { font-size: 0.78rem; padding: 6px 10px; border-radius: 99px; background: var(--carte); border: 1px solid var(--bord); color: var(--doux); white-space: nowrap; }
-  #etat.ok { color: #7ee2a0; border-color: #1f5d37; }
+  #etat.ok { color: var(--ok); border-color: #1f5d37; }
   #etat.simu { color: #f3c969; border-color: #6b5320; }
+  .petit-bouton { background: #2a2635; color: var(--texte); border: 1px solid var(--bord); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 0.88rem; cursor: pointer; }
+  .petit-bouton:focus-visible, .bouton:focus-visible, .role:focus-visible, .gros:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 
-  .reglages { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; }
+  .reglages { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
   .reglages label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--doux); min-width: 0; }
   .reglages input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
   .reglages input[type=color] { width: 40px; height: 34px; border: none; background: none; padding: 0; }
-  #couperSon, #testSon { background: #2a2635; color: var(--texte); border: 1px solid var(--bord); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+  .reglages.sansServeur { grid-template-columns: 1fr auto; }
 
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--doux); margin: 18px 4px 8px; font-weight: 600; }
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--doux); margin: 20px 4px 8px; font-weight: 600; }
+  h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; opacity: 0.8; }
   .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+
+  /* Boutons du pad */
   .bouton {
     position: relative; border: 1px solid var(--bord); border-radius: 16px; min-height: 104px; padding: 12px;
     background: linear-gradient(160deg, color-mix(in srgb, var(--c) 35%, var(--carte)), var(--carte) 75%);
-    color: var(--texte); font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
+    color: var(--texte); font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
     transition: transform 0.08s, box-shadow 0.3s, border-color 0.3s;
   }
   .bouton:active { transform: scale(0.96); }
   .bouton .emoji { font-size: 2rem; line-height: 1; }
   .bouton .nom { font-size: 0.98rem; font-weight: 650; line-height: 1.2; }
-  .bouton .lsc { font-size: 0.72rem; color: var(--doux); line-height: 1.3; }
+  .bouton .info { font-size: 0.72rem; color: var(--doux); line-height: 1.3; }
   .bouton .touche { position: absolute; top: 8px; right: 10px; font-size: 0.7rem; color: var(--doux); opacity: 0.7; }
+  .bouton .appel { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-size: 0.66rem; letter-spacing: 0.08em; color: var(--texte); background: color-mix(in srgb, var(--c) 45%, #000); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
   .bouton.grand { grid-column: span 2; min-height: 120px; }
   .bouton.grand .emoji { font-size: 2.6rem; }
   .bouton.actif { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 0 28px color-mix(in srgb, var(--c) 70%, transparent); }
   .bouton.actif::after { content: "● EN COURS"; position: absolute; bottom: 10px; right: 12px; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--texte); opacity: 0.85; }
 
-  #demarrer { position: fixed; inset: 0; background: rgba(5, 4, 8, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 10; text-align: center; padding: 24px; }
-  #demarrer button { font-size: 1.2rem; padding: 18px 34px; border-radius: 99px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-weight: 700; }
-  #demarrer p { color: var(--doux); max-width: 420px; line-height: 1.5; margin: 0; }
-  .cache { display: none !important; }
-  footer { margin-top: 26px; font-size: 0.75rem; color: var(--doux); text-align: center; line-height: 1.6; }
+  /* Écran de préparation */
+  #preparation { padding-bottom: 96px; }
+  .intro { color: var(--doux); line-height: 1.5; margin: 4px 4px 12px; max-width: 60ch; }
+  .raccourcis { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 4px; }
+  .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .role {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; text-align: left;
+    background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px; color: var(--texte); font: inherit; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+  }
+  .role .emoji { font-size: 1.6rem; }
+  .role .nom { font-weight: 650; font-size: 0.92rem; line-height: 1.2; }
+  .role .desc { font-size: 0.72rem; color: var(--doux); line-height: 1.3; margin-top: 2px; }
+  .role .coche { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--bord); display: grid; place-items: center; font-size: 0.9rem; }
+  .role[aria-pressed="true"] { border-color: var(--c); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 28%, var(--carte)), var(--carte) 80%); }
+  .role[aria-pressed="true"] .coche { background: var(--c); border-color: var(--c); }
+  .role[aria-pressed="true"] .coche::after { content: "✓"; color: #fff; text-shadow: 0 0 2px #000; }
+  .role[aria-pressed="false"] { opacity: 0.6; }
+  .barre-bas {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: linear-gradient(to top, var(--fond) 70%, transparent);
+    display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .gros { font: inherit; font-size: 1.1rem; padding: 16px 30px; border-radius: 99px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-weight: 700; }
+  #compte { color: var(--doux); font-size: 0.85rem; }
 
-  .reglages.sansServeur { grid-template-columns: 1fr auto; }
+  footer { margin-top: 26px; font-size: 0.75rem; color: var(--doux); text-align: center; line-height: 1.6; }
   [hidden] { display: none !important; }
   @media (max-width: 520px) {
-    .reglages:not(.sansServeur) { grid-template-columns: 1fr; }
+    .reglages, .reglages.sansServeur { grid-template-columns: 1fr; }
     .grille { grid-template-columns: 1fr 1fr; }
     .bouton { min-height: 96px; }
+    .roles { grid-template-columns: 1fr; }
   }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<div id="demarrer">
-  <div style="font-size:4rem">🐺</div>
-  <h1 style="flex:none">Pad <span>Loup-Garou</span></h1>
-  <p>Appuie pour activer le son : tu dois entendre un petit « ding ». Sur iPhone, si rien ne sort, désactive le mode silencieux et monte le volume.</p>
-  <button id="go">Commencer la partie</button>
-</div>
-
 <main>
   <header>
     <h1>🐺 Pad <span>Loup-Garou</span></h1>
     <div id="etat">Connexion…</div>
   </header>
 
-  <section class="reglages">
-    <label>🔊 <input id="volume" type="range" min="0" max="100" value="80"></label>
-    <label>💡 <input id="lum" type="range" min="5" max="100" value="100"></label>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre">
-      <button id="testSon" title="Jouer un bip de test">🔔 Test</button>
-      <button id="couperSon" title="Couper uniquement le son">🔇 Son</button>
+  <!-- 1. Choix des personnages -->
+  <section id="preparation">
+    <p class="intro">Coche les personnages de ta partie. Le pad n'affichera que leurs boutons, dans l'ordre où le meneur les appelle pendant la nuit.</p>
+    <div class="raccourcis">
+      <button class="petit-bouton" id="choixClassique">Partie classique</button>
+      <button class="petit-bouton" id="choixTout">Tout cocher</button>
+      <button class="petit-bouton" id="choixRien">Tout décocher</button>
+    </div>
+    <div id="listeRoles"></div>
+    <div class="barre-bas">
+      <span id="compte"></span>
+      <button class="gros" id="go">Commencer la partie</button>
     </div>
   </section>
 
-  <div id="pad"></div>
-
-  <footer>
-    Raccourcis clavier : touches indiquées sur les boutons · Espace = couper le son<br>
-    Ajoute tes propres musiques dans le dossier <code>sounds/</code> (voir README).<br>
-    <span id="aideLsc" hidden>Lumières : lance d'abord la scène dans l'appli LSC (ligne grise sous chaque bouton), puis reviens ici pour le son.</span>
-  </footer>
+  <!-- 2. Le pad -->
+  <section id="jeu" hidden>
+    <section class="reglages">
+      <label>🔊 <input id="volume" type="range" min="0" max="100" value="80" aria-label="Volume"></label>
+      <label>💡 <input id="lum" type="range" min="5" max="100" value="100" aria-label="Luminosité"></label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="couleurLibre" type="color" value="#ff2200" title="Couleur libre" aria-label="Couleur libre">
+        <button class="petit-bouton" id="testSon" title="Jouer un bip de test">🔔 Test</button>
+        <button class="petit-bouton" id="couperSon" title="Couper uniquement le son">🔇 Son</button>
+        <button class="petit-bouton" id="retour" title="Changer les personnages">👥 Personnages</button>
+      </div>
+    </section>
+    <div id="pad"></div>
+    <footer>
+      Raccourcis clavier : touches indiquées sur les boutons · Espace = couper le son<br>
+      <span id="aideFichiers">Ajoute tes propres musiques dans le dossier <code>sounds/</code> (voir README).</span>
+      <span id="aideLsc" hidden>Lumières : lance d'abord la scène dans l'appli LSC (ligne grise sous chaque bouton), puis reviens ici pour le son.</span>
+    </footer>
+  </section>
 </main>
 
 <script src="sons.js"></script>
@@ -113,35 +153,96 @@
 (async function () {
   const $ = (s) => document.querySelector(s);
   const Sons = window.SonsLoupGarou;
-  const TOUCHES = "1234567890azertyuiop";
-  let scenes = [], serveur = false, fichiers = {}, sceneActive = null, verrouEcran = null;
+  const TOUCHES = "1234567890azertyuiopqsdfghjklmwxcvbn";
+  const CLE = "loupgarou.personnages";
+  let donnees, serveur = false, fichiers = {}, choisis = new Set(), actives = [], audioPret = false;
 
   // --- chargement des scènes ---
   try {
-    scenes = (await (await fetch("scenes.json", { cache: "no-store" })).json()).scenes;
+    donnees = await (await fetch("scenes.json", { cache: "no-store" })).json();
   } catch (e) {
-    $("#pad").innerHTML = "<p>Impossible de lire scenes.json. Lance le pad avec <code>python server.py</code>.</p>";
+    $("#listeRoles").innerHTML = "<p>Impossible de lire scenes.json. Lance le pad avec <code>python server.py</code>.</p>";
     return;
   }
+  const roles = donnees.roles || [], scenes = donnees.scenes || [];
 
-  // --- construction des boutons par groupe ---
-  const groupes = {};
-  scenes.forEach((s) => (groupes[s.groupe || "Autres"] ||= []).push(s));
-  let n = 0;
-  for (const [nom, liste] of Object.entries(groupes)) {
-    const h = document.createElement("h2"); h.textContent = nom; $("#pad").appendChild(h);
-    const g = document.createElement("div"); g.className = "grille"; $("#pad").appendChild(g);
-    liste.forEach((s) => {
-      const b = document.createElement("button");
-      b.className = "bouton" + (s.grand ? " grand" : "");
-      b.style.setProperty("--c", s.couleur || "#888");
-      b.dataset.id = s.id;
-      s.touche = TOUCHES[n++];
-      b.innerHTML = `<span class="touche">${s.touche || ""}</span><span class="emoji">${s.emoji || "•"}</span><span class="nom"></span><span class="lsc"></span>`;
-      b.querySelector(".nom").textContent = s.nom;
-      b.addEventListener("click", () => lancer(s));
-      g.appendChild(b);
+  // --- personnages mémorisés (ou partie classique par défaut) ---
+  try {
+    const m = JSON.parse(localStorage.getItem(CLE) || "null");
+    if (Array.isArray(m)) choisis = new Set(m);
+  } catch (e) {}
+  if (!choisis.size) choisis = new Set(donnees.classique || roles.map((r) => r.id));
+  const memoriser = () => { try { localStorage.setItem(CLE, JSON.stringify([...choisis])); } catch (e) {} };
+
+  // --- écran de choix ---
+  const CAMPS = [["loups", "Les loups"], ["village", "Le village"], ["solitaire", "Les solitaires"]];
+  function dessinerChoix() {
+    const zone = $("#listeRoles"); zone.innerHTML = "";
+    CAMPS.forEach(([camp, titre]) => {
+      const liste = roles.filter((r) => r.camp === camp && !r.avec);
+      if (!liste.length) return;
+      const h = document.createElement("h2"); h.textContent = titre; zone.appendChild(h);
+      const g = document.createElement("div"); g.className = "roles"; zone.appendChild(g);
+      liste.forEach((r) => {
+        const b = document.createElement("button");
+        b.className = "role"; b.style.setProperty("--c", r.couleur);
+        b.setAttribute("aria-pressed", choisis.has(r.id));
+        b.innerHTML = `<span class="emoji">${r.emoji}</span><span><div class="nom"></div><div class="desc"></div></span><span class="coche"></span>`;
+        b.querySelector(".nom").textContent = r.nom;
+        b.querySelector(".desc").textContent = r.desc || "";
+        b.addEventListener("click", () => {
+          choisis.has(r.id) ? choisis.delete(r.id) : choisis.add(r.id);
+          b.setAttribute("aria-pressed", choisis.has(r.id)); memoriser(); compter();
+        });
+        g.appendChild(b);
+      });
     });
+    compter();
+  }
+  function compter() { $("#compte").textContent = `${choisis.size} personnage${choisis.size > 1 ? "s" : ""}`; }
+  $("#choixClassique").addEventListener("click", () => { choisis = new Set(donnees.classique || []); memoriser(); dessinerChoix(); });
+  $("#choixTout").addEventListener("click", () => { choisis = new Set(roles.filter((r) => !r.avec).map((r) => r.id)); memoriser(); dessinerChoix(); });
+  $("#choixRien").addEventListener("click", () => { choisis = new Set(); memoriser(); dessinerChoix(); });
+  dessinerChoix();
+
+  // --- construction du pad selon les personnages choisis ---
+  const QUAND = { nuit1: "1ʳᵉ nuit", nuit: "chaque nuit", jour: "au réveil", evenement: "" };
+  function bouton(s, extra) {
+    const b = document.createElement("button");
+    b.className = "bouton" + (s.grand ? " grand" : "");
+    b.style.setProperty("--c", s.couleur || "#888");
+    b.dataset.id = s.id;
+    s.touche = TOUCHES[actives.length]; actives.push(s);
+    b.innerHTML = `<span class="touche">${s.touche || ""}</span>${extra ? `<span class="appel">${extra}</span>` : ""}<span class="emoji">${s.emoji || "•"}</span><span class="nom"></span><span class="info"></span>`;
+    b.querySelector(".nom").textContent = s.nom;
+    const infos = [];
+    if (s.quand && QUAND[s.quand] && s.quand !== "nuit") infos.push(QUAND[s.quand]);
+    if (!serveur && s.lsc && (s.sons || []).length) infos.push("LSC : " + s.lsc);
+    b.querySelector(".info").textContent = infos.join(" · ");
+    b.addEventListener("click", () => lancer(s));
+    return b;
+  }
+  function section(titre, liste, sousTitre, numeroter) {
+    if (!liste.length) return;
+    const h = document.createElement("h2"); h.textContent = titre + " ";
+    if (sousTitre) { const sm = document.createElement("small"); sm.textContent = sousTitre; h.appendChild(sm); }
+    $("#pad").appendChild(h);
+    const g = document.createElement("div"); g.className = "grille"; $("#pad").appendChild(g);
+    let n = 0;
+    liste.forEach((s) => g.appendChild(bouton(s, numeroter && s.quand ? `APPEL ${++n}` : "")));
+  }
+  function construirePad() {
+    $("#pad").innerHTML = ""; actives = [];
+    const phase = (id) => scenes.find((s) => s.id === id);
+    const parGroupe = (g) => scenes.filter((s) => s.groupe === g);
+    const sel = (quand) => roles.filter((r) => (choisis.has(r.id) || choisis.has(r.avec)) && quand.includes(r.quand)).sort((a, b) => a.ordre - b.ordre);
+    section("Préparation", parGroupe("Préparation"));
+    section("Nuit", [phase("nuit"), ...sel(["nuit1", "nuit"])].filter(Boolean), "dans l'ordre d'appel", true);
+    section("Jour", [phase("jour"), ...sel(["jour"]), ...["victime", "debat", "vote", "bucher"].map(phase)].filter(Boolean));
+    section("Pouvoirs pendant la partie", sel(["evenement"]));
+    section("Ambiances", parGroupe("Ambiances"));
+    section("Fin de partie", parGroupe("Fin de partie").filter((s) => !s.roles || s.roles.some((r) => choisis.has(r))));
+    section("Contrôle", parGroupe("Contrôle"));
   }
 
   // --- connexion au serveur des ampoules ---
@@ -160,22 +261,19 @@
   }
   try { const e = await api("api/etat"); serveur = true; afficherEtat(e); $("#lum").value = e.luminosite; }
   catch (e) { afficherEtat(null); }
-  if (!serveur) {
+  if (serveur) setInterval(async () => { try { afficherEtat(await api("api/etat")); } catch (e) {} }, 15000);
+  else {
     // Sans ordinateur : on affiche la couleur à mettre dans l'appli LSC sous chaque bouton
     $("#lum").closest("label").hidden = true; $("#couleurLibre").hidden = true;
-    $(".reglages").classList.add("sansServeur"); $("#aideLsc").hidden = false;
-    document.querySelectorAll(".bouton").forEach((b) => {
-      const s = scenes.find((x) => x.id === b.dataset.id);
-      if (s.lsc && s.sons.length) b.querySelector(".lsc").textContent = "LSC : " + s.lsc;
-    });
+    $(".reglages").classList.add("sansServeur"); $("#aideLsc").hidden = false; $("#aideFichiers").hidden = true;
   }
-  if (serveur) setInterval(async () => { try { afficherEtat(await api("api/etat")); } catch (e) {} }, 15000);
 
   // --- mp3 personnalisés présents ? ---
+  const toutes = [...roles, ...scenes];
   if (serveur) {
-    try { const dispo = await api("api/sons"); scenes.forEach((s) => (fichiers[s.id] = dispo.includes(s.fichier))); } catch (e) {}
+    try { const dispo = await api("api/sons"); toutes.forEach((s) => (fichiers[s.id] = dispo.includes(s.fichier))); } catch (e) {}
   } else {
-    await Promise.all(scenes.filter((s) => s.fichier).map(async (s) => {
+    await Promise.all(toutes.filter((s) => s.fichier).map(async (s) => {
       try { const r = await fetch(s.fichier, { method: "HEAD", cache: "no-store" }); fichiers[s.id] = r.ok; }
       catch (e) { fichiers[s.id] = false; }
     }));
@@ -183,7 +281,6 @@
 
   // --- lancer une scène ---
   function lancer(s) {
-    sceneActive = s.id;
     document.querySelectorAll(".bouton").forEach((b) => b.classList.toggle("actif", b.dataset.id === s.id));
     document.documentElement.style.setProperty("--lueur", s.id === "stop" ? "#000" : (s.couleur || "#000"));
     Sons.jouer(s, fichiers[s.id]);
@@ -206,30 +303,32 @@
   });
   $("#couperSon").addEventListener("click", () => Sons.toutArreter(false));
   $("#testSon").addEventListener("click", () => {
-    const e = Sons.test();
-    if (e !== "running") setTimeout(() => alertSon(Sons.etat()), 400);
+    Sons.test();
+    setTimeout(() => { if (Sons.etat() !== "running") $("#etat").textContent = "⚠️ Son bloqué : retouche un bouton"; }, 400);
   });
-  function alertSon(etat) {
-    if (etat === "running") return;
-    $("#etat").textContent = "⚠️ Son bloqué (" + etat + ") : retouche un bouton";
-  }
 
   document.addEventListener("keydown", (e) => {
-    if (e.target.tagName === "INPUT") return;
+    if ($("#jeu").hidden || e.target.tagName === "INPUT") return;
     if (e.code === "Space") { e.preventDefault(); Sons.toutArreter(false); return; }
-    const s = scenes.find((x) => x.touche === e.key.toLowerCase());
+    const s = actives.find((x) => x.touche === e.key.toLowerCase());
     if (s) lancer(s);
   });
 
-  // --- écran de démarrage (débloque l'audio) + écran toujours allumé ---
+  // --- passage d'un écran à l'autre ---
   async function garderEcranAllume() {
-    try { if ("wakeLock" in navigator) verrouEcran = await navigator.wakeLock.request("screen"); } catch (e) {}
+    try { if ("wakeLock" in navigator) await navigator.wakeLock.request("screen"); } catch (e) {}
   }
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") garderEcranAllume(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !$("#jeu").hidden) garderEcranAllume(); });
   $("#go").addEventListener("click", () => {
-    Sons.init(); Sons.volume($("#volume").value / 100); Sons.test();
-    $("#demarrer").classList.add("cache");
+    Sons.init(); Sons.volume($("#volume").value / 100);
+    if (!audioPret) { Sons.test(); audioPret = true; }
+    construirePad();
+    $("#preparation").hidden = true; $("#jeu").hidden = false;
+    window.scrollTo(0, 0);
     garderEcranAllume();
+  });
+  $("#retour").addEventListener("click", () => {
+    $("#jeu").hidden = true; $("#preparation").hidden = false; dessinerChoix(); window.scrollTo(0, 0);
   });
 })();
 </script>

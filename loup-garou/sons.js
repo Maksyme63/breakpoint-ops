@@ -565,6 +565,87 @@
     return arretAvecFondu(b.gain, bourdon, [() => { actif = false; clearTimeout(timer); }], 2);
   };
 
+  /** Croassements de corbeau. */
+  SONS.corbeau = (sortie) => {
+    const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
+    const croa = (t, pan) => {
+      const b = bus(g, 0.25, 0.6, pan), o = ctx.createOscillator(), n = bruit(false);
+      const f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), og = ctx.createGain(), ng = ctx.createGain(), env1 = ctx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(rnd(480, 560), t); o.frequency.exponentialRampToValueAtTime(rnd(300, 360), t + 0.35);
+      f1.type = "bandpass"; f1.frequency.value = 1300; f1.Q.value = 3; f2.type = "bandpass"; f2.frequency.value = 2400; f2.Q.value = 4;
+      og.gain.value = 0.7; ng.gain.value = 0.25;
+      o.connect(og); n.connect(ng); og.connect(f1); og.connect(f2); ng.connect(f1); f1.connect(env1); f2.connect(env1); env1.connect(b.entree);
+      env1.gain.setValueAtTime(0.0001, t); env1.gain.linearRampToValueAtTime(1, t + 0.03);
+      env1.gain.setValueAtTime(1, t + 0.25); env1.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.start(t); o.stop(t + 0.45); n.stop(t + 0.45);
+    };
+    const serie = () => { const t = ctx.currentTime + 0.05, pan = rnd(-0.8, 0.8), n = choix([2, 3, 3, 4]); for (let i = 0; i < n; i++) croa(t + i * 0.5, pan); };
+    serie();
+    const stop = boucleAleatoire(serie, 5, 10);
+    return arretAvecFondu(g, [], [stop]);
+  };
+
+  /** Flûte envoûtante (Joueur de Flûte). */
+  SONS.flute = (sortie) => {
+    const b = bus(sortie, 0.14, 0.7), gamme = [69, 72, 74, 76, 79, 81, 84];
+    let actif = true, timer, idx = 3;
+    const souffle = (t, n, d) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), v = ctx.createOscillator(), vg = ctx.createGain();
+      o.frequency.value = note(n); v.frequency.value = 5.5; vg.gain.value = note(n) * 0.012;
+      v.connect(vg); vg.connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.5, t + 0.08);
+      g.gain.setValueAtTime(0.45, t + d * 0.8); g.gain.linearRampToValueAtTime(0.0001, t + d);
+      const n2 = bruit(false), hp = ctx.createBiquadFilter(), ng = ctx.createGain(); hp.type = "bandpass"; hp.frequency.value = note(n) * 2; hp.Q.value = 2; ng.gain.value = 0.04;
+      n2.connect(hp); hp.connect(ng); ng.connect(g);
+      o.connect(g); g.connect(b.entree); o.start(t); v.start(t); o.stop(t + d + 0.05); v.stop(t + d + 0.05); n2.stop(t + d + 0.05);
+    };
+    const phrase = () => {
+      if (!actif) return;
+      let t = ctx.currentTime + 0.05;
+      const n = Math.floor(rnd(4, 8));
+      for (let i = 0; i < n; i++) {
+        idx = Math.max(0, Math.min(gamme.length - 1, idx + choix([-2, -1, 1, 1, 2])));
+        const d = choix([0.3, 0.3, 0.6, 0.9]); souffle(t, gamme[idx], d); t += d;
+      }
+      timer = setTimeout(phrase, (t - ctx.currentTime) * 1000 + rnd(600, 1600));
+    };
+    phrase();
+    return arretAvecFondu(b.gain, [], [() => { actif = false; clearTimeout(timer); }], 2);
+  };
+
+  /** Grognement d'ours (Montreur d'Ours). */
+  SONS.grognement = (sortie) => {
+    const g = ctx.createGain(); g.gain.value = 1; g.connect(sortie);
+    const grogne = () => {
+      const t = ctx.currentTime + 0.05, d = rnd(1.2, 2), b = bus(g, 0.6, 0.4, rnd(-0.4, 0.4));
+      const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), eg = ctx.createGain(), n = bruit(false), ng = ctx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(rnd(70, 90), t); o.frequency.linearRampToValueAtTime(rnd(50, 65), t + d);
+      const am = ctx.createOscillator(), amg = ctx.createGain(); am.frequency.value = rnd(18, 26); amg.gain.value = 0.4;
+      am.connect(amg); amg.connect(eg.gain);
+      lp.type = "lowpass"; lp.frequency.value = 500; lp.Q.value = 5; ng.gain.value = 0.3;
+      o.connect(lp); n.connect(ng); ng.connect(lp); lp.connect(eg); eg.connect(b.entree);
+      eg.gain.setValueAtTime(0.0001, t); eg.gain.linearRampToValueAtTime(0.8, t + 0.25);
+      eg.gain.setValueAtTime(0.8, t + d * 0.7); eg.gain.linearRampToValueAtTime(0.0001, t + d);
+      o.start(t); am.start(t); o.stop(t + d + 0.1); am.stop(t + d + 0.1); n.stop(t + d + 0.1);
+    };
+    grogne(); setTimeout(grogne, 1800);
+    const stop = boucleAleatoire(grogne, 6, 12);
+    return arretAvecFondu(g, [], [stop]);
+  };
+
+  /** Coups de marteau de juge. */
+  SONS.marteau = (sortie) => {
+    const b = bus(sortie, 0.9, 0.5), t0 = ctx.currentTime + 0.05;
+    [0, 0.35, 0.7].forEach((d) => {
+      const t = t0 + d, o = ctx.createOscillator(), g = ctx.createGain(), n = bruit(false), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.08);
+      env(g.gain, t, 0.9, 0.001, 0.15); o.connect(g); g.connect(b.entree); o.start(t); o.stop(t + 0.2);
+      bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 1.5; env(ng.gain, t, 0.6, 0.001, 0.05);
+      n.connect(bp); bp.connect(ng); ng.connect(b.entree); n.stop(t + 0.1);
+    });
+    return arretAvecFondu(b.gain, [], [], 1);
+  };
+
   // ---------- lecteur ----------
   let enCours = []; // { stop() }
   let audioFichier = null;

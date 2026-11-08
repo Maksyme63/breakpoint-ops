@@ -1,103 +1,1310 @@
 {
-  "_aide": "Chaque scène = un bouton. 'lumiere' pilote les ampoules, 'sons' liste les sons synthétisés (voir sons.js), 'fichier' = un mp3 perso optionnel dans le dossier sounds/ (prioritaire sur les sons synthétisés s'il existe). Couleurs en [Rouge, Vert, Bleu] de 0 à 255, luminosité de 1 à 100.",
-  "scenes": [
-    {
-      "id": "accueil", "lsc": "orange chaud 70 %", "groupe": "Préparation", "nom": "Accueil au village", "emoji": "🏡", "couleur": "#c96a1b",
-      "lumiere": { "mode": "flicker", "couleur": [255, 110, 20], "min": 35, "max": 70 },
-      "sons": ["medieval", "feu"], "fichier": "sounds/accueil.mp3"
-    },
-    {
-      "id": "nuit", "lsc": "bleu nuit 15 %", "groupe": "Nuit", "nom": "La nuit tombe", "emoji": "🌙", "couleur": "#1d2f80",
-      "lumiere": { "mode": "fade", "duree": 6, "etapes": [ { "couleur": [255, 120, 30], "lum": 60 }, { "couleur": [120, 40, 160], "lum": 35 }, { "couleur": [10, 30, 160], "lum": 15 } ] },
-      "sons": ["vent", "grillons", "hibou"], "fichier": "sounds/nuit.mp3"
-    },
-    {
-      "id": "cupidon", "lsc": "rose 90 %", "groupe": "Nuit", "nom": "Cupidon", "emoji": "💘", "couleur": "#e0338f",
-      "lumiere": { "mode": "pulse", "couleur": [255, 30, 130], "min": 25, "max": 90, "periode": 4 },
-      "sons": ["harpe"], "fichier": "sounds/cupidon.mp3"
-    },
-    {
-      "id": "voyante", "lsc": "violet 80 %", "groupe": "Nuit", "nom": "La Voyante", "emoji": "🔮", "couleur": "#7b2ff2",
-      "lumiere": { "mode": "pulse", "couleur": [130, 0, 255], "couleur2": [40, 0, 200], "min": 30, "max": 80, "periode": 5 },
-      "sons": ["mystique"], "fichier": "sounds/voyante.mp3"
-    },
-    {
-      "id": "loups", "lsc": "rouge 100 %", "groupe": "Nuit", "nom": "Les Loups-Garous se réveillent", "emoji": "🐺", "couleur": "#b00000", "grand": true,
-      "lumiere": { "mode": "pulse", "couleur": [255, 0, 0], "min": 15, "max": 100, "periode": 2.6,
-                   "intro": [ { "eteint": true, "duree": 0.6 }, { "couleur": [255, 0, 0], "lum": 100, "duree": 0.2 }, { "eteint": true, "duree": 0.3 } ] },
-      "sons": ["loups", "peur", "coeur"], "fichier": "sounds/loups.mp3"
-    },
-    {
-      "id": "sorciere", "lsc": "vert 75 %", "groupe": "Nuit", "nom": "La Sorcière", "emoji": "🧪", "couleur": "#11a63a",
-      "lumiere": { "mode": "flicker", "couleur": [20, 255, 40], "couleur2": [120, 0, 200], "min": 25, "max": 75 },
-      "sons": ["chaudron", "mystique"], "fichier": "sounds/sorciere.mp3"
-    },
-    {
-      "id": "salvateur", "lsc": "bleu ciel 70 %", "groupe": "Nuit", "nom": "Le Salvateur", "emoji": "🛡️", "couleur": "#2aa7c9",
-      "lumiere": { "mode": "pulse", "couleur": [80, 200, 255], "min": 35, "max": 70, "periode": 6 },
-      "sons": ["choeur"], "fichier": "sounds/salvateur.mp3"
-    },
-    {
-      "id": "jour", "lsc": "blanc 100 %", "groupe": "Jour", "nom": "Le jour se lève", "emoji": "🌅", "couleur": "#f2a516", "grand": true,
-      "lumiere": { "mode": "fade", "duree": 8, "etapes": [ { "couleur": [10, 30, 160], "lum": 10 }, { "couleur": [255, 60, 20], "lum": 40 }, { "couleur": [255, 160, 50], "lum": 75 }, { "blanc": true, "lum": 100, "temp": 40 } ] },
-      "sons": ["coq", "oiseaux"], "fichier": "sounds/jour.mp3"
-    },
-    {
-      "id": "victime", "lsc": "rouge sombre 35 %", "groupe": "Jour", "nom": "La victime est découverte", "emoji": "💀", "couleur": "#5a0a0a",
-      "lumiere": { "mode": "static", "couleur": [200, 0, 0], "lum": 35,
-                   "intro": [ { "blanc": true, "lum": 100, "duree": 0.15 }, { "eteint": true, "duree": 0.15 }, { "blanc": true, "lum": 100, "duree": 0.15 }, { "eteint": true, "duree": 1.2 } ] },
-      "sons": ["cri", "glas"], "fichier": "sounds/victime.mp3"
-    },
-    {
-      "id": "debat", "lsc": "blanc chaud 85 %", "groupe": "Jour", "nom": "Le débat", "emoji": "🗣️", "couleur": "#b8892d",
-      "lumiere": { "mode": "white", "lum": 85, "temp": 30 },
-      "sons": ["foule"], "fichier": "sounds/debat.mp3"
-    },
-    {
-      "id": "vote", "lsc": "orange 100 %", "groupe": "Jour", "nom": "Le vote", "emoji": "⚖️", "couleur": "#d97706",
-      "lumiere": { "mode": "pulse", "couleur": [255, 120, 0], "min": 20, "max": 100, "periode": 0.9 },
-      "sons": ["tambour", "coeur"], "fichier": "sounds/vote.mp3"
-    },
-    {
-      "id": "bucher", "lsc": "orange-rouge 100 %", "groupe": "Jour", "nom": "Le bûcher", "emoji": "🔥", "couleur": "#e04b0f",
-      "lumiere": { "mode": "flicker", "couleur": [255, 70, 0], "couleur2": [255, 20, 0], "min": 30, "max": 100 },
-      "sons": ["feu", "glas", "foule"], "fichier": "sounds/bucher.mp3"
-    },
-    {
-      "id": "chasseur", "lsc": "orange 45 %", "groupe": "Jour", "nom": "Le Chasseur tire", "emoji": "🏹", "couleur": "#8a5a2b",
-      "lumiere": { "mode": "static", "couleur": [255, 90, 0], "lum": 45,
-                   "intro": [ { "blanc": true, "lum": 100, "duree": 0.12 }, { "eteint": true, "duree": 0.8 } ] },
-      "sons": ["coup_de_feu"], "fichier": "sounds/chasseur.mp3"
-    },
-    {
-      "id": "orage", "lsc": "bleu très sombre 12 %", "groupe": "Ambiances", "nom": "Orage", "emoji": "⛈️", "couleur": "#38457a",
-      "lumiere": { "mode": "lightning", "couleur": [0, 20, 90], "lum": 12 },
-      "sons": ["pluie", "vent", "tonnerre"], "fichier": "sounds/orage.mp3"
-    },
-    {
-      "id": "suspense", "lsc": "violet 30 %", "groupe": "Ambiances", "nom": "Suspense", "emoji": "😨", "couleur": "#4a1d5c",
-      "lumiere": { "mode": "pulse", "couleur": [90, 0, 140], "min": 5, "max": 30, "periode": 3 },
-      "sons": ["peur", "coeur"], "fichier": "sounds/suspense.mp3"
-    },
-    {
-      "id": "victoire_village", "lsc": "mode dynamique coloré", "groupe": "Fin de partie", "nom": "Victoire du village", "emoji": "🏆", "couleur": "#1f9d55",
-      "lumiere": { "mode": "cycle", "couleurs": [ [255, 190, 0], [0, 255, 80], [255, 255, 255], [0, 140, 255] ], "lum": 100, "periode": 0.8 },
-      "sons": ["fanfare", "oiseaux"], "fichier": "sounds/victoire_village.mp3"
-    },
-    {
-      "id": "victoire_loups", "lsc": "mode dynamique rouge clignotant", "groupe": "Fin de partie", "nom": "Victoire des loups", "emoji": "🩸", "couleur": "#7a0000",
-      "lumiere": { "mode": "cycle", "couleurs": [ [255, 0, 0], "eteint", [180, 0, 0], "eteint" ], "lum": 100, "periode": 0.35 },
-      "sons": ["meute", "peur", "cri"], "fichier": "sounds/victoire_loups.mp3"
-    },
-    {
-      "id": "lumiere", "lsc": "blanc 100 %", "groupe": "Contrôle", "nom": "Lumière normale", "emoji": "💡", "couleur": "#6b7280",
-      "lumiere": { "mode": "white", "lum": 100, "temp": 50 },
-      "sons": []
-    },
-    {
-      "id": "stop", "lsc": "éteint", "groupe": "Contrôle", "nom": "Tout éteindre", "emoji": "⏹️", "couleur": "#111827",
-      "lumiere": { "mode": "off" },
-      "sons": []
-    }
-  ]
+ "_aide": "Chaque scène = un bouton. 'lumiere' pilote les ampoules, 'sons' liste les sons synthétisés (voir sons.js), 'fichier' = un mp3 perso optionnel dans le dossier sounds/ (prioritaire sur les sons synthétisés s'il existe). Couleurs en [Rouge, Vert, Bleu] de 0 à 255, luminosité de 1 à 100. 'roles' = personnages à cocher au début de la partie ; 'quand' = nuit1 (première nuit), nuit (chaque nuit), jour (au réveil), evenement (déclenché pendant la partie) ; 'ordre' = ordre d'appel. 'avec' = scène ajoutée automatiquement quand ce personnage est choisi.",
+ "classique": [
+  "loups",
+  "voyante",
+  "sorciere",
+  "chasseur",
+  "cupidon",
+  "petite_fille",
+  "salvateur"
+ ],
+ "roles": [
+  {
+   "id": "loups",
+   "nom": "Les Loups-Garous",
+   "emoji": "🐺",
+   "couleur": "#b00000",
+   "camp": "loups",
+   "quand": "nuit",
+   "ordre": 50,
+   "desc": "Se réveillent ensemble et choisissent une victime.",
+   "lsc": "rouge 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     0,
+     0
+    ],
+    "min": 15,
+    "max": 100,
+    "periode": 2.6,
+    "intro": [
+     {
+      "eteint": true,
+      "duree": 0.6
+     },
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.2
+     },
+     {
+      "eteint": true,
+      "duree": 0.3
+     }
+    ]
+   },
+   "sons": [
+    "loups",
+    "peur",
+    "coeur"
+   ],
+   "fichier": "sounds/loups.mp3"
+  },
+  {
+   "id": "voleur",
+   "nom": "Le Voleur",
+   "emoji": "🃏",
+   "couleur": "#6c4ab6",
+   "camp": "village",
+   "quand": "nuit1",
+   "ordre": 10,
+   "desc": "Peut échanger sa carte avec une carte restée au centre.",
+   "lsc": "violet 60 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     110,
+     60,
+     200
+    ],
+    "min": 20,
+    "max": 60,
+    "periode": 4
+   },
+   "sons": [
+    "mystique",
+    "coeur"
+   ],
+   "fichier": "sounds/voleur.mp3"
+  },
+  {
+   "id": "cupidon",
+   "nom": "Cupidon",
+   "emoji": "💘",
+   "couleur": "#e0338f",
+   "camp": "village",
+   "quand": "nuit1",
+   "ordre": 20,
+   "desc": "Désigne deux amoureux liés jusqu'à la mort.",
+   "lsc": "rose 90 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     30,
+     130
+    ],
+    "min": 25,
+    "max": 90,
+    "periode": 4
+   },
+   "sons": [
+    "harpe"
+   ],
+   "fichier": "sounds/cupidon.mp3"
+  },
+  {
+   "id": "amoureux",
+   "nom": "Les Amoureux se découvrent",
+   "emoji": "💞",
+   "couleur": "#d6336c",
+   "camp": "village",
+   "quand": "nuit1",
+   "ordre": 21,
+   "desc": "Les deux amoureux ouvrent les yeux et se reconnaissent.",
+   "lsc": "rose 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     60,
+     150
+    ],
+    "couleur2": [
+     180,
+     0,
+     90
+    ],
+    "min": 40,
+    "max": 100,
+    "periode": 2.5
+   },
+   "sons": [
+    "harpe",
+    "coeur"
+   ],
+   "fichier": "sounds/amoureux.mp3",
+   "avec": "cupidon"
+  },
+  {
+   "id": "enfant_sauvage",
+   "nom": "L'Enfant Sauvage",
+   "emoji": "🌿",
+   "couleur": "#3a7d2c",
+   "camp": "village",
+   "quand": "nuit1",
+   "ordre": 25,
+   "desc": "Choisit un modèle ; s'il meurt, l'enfant devient loup.",
+   "lsc": "vert 60 %",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     40,
+     180,
+     30
+    ],
+    "couleur2": [
+     90,
+     140,
+     0
+    ],
+    "min": 25,
+    "max": 60
+   },
+   "sons": [
+    "oiseaux",
+    "vent"
+   ],
+   "fichier": "sounds/enfant_sauvage.mp3"
+  },
+  {
+   "id": "chien_loup",
+   "nom": "Le Chien-Loup",
+   "emoji": "🐕",
+   "couleur": "#a0522d",
+   "camp": "village",
+   "quand": "nuit1",
+   "ordre": 26,
+   "desc": "Choisit son camp : chien fidèle ou loup.",
+   "lsc": "orange 80 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     120,
+     30
+    ],
+    "couleur2": [
+     200,
+     0,
+     0
+    ],
+    "min": 20,
+    "max": 80,
+    "periode": 3
+   },
+   "sons": [
+    "coeur",
+    "peur"
+   ],
+   "fichier": "sounds/chien_loup.mp3"
+  },
+  {
+   "id": "soeurs",
+   "nom": "Les Deux Sœurs",
+   "emoji": "👭",
+   "couleur": "#e599f7",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 30,
+   "desc": "Se réveillent pour se reconnaître et se concerter.",
+   "lsc": "mauve 70 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     230,
+     150,
+     255
+    ],
+    "min": 30,
+    "max": 70,
+    "periode": 5
+   },
+   "sons": [
+    "choeur"
+   ],
+   "fichier": "sounds/soeurs.mp3"
+  },
+  {
+   "id": "freres",
+   "nom": "Les Trois Frères",
+   "emoji": "👬",
+   "couleur": "#4dabf7",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 31,
+   "desc": "Se réveillent pour se reconnaître et se concerter.",
+   "lsc": "bleu 70 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     80,
+     160,
+     255
+    ],
+    "min": 30,
+    "max": 70,
+    "periode": 5
+   },
+   "sons": [
+    "choeur"
+   ],
+   "fichier": "sounds/freres.mp3"
+  },
+  {
+   "id": "voyante",
+   "nom": "La Voyante",
+   "emoji": "🔮",
+   "couleur": "#7b2ff2",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 40,
+   "desc": "Découvre en secret le rôle d'un joueur.",
+   "lsc": "violet 80 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     130,
+     0,
+     255
+    ],
+    "couleur2": [
+     40,
+     0,
+     200
+    ],
+    "min": 30,
+    "max": 80,
+    "periode": 5
+   },
+   "sons": [
+    "mystique"
+   ],
+   "fichier": "sounds/voyante.mp3"
+  },
+  {
+   "id": "renard",
+   "nom": "Le Renard",
+   "emoji": "🦊",
+   "couleur": "#e8590c",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 41,
+   "desc": "Flaire un groupe de trois joueurs pour y sentir un loup.",
+   "lsc": "orange 70 %",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     255,
+     100,
+     0
+    ],
+    "min": 30,
+    "max": 70
+   },
+   "sons": [
+    "vent",
+    "mystique"
+   ],
+   "fichier": "sounds/renard.mp3"
+  },
+  {
+   "id": "salvateur",
+   "nom": "Le Salvateur",
+   "emoji": "🛡️",
+   "couleur": "#2aa7c9",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 45,
+   "desc": "Protège un joueur des loups pour la nuit.",
+   "lsc": "bleu ciel 70 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     80,
+     200,
+     255
+    ],
+    "min": 35,
+    "max": 70,
+    "periode": 6
+   },
+   "sons": [
+    "choeur"
+   ],
+   "fichier": "sounds/salvateur.mp3"
+  },
+  {
+   "id": "petite_fille",
+   "nom": "La Petite Fille",
+   "emoji": "👧",
+   "couleur": "#c2255c",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 51,
+   "desc": "Peut espionner les loups… à ses risques et périls.",
+   "lsc": "rouge 15 %",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     200,
+     0,
+     40
+    ],
+    "min": 5,
+    "max": 25
+   },
+   "sons": [
+    "coeur",
+    "peur"
+   ],
+   "fichier": "sounds/petite_fille.mp3"
+  },
+  {
+   "id": "infect",
+   "nom": "L'Infect Père des Loups",
+   "emoji": "☣️",
+   "couleur": "#5c940d",
+   "camp": "loups",
+   "quand": "nuit",
+   "ordre": 55,
+   "desc": "Peut transformer la victime des loups en loup-garou.",
+   "lsc": "vert acide 90 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     120,
+     255,
+     0
+    ],
+    "couleur2": [
+     200,
+     0,
+     0
+    ],
+    "min": 20,
+    "max": 90,
+    "periode": 1.8
+   },
+   "sons": [
+    "chaudron",
+    "loups"
+   ],
+   "fichier": "sounds/infect.mp3"
+  },
+  {
+   "id": "grand_mechant_loup",
+   "nom": "Le Grand Méchant Loup",
+   "emoji": "👹",
+   "couleur": "#7a0000",
+   "camp": "loups",
+   "quand": "nuit",
+   "ordre": 56,
+   "desc": "Dévore une victime de plus tant qu'aucun loup n'est mort.",
+   "lsc": "rouge 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     180,
+     0,
+     0
+    ],
+    "min": 5,
+    "max": 100,
+    "periode": 1.2
+   },
+   "sons": [
+    "meute",
+    "peur"
+   ],
+   "fichier": "sounds/grand_mechant_loup.mp3"
+  },
+  {
+   "id": "loup_blanc",
+   "nom": "Le Loup-Garou Blanc",
+   "emoji": "🤍",
+   "couleur": "#dee2e6",
+   "camp": "solitaire",
+   "quand": "nuit",
+   "ordre": 57,
+   "desc": "Une nuit sur deux, peut dévorer un autre loup.",
+   "lsc": "blanc 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     255,
+     255
+    ],
+    "couleur2": [
+     255,
+     0,
+     0
+    ],
+    "min": 20,
+    "max": 100,
+    "periode": 2.2
+   },
+   "sons": [
+    "loups",
+    "vent"
+   ],
+   "fichier": "sounds/loup_blanc.mp3"
+  },
+  {
+   "id": "sorciere",
+   "nom": "La Sorcière",
+   "emoji": "🧪",
+   "couleur": "#11a63a",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 60,
+   "desc": "Une potion pour sauver, une potion pour tuer.",
+   "lsc": "vert 75 %",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     20,
+     255,
+     40
+    ],
+    "couleur2": [
+     120,
+     0,
+     200
+    ],
+    "min": 25,
+    "max": 75
+   },
+   "sons": [
+    "chaudron",
+    "mystique"
+   ],
+   "fichier": "sounds/sorciere.mp3"
+  },
+  {
+   "id": "joueur_de_flute",
+   "nom": "Le Joueur de Flûte",
+   "emoji": "🪈",
+   "couleur": "#20c997",
+   "camp": "solitaire",
+   "quand": "nuit",
+   "ordre": 70,
+   "desc": "Ensorcelle deux joueurs chaque nuit.",
+   "lsc": "turquoise 80 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     0,
+     220,
+     180
+    ],
+    "couleur2": [
+     120,
+     0,
+     200
+    ],
+    "min": 25,
+    "max": 80,
+    "periode": 3
+   },
+   "sons": [
+    "flute",
+    "mystique"
+   ],
+   "fichier": "sounds/joueur_de_flute.mp3"
+  },
+  {
+   "id": "ensorceles",
+   "nom": "Les Ensorcelés se reconnaissent",
+   "emoji": "🌀",
+   "couleur": "#12b886",
+   "camp": "solitaire",
+   "quand": "nuit",
+   "ordre": 71,
+   "desc": "Les joueurs charmés ouvrent les yeux et se reconnaissent.",
+   "lsc": "turquoise 70 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     0,
+     200,
+     160
+    ],
+    "min": 20,
+    "max": 70,
+    "periode": 2
+   },
+   "sons": [
+    "flute"
+   ],
+   "fichier": "sounds/ensorceles.mp3",
+   "avec": "joueur_de_flute"
+  },
+  {
+   "id": "corbeau",
+   "nom": "Le Corbeau",
+   "emoji": "🐦‍⬛",
+   "couleur": "#343a40",
+   "camp": "village",
+   "quand": "nuit",
+   "ordre": 80,
+   "desc": "Désigne un joueur qui aura deux voix contre lui.",
+   "lsc": "violet très sombre 20 %",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     60,
+     0,
+     90
+    ],
+    "min": 5,
+    "max": 30
+   },
+   "sons": [
+    "corbeau",
+    "vent"
+   ],
+   "fichier": "sounds/corbeau.mp3"
+  },
+  {
+   "id": "montreur_ours",
+   "nom": "Le Montreur d'Ours",
+   "emoji": "🐻",
+   "couleur": "#8d5524",
+   "camp": "village",
+   "quand": "jour",
+   "ordre": 100,
+   "desc": "Au réveil, l'ours grogne si un loup est à côté de lui.",
+   "lsc": "brun 70 %",
+   "lumiere": {
+    "mode": "static",
+    "couleur": [
+     200,
+     110,
+     40
+    ],
+    "lum": 70,
+    "intro": [
+     {
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.3
+     },
+     {
+      "eteint": true,
+      "duree": 0.3
+     }
+    ]
+   },
+   "sons": [
+    "grognement"
+   ],
+   "fichier": "sounds/montreur_ours.mp3"
+  },
+  {
+   "id": "ancien",
+   "nom": "L'Ancien",
+   "emoji": "👴",
+   "couleur": "#c9a227",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 110,
+   "desc": "Survit à la première attaque des loups.",
+   "lsc": "blanc chaud 90 %",
+   "lumiere": {
+    "mode": "white",
+    "lum": 90,
+    "temp": 20,
+    "intro": [
+     {
+      "couleur": [
+       255,
+       200,
+       0
+      ],
+      "lum": 100,
+      "duree": 0.6
+     }
+    ]
+   },
+   "sons": [
+    "glas",
+    "choeur"
+   ],
+   "fichier": "sounds/ancien.mp3"
+  },
+  {
+   "id": "chasseur",
+   "nom": "Le Chasseur",
+   "emoji": "🏹",
+   "couleur": "#8a5a2b",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 111,
+   "desc": "En mourant, il emporte un joueur avec lui.",
+   "lsc": "orange 45 %",
+   "lumiere": {
+    "mode": "static",
+    "couleur": [
+     255,
+     90,
+     0
+    ],
+    "lum": 45,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.12
+     },
+     {
+      "eteint": true,
+      "duree": 0.8
+     }
+    ]
+   },
+   "sons": [
+    "coup_de_feu"
+   ],
+   "fichier": "sounds/chasseur.mp3"
+  },
+  {
+   "id": "chevalier",
+   "nom": "Le Chevalier à l'Épée Rouillée",
+   "emoji": "⚔️",
+   "couleur": "#868e96",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 112,
+   "desc": "Le loup qui le tue mourra de son épée.",
+   "lsc": "gris bleuté 60 %",
+   "lumiere": {
+    "mode": "static",
+    "couleur": [
+     120,
+     140,
+     160
+    ],
+    "lum": 60,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 0.5
+     }
+    ]
+   },
+   "sons": [
+    "coup_de_feu",
+    "glas"
+   ],
+   "fichier": "sounds/chevalier.mp3"
+  },
+  {
+   "id": "idiot",
+   "nom": "L'Idiot du Village",
+   "emoji": "🤪",
+   "couleur": "#fab005",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 113,
+   "desc": "Désigné au vote, il est gracié mais perd sa voix.",
+   "lsc": "jaune 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     210,
+     0
+    ],
+    "min": 40,
+    "max": 100,
+    "periode": 0.8
+   },
+   "sons": [
+    "foule",
+    "fanfare"
+   ],
+   "fichier": "sounds/idiot.mp3"
+  },
+  {
+   "id": "bouc_emissaire",
+   "nom": "Le Bouc Émissaire",
+   "emoji": "🐐",
+   "couleur": "#e67700",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 114,
+   "desc": "En cas d'égalité au vote, c'est lui qui est éliminé.",
+   "lsc": "orange 90 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     90,
+     0
+    ],
+    "min": 20,
+    "max": 90,
+    "periode": 1
+   },
+   "sons": [
+    "tambour"
+   ],
+   "fichier": "sounds/bouc_emissaire.mp3"
+  },
+  {
+   "id": "juge_begue",
+   "nom": "Le Juge Bègue",
+   "emoji": "🔨",
+   "couleur": "#5f3dc4",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 115,
+   "desc": "Peut déclencher un second vote dans la journée.",
+   "lsc": "violet 80 %",
+   "lumiere": {
+    "mode": "static",
+    "couleur": [
+     100,
+     60,
+     200
+    ],
+    "lum": 80,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.1
+     },
+     {
+      "eteint": true,
+      "duree": 0.2
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.1
+     },
+     {
+      "eteint": true,
+      "duree": 0.3
+     }
+    ]
+   },
+   "sons": [
+    "marteau",
+    "tambour"
+   ],
+   "fichier": "sounds/juge_begue.mp3"
+  },
+  {
+   "id": "servante",
+   "nom": "La Servante Dévouée",
+   "emoji": "🙇",
+   "couleur": "#f1f3f5",
+   "camp": "village",
+   "quand": "evenement",
+   "ordre": 116,
+   "desc": "Peut prendre le rôle du joueur éliminé au vote.",
+   "lsc": "blanc 70 %",
+   "lumiere": {
+    "mode": "white",
+    "lum": 70,
+    "temp": 60
+   },
+   "sons": [
+    "choeur"
+   ],
+   "fichier": "sounds/servante.mp3"
+  },
+  {
+   "id": "ange",
+   "nom": "L'Ange",
+   "emoji": "👼",
+   "couleur": "#ffe8cc",
+   "camp": "solitaire",
+   "quand": "evenement",
+   "ordre": 117,
+   "desc": "Gagne seul s'il est éliminé au premier tour.",
+   "lsc": "blanc doré 100 %",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     240,
+     200
+    ],
+    "min": 40,
+    "max": 100,
+    "periode": 3
+   },
+   "sons": [
+    "choeur",
+    "harpe"
+   ],
+   "fichier": "sounds/ange.mp3"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "accueil",
+   "lsc": "orange chaud 70 %",
+   "groupe": "Préparation",
+   "nom": "Accueil au village",
+   "emoji": "🏡",
+   "couleur": "#c96a1b",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     255,
+     110,
+     20
+    ],
+    "min": 35,
+    "max": 70
+   },
+   "sons": [
+    "medieval",
+    "feu"
+   ],
+   "fichier": "sounds/accueil.mp3"
+  },
+  {
+   "id": "nuit",
+   "lsc": "bleu nuit 15 %",
+   "groupe": "Nuit",
+   "nom": "La nuit tombe",
+   "emoji": "🌙",
+   "couleur": "#1d2f80",
+   "lumiere": {
+    "mode": "fade",
+    "duree": 6,
+    "etapes": [
+     {
+      "couleur": [
+       255,
+       120,
+       30
+      ],
+      "lum": 60
+     },
+     {
+      "couleur": [
+       120,
+       40,
+       160
+      ],
+      "lum": 35
+     },
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 15
+     }
+    ]
+   },
+   "sons": [
+    "vent",
+    "grillons",
+    "hibou"
+   ],
+   "fichier": "sounds/nuit.mp3"
+  },
+  {
+   "id": "jour",
+   "lsc": "blanc 100 %",
+   "groupe": "Jour",
+   "nom": "Le jour se lève",
+   "emoji": "🌅",
+   "couleur": "#f2a516",
+   "grand": true,
+   "lumiere": {
+    "mode": "fade",
+    "duree": 8,
+    "etapes": [
+     {
+      "couleur": [
+       10,
+       30,
+       160
+      ],
+      "lum": 10
+     },
+     {
+      "couleur": [
+       255,
+       60,
+       20
+      ],
+      "lum": 40
+     },
+     {
+      "couleur": [
+       255,
+       160,
+       50
+      ],
+      "lum": 75
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "temp": 40
+     }
+    ]
+   },
+   "sons": [
+    "coq",
+    "oiseaux"
+   ],
+   "fichier": "sounds/jour.mp3"
+  },
+  {
+   "id": "victime",
+   "lsc": "rouge sombre 35 %",
+   "groupe": "Jour",
+   "nom": "La victime est découverte",
+   "emoji": "💀",
+   "couleur": "#5a0a0a",
+   "lumiere": {
+    "mode": "static",
+    "couleur": [
+     200,
+     0,
+     0
+    ],
+    "lum": 35,
+    "intro": [
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 0.15
+     },
+     {
+      "blanc": true,
+      "lum": 100,
+      "duree": 0.15
+     },
+     {
+      "eteint": true,
+      "duree": 1.2
+     }
+    ]
+   },
+   "sons": [
+    "cri",
+    "glas"
+   ],
+   "fichier": "sounds/victime.mp3"
+  },
+  {
+   "id": "debat",
+   "lsc": "blanc chaud 85 %",
+   "groupe": "Jour",
+   "nom": "Le débat",
+   "emoji": "🗣️",
+   "couleur": "#b8892d",
+   "lumiere": {
+    "mode": "white",
+    "lum": 85,
+    "temp": 30
+   },
+   "sons": [
+    "foule"
+   ],
+   "fichier": "sounds/debat.mp3"
+  },
+  {
+   "id": "vote",
+   "lsc": "orange 100 %",
+   "groupe": "Jour",
+   "nom": "Le vote",
+   "emoji": "⚖️",
+   "couleur": "#d97706",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     255,
+     120,
+     0
+    ],
+    "min": 20,
+    "max": 100,
+    "periode": 0.9
+   },
+   "sons": [
+    "tambour",
+    "coeur"
+   ],
+   "fichier": "sounds/vote.mp3"
+  },
+  {
+   "id": "bucher",
+   "lsc": "orange-rouge 100 %",
+   "groupe": "Jour",
+   "nom": "Le bûcher",
+   "emoji": "🔥",
+   "couleur": "#e04b0f",
+   "lumiere": {
+    "mode": "flicker",
+    "couleur": [
+     255,
+     70,
+     0
+    ],
+    "couleur2": [
+     255,
+     20,
+     0
+    ],
+    "min": 30,
+    "max": 100
+   },
+   "sons": [
+    "feu",
+    "glas",
+    "foule"
+   ],
+   "fichier": "sounds/bucher.mp3"
+  },
+  {
+   "id": "orage",
+   "lsc": "bleu très sombre 12 %",
+   "groupe": "Ambiances",
+   "nom": "Orage",
+   "emoji": "⛈️",
+   "couleur": "#38457a",
+   "lumiere": {
+    "mode": "lightning",
+    "couleur": [
+     0,
+     20,
+     90
+    ],
+    "lum": 12
+   },
+   "sons": [
+    "pluie",
+    "vent",
+    "tonnerre"
+   ],
+   "fichier": "sounds/orage.mp3"
+  },
+  {
+   "id": "suspense",
+   "lsc": "violet 30 %",
+   "groupe": "Ambiances",
+   "nom": "Suspense",
+   "emoji": "😨",
+   "couleur": "#4a1d5c",
+   "lumiere": {
+    "mode": "pulse",
+    "couleur": [
+     90,
+     0,
+     140
+    ],
+    "min": 5,
+    "max": 30,
+    "periode": 3
+   },
+   "sons": [
+    "peur",
+    "coeur"
+   ],
+   "fichier": "sounds/suspense.mp3"
+  },
+  {
+   "id": "victoire_village",
+   "lsc": "mode dynamique coloré",
+   "groupe": "Fin de partie",
+   "nom": "Victoire du village",
+   "emoji": "🏆",
+   "couleur": "#1f9d55",
+   "lumiere": {
+    "mode": "cycle",
+    "couleurs": [
+     [
+      255,
+      190,
+      0
+     ],
+     [
+      0,
+      255,
+      80
+     ],
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      0,
+      140,
+      255
+     ]
+    ],
+    "lum": 100,
+    "periode": 0.8
+   },
+   "sons": [
+    "fanfare",
+    "oiseaux"
+   ],
+   "fichier": "sounds/victoire_village.mp3"
+  },
+  {
+   "id": "victoire_loups",
+   "lsc": "mode dynamique rouge clignotant",
+   "groupe": "Fin de partie",
+   "nom": "Victoire des loups",
+   "emoji": "🩸",
+   "couleur": "#7a0000",
+   "lumiere": {
+    "mode": "cycle",
+    "couleurs": [
+     [
+      255,
+      0,
+      0
+     ],
+     "eteint",
+     [
+      180,
+      0,
+      0
+     ],
+     "eteint"
+    ],
+    "lum": 100,
+    "periode": 0.35
+   },
+   "sons": [
+    "meute",
+    "peur",
+    "cri"
+   ],
+   "fichier": "sounds/victoire_loups.mp3"
+  },
+  {
+   "id": "victoire_amoureux",
+   "lsc": "rose 100 %",
+   "groupe": "Fin de partie",
+   "nom": "Victoire des amoureux",
+   "emoji": "💞",
+   "couleur": "#d6336c",
+   "roles": [
+    "cupidon"
+   ],
+   "lumiere": {
+    "mode": "cycle",
+    "couleurs": [
+     [
+      255,
+      30,
+      130
+     ],
+     [
+      255,
+      120,
+      180
+     ],
+     [
+      200,
+      0,
+      90
+     ]
+    ],
+    "lum": 100,
+    "periode": 0.9
+   },
+   "sons": [
+    "harpe",
+    "fanfare"
+   ],
+   "fichier": "sounds/victoire_amoureux.mp3"
+  },
+  {
+   "id": "victoire_solitaire",
+   "lsc": "blanc 100 %",
+   "groupe": "Fin de partie",
+   "nom": "Victoire d'un solitaire",
+   "emoji": "🎭",
+   "couleur": "#e9ecef",
+   "roles": [
+    "loup_blanc",
+    "joueur_de_flute",
+    "ange"
+   ],
+   "lumiere": {
+    "mode": "cycle",
+    "couleurs": [
+     [
+      255,
+      255,
+      255
+     ],
+     "eteint"
+    ],
+    "lum": 100,
+    "periode": 0.5
+   },
+   "sons": [
+    "cri",
+    "peur"
+   ],
+   "fichier": "sounds/victoire_solitaire.mp3"
+  },
+  {
+   "id": "lumiere",
+   "lsc": "blanc 100 %",
+   "groupe": "Contrôle",
+   "nom": "Lumière normale",
+   "emoji": "💡",
+   "couleur": "#6b7280",
+   "lumiere": {
+    "mode": "white",
+    "lum": 100,
+    "temp": 50
+   },
+   "sons": []
+  },
+  {
+   "id": "stop",
+   "lsc": "éteint",
+   "groupe": "Contrôle",
+   "nom": "Tout éteindre",
+   "emoji": "⏹️",
+   "couleur": "#111827",
+   "lumiere": {
+    "mode": "off"
+   },
+   "sons": []
+  }
+ ]
 }
