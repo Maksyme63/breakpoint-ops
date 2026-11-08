@@ -95,8 +95,11 @@ def main():
                     if e.code == 429 and essai < 2:
                         time.sleep(15)
                         continue
+                    if "quota" in detail.lower() or "credits" in detail.lower():
+                        sys.exit(f"Plus assez de crédits ElevenLabs ({total} répliques faites cette fois-ci). "
+                                 "Les répliques manquantes seront lues avec la voix du Mac. Détail : " + detail)
                     if e.code == 401:
-                        sys.exit("Clé refusée : vérifie la clé API copiée depuis ElevenLabs.")
+                        sys.exit("Clé refusée par ElevenLabs. Détail : " + detail)
                     sys.exit(f"Erreur ElevenLabs ({e.code}) : {detail}")
                 except (urllib.error.URLError, OSError) as e:
                     # coupure réseau passagère : on patiente et on réessaie
