@@ -386,6 +386,9 @@ class Pilote(threading.Thread):
         self.programme = None
         self.actuel = None  # dernière couleur envoyée, pour les transitions douces
         self.position = position_de(ampoule.nom)
+        # rang dans le tour de la table (sens des aiguilles d'une montre) pour les chenillards
+        self.rang = LAMPES.index(self.position) if self.position in LAMPES else \
+            (len(LAMPES) if self.position == "cuisine" else index)
         self.changement = threading.Event()
 
     def jouer(self, programme):
@@ -595,7 +598,7 @@ class Pilote(threading.Thread):
             bas, haut = spec.get("min", 10), spec.get("max", 100)
             periode = float(spec.get("periode", 2))
             while True:
-                decalage = float(spec.get("decalage", 0)) * self.index  # vague d'une lampe à l'autre
+                decalage = float(spec.get("decalage", 0)) * self.rang  # vague d'une lampe à l'autre
                 phase = (((time.time() - prog.depart) / periode) + decalage) % 1.0
                 onde = (1 - math.cos(2 * math.pi * phase)) / 2  # 0 -> 1 -> 0
                 coul = [round(c2[k] + (c1[k] - c2[k]) * onde) for k in range(3)]
@@ -623,7 +626,7 @@ class Pilote(threading.Thread):
             lum = spec.get("lum", 100)
             n = -1
             while True:
-                i = (int((time.time() - prog.depart) / periode) + int(spec.get("decalage", 0)) * self.index) % len(couleurs)
+                i = (int((time.time() - prog.depart) / periode) + int(spec.get("decalage", 0)) * self.rang) % len(couleurs)
                 if i != n:
                     n = i
                     c = couleurs[i]
