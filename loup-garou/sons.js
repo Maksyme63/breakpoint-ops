@@ -901,6 +901,10 @@
       if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, vol, nom === "loups" ? config.surHurlement : null);
     }
     const synthe = SONS[nom] || SONS[REMPLACANT[nom]];
+    if (synthe && volumes && volumes[nom] !== undefined) {  // volume propre à la scène
+      const g = ctx.createGain(); g.gain.value = volumes[nom]; g.connect(sortie);
+      return synthe(g);
+    }
     return synthe ? synthe(sortie) : null;
   }
 

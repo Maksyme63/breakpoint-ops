@@ -627,6 +627,41 @@ class Pilote(threading.Thread):
                 if self.attendre(hasard.uniform(0.45, 0.9)):
                     return
 
+        if mode == "tour":
+            # une lueur passe d'une lampe à l'autre dans le sens des aiguilles d'une montre
+            base = {"couleur": spec["couleur"], "lum": spec.get("lum", 30)}
+            eclat = spec.get("eclat", {"couleur": [255, 200, 80], "lum": 100})
+            pas, duree = float(spec.get("pas", 1.2)), float(spec.get("duree_eclat", 1.0))
+            cycle = pas * len(LAMPES)
+            self.appliquer(base)
+            if self.position not in LAMPES:
+                while not self.attendre(3600):
+                    pass
+                return
+            k = int((time.time() - prog.depart) / cycle)
+            while True:
+                debut_eclat = prog.depart + k * cycle + self.rang * pas
+                if self.attendre(debut_eclat - time.time()):
+                    return
+                self.appliquer(eclat)
+                if self.attendre(duree):
+                    return
+                self.appliquer(base)
+                k = max(k + 1, int((time.time() - prog.depart) / cycle))
+
+        if mode == "fondu_natif":
+            # vrai fondu sans à-coups, joué par l'ampoule (repli : fondu par étapes)
+            etapes = spec["etapes"]
+            unites = [((e.get("couleur") or [255, 220, 170]), self.lum(e.get("lum", 100))) for e in etapes]
+            unites += [unites[-1]] * max(0, 8 - len(unites))  # la fin tient longtemps
+            if self.ampoule.scene_native(unites[:8], int(spec.get("vitesse", 0x14))):
+                self.actuel = None
+                if self.attendre(float(spec.get("duree", 12))):
+                    return
+                self.appliquer(etapes[-1])
+                return
+            return self.executer(Programme(dict(spec, mode="fade"), time.time(), prog.graine))
+
         if mode == "battement":
             # battement de cœur : flashs très courts sur une lumière sombre, synchronisés entre les lampes
             c = spec["couleur"]
@@ -746,9 +781,10 @@ def pic():
     if not reactif or time.time() - ETAT.get("dernier_pic", 0) < float(reactif.get("ecart", 1.0)):
         return
     ETAT["dernier_pic"] = time.time()
-    motif = [dict(reactif.get("eclat", {"couleur": [120, 255, 120], "lum": 100}), duree=0.25)]
     for p in PILOTES:
         if p.position in reactif.get("lampes", []):
+            eclat = (reactif.get("eclats") or {}).get(p.position) or reactif.get("eclat", {"couleur": [120, 255, 120], "lum": 100})
+            motif = [dict(eclat, duree=0.25)]
             p.jouer(Programme({"mode": "eclair", "motif": motif, "retour": spec, "proba": 1.0},
                               time.time(), random.randrange(1 << 30)))
 

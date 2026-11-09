@@ -47,6 +47,9 @@
    "voix": {
     "reveil": "Les loups-garous se réveillent… Ils se reconnaissent, et choisissent en silence leur victime de la nuit.",
     "dodo": "Les loups-garous ont fait leur choix. Ils se rendorment, repus."
+   },
+   "volumes": {
+    "coeur": 2.0
    }
   },
   {
@@ -1329,6 +1332,9 @@
    "voix": {
     "reveil": "Le meneur touche l'épaule des amoureux. Amoureux, ouvrez les yeux et découvrez-vous… Si l'un meurt, l'autre mourra de chagrin.",
     "dodo": "Les amoureux referment les yeux."
+   },
+   "volumes": {
+    "coeur": 2.0
    }
   },
   {
@@ -1794,9 +1800,9 @@
      "canape_g": {
       "mode": "static",
       "couleur": [
-       20,
-       200,
-       40
+       160,
+       0,
+       255
       ],
       "lum": 45
      },
@@ -1859,7 +1865,25 @@
       ],
       "lum": 100
      },
-     "ecart": 1.0
+     "ecart": 1.0,
+     "eclats": {
+      "canape_g": {
+       "couleur": [
+        210,
+        130,
+        255
+       ],
+       "lum": 100
+      },
+      "tv_g": {
+       "couleur": [
+        140,
+        255,
+        120
+       ],
+       "lum": 100
+      }
+     }
     }
    },
    "sons": [
@@ -1883,25 +1907,43 @@
    "desc": "Ensorcelle deux joueurs chaque nuit.",
    "lsc": "turquoise 80 %",
    "lumiere": {
-    "mode": "ambiance",
+    "mode": "tour",
     "couleur": [
+     60,
      0,
-     220,
-     180
+     120
     ],
-    "lum": 75,
-    "couleurs": [
-     [
+    "lum": 15,
+    "eclat": {
+     "couleur": [
       0,
-      220,
-      180
-     ],
-     [
-      120,
-      0,
+      230,
       200
-     ]
-    ]
+     ],
+     "lum": 100
+    },
+    "pas": 0.3,
+    "duree_eclat": 0.35,
+    "par_position": {
+     "cuisine": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        0,
+        220,
+        180
+       ],
+       [
+        120,
+        0,
+        200
+       ]
+      ],
+      "lum": 100,
+      "role": "glisse",
+      "derive": 3
+     }
+    }
    },
    "sons": [
     "flute",
@@ -2321,29 +2363,43 @@
    "emoji": "🏡",
    "couleur": "#c96a1b",
    "lumiere": {
-    "mode": "feu",
-    "couleurs": [
-     [
-      255,
-      110,
-      20
-     ],
-     [
-      255,
-      80,
-      0
-     ],
-     [
-      255,
-      140,
-      40
-     ]
+    "mode": "tour",
+    "couleur": [
+     255,
+     130,
+     40
     ],
-    "min": 30,
-    "max": 100,
-    "natif": true,
-    "vitesse": 100,
-    "saut": true
+    "lum": 28,
+    "eclat": {
+     "couleur": [
+      255,
+      200,
+      90
+     ],
+     "lum": 100
+    },
+    "pas": 1.3,
+    "duree_eclat": 1.1,
+    "par_position": {
+     "cuisine": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        255,
+        140,
+        0
+       ],
+       [
+        90,
+        0,
+        170
+       ]
+      ],
+      "lum": 100,
+      "role": "glisse",
+      "derive": 5
+     }
+    }
    },
    "sons": [
     "medieval",
@@ -2399,7 +2455,7 @@
      }
     ],
     "par_position": {
-     "tv_g": {
+     "cuisine": {
       "mode": "fade",
       "duree": 6,
       "etapes": [
@@ -2440,59 +2496,6 @@
        "lum": 40,
        "role": "respire",
        "respiration": 8
-      }
-     },
-     "cuisine": {
-      "mode": "fade",
-      "duree": 6,
-      "etapes": [
-       {
-        "couleur": [
-         255,
-         120,
-         30
-        ],
-        "lum": 60
-       },
-       {
-        "couleur": [
-         120,
-         40,
-         160
-        ],
-        "lum": 35
-       },
-       {
-        "couleur": [
-         20,
-         20,
-         120
-        ],
-        "lum": 18
-       }
-      ],
-      "puis": {
-       "mode": "ambiance",
-       "couleurs": [
-        [
-         20,
-         20,
-         120
-        ],
-        [
-         60,
-         0,
-         120
-        ],
-        [
-         0,
-         40,
-         140
-        ]
-       ],
-       "lum": 18,
-       "role": "glisse",
-       "derive": 7
       }
      }
     }
@@ -2788,7 +2791,47 @@
     "par_position": {
      "cuisine": {
       "mode": "fade",
-      "duree": 6,
+      "duree": 8,
+      "etapes": [
+       {
+        "couleur": [
+         180,
+         20,
+         0
+        ],
+        "lum": 100
+       },
+       {
+        "couleur": [
+         255,
+         90,
+         0
+        ],
+        "lum": 100
+       },
+       {
+        "couleur": [
+         255,
+         170,
+         40
+        ],
+        "lum": 100
+       },
+       {
+        "couleur": [
+         255,
+         230,
+         150
+        ],
+        "lum": 100
+       }
+      ]
+     },
+     "canape_g": {
+      "mode": "fondu_natif",
+      "delai": 0.0,
+      "vitesse": 20,
+      "duree": 14,
       "etapes": [
        {
         "couleur": [
@@ -2796,34 +2839,39 @@
          30,
          160
         ],
-        "lum": 10
+        "lum": 8
        },
        {
         "couleur": [
          255,
-         60,
-         20
+         90,
+         30
         ],
-        "lum": 40
+        "lum": 35
        },
        {
         "couleur": [
          255,
-         160,
-         50
+         170,
+         80
         ],
-        "lum": 75
+        "lum": 70
        },
        {
-        "blanc": true,
-        "lum": 100,
-        "temp": 40
+        "couleur": [
+         255,
+         220,
+         170
+        ],
+        "lum": 100
        }
       ]
      },
      "tv_g": {
-      "mode": "fade",
-      "duree": 6,
+      "mode": "fondu_natif",
+      "delai": 1.0,
+      "vitesse": 20,
+      "duree": 14,
       "etapes": [
        {
         "couleur": [
@@ -2831,35 +2879,39 @@
          30,
          160
         ],
-        "lum": 10
+        "lum": 8
        },
        {
         "couleur": [
          255,
-         60,
-         20
+         90,
+         30
         ],
-        "lum": 40
+        "lum": 35
        },
        {
         "couleur": [
          255,
-         160,
-         50
+         170,
+         80
         ],
-        "lum": 75
+        "lum": 70
        },
        {
-        "blanc": true,
-        "lum": 100,
-        "temp": 40
+        "couleur": [
+         255,
+         220,
+         170
+        ],
+        "lum": 100
        }
-      ],
-      "delai": 2.5
+      ]
      },
      "tv_d": {
-      "mode": "fade",
-      "duree": 6,
+      "mode": "fondu_natif",
+      "delai": 2.0,
+      "vitesse": 20,
+      "duree": 14,
       "etapes": [
        {
         "couleur": [
@@ -2867,71 +2919,39 @@
          30,
          160
         ],
-        "lum": 10
+        "lum": 8
        },
        {
         "couleur": [
          255,
-         60,
-         20
+         90,
+         30
         ],
-        "lum": 40
+        "lum": 35
        },
        {
         "couleur": [
          255,
-         160,
-         50
+         170,
+         80
         ],
-        "lum": 75
+        "lum": 70
        },
        {
-        "blanc": true,
-        "lum": 100,
-        "temp": 40
+        "couleur": [
+         255,
+         220,
+         170
+        ],
+        "lum": 100
        }
-      ],
-      "delai": 2.5
-     },
-     "canape_g": {
-      "mode": "fade",
-      "duree": 6,
-      "etapes": [
-       {
-        "couleur": [
-         10,
-         30,
-         160
-        ],
-        "lum": 10
-       },
-       {
-        "couleur": [
-         255,
-         60,
-         20
-        ],
-        "lum": 40
-       },
-       {
-        "couleur": [
-         255,
-         160,
-         50
-        ],
-        "lum": 75
-       },
-       {
-        "blanc": true,
-        "lum": 100,
-        "temp": 40
-       }
-      ],
-      "delai": 5
+      ]
      },
      "canape_d": {
-      "mode": "fade",
-      "duree": 6,
+      "mode": "fondu_natif",
+      "delai": 3.0,
+      "vitesse": 20,
+      "duree": 14,
       "etapes": [
        {
         "couleur": [
@@ -2939,31 +2959,33 @@
          30,
          160
         ],
-        "lum": 10
+        "lum": 8
        },
        {
         "couleur": [
          255,
-         60,
-         20
+         90,
+         30
         ],
-        "lum": 40
+        "lum": 35
        },
        {
         "couleur": [
          255,
-         160,
-         50
+         170,
+         80
         ],
-        "lum": 75
+        "lum": 70
        },
        {
-        "blanc": true,
-        "lum": 100,
-        "temp": 40
+        "couleur": [
+         255,
+         220,
+         170
+        ],
+        "lum": 100
        }
-      ],
-      "delai": 5
+      ]
      }
     }
    },
