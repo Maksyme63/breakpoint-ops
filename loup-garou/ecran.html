@@ -6,7 +6,9 @@
 <title>Écran Loup-Garou</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
-  canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
+  canvas, video { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
+  video { object-fit: cover; background: #000; opacity: 0; transition: opacity 0.8s ease; }
+  video.visible { opacity: 1; }
   #titre { position: fixed; left: 0; right: 0; top: 38%; text-align: center; color: #f6eedd;
     font-family: Georgia, "Times New Roman", serif; font-size: 7vw; letter-spacing: 0.04em;
     text-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 60px var(--lueur, #900);
@@ -18,6 +20,7 @@
 </style>
 </head>
 <body>
+<video id="v" muted loop playsinline preload="auto"></video>
 <canvas id="c"></canvas>
 <div id="titre"></div>
 <div id="aide">🐺 En attente du pad… appuie sur un bouton.<br><small>Clique ici avec la télécommande pour passer en plein écran.</small></div>
@@ -26,7 +29,7 @@
    Code volontairement simple (navigateur des TV un peu ancien). Tous les dessins sont générés ici. */
 var cv = document.getElementById("c"), cx = cv.getContext("2d");
 var L = 0, H = 0;
-function taille() { L = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+function taille() { L = cv.width = Math.round(window.innerWidth / 2); H = cv.height = Math.round(window.innerHeight / 2); }
 window.addEventListener("resize", taille); taille();
 
 var scenes = {}, scene = null, theme = "defaut", debutScene = 0, evt = {}, premier = true;
@@ -68,10 +71,29 @@ function sonder() {
     evt = n; premier = false;
   });
 }
-setInterval(sonder, 300);
+setInterval(sonder, 200);
+var videos = [], video = document.getElementById("v"), modeVideo = false;
+charger("api/videos", function (l) { videos = l || []; });
+function videoPour(s, th) {
+  var noms = [s.id, th], ext = ["mp4", "webm", "mov", "m4v"];
+  for (var i = 0; i < noms.length; i++) for (var j = 0; j < ext.length; j++) {
+    var u = "videos/" + noms[i] + "." + ext[j]; if (videos.indexOf(u) >= 0) return u;
+  }
+  return null;
+}
 
 function nouvelleScene(s) {
   scene = s; theme = THEMES[s.id] || (s.id === "lumiere" ? "defaut" : "defaut");
+  // vraie vidéo en boucle si elle existe (fluide et cinématographique), sinon animation dessinée
+  var url = theme === "noir" ? null : videoPour(s, theme);
+  if (url) {
+    if (video.getAttribute("src") !== url) { video.src = url; }
+    try { video.currentTime = 0; } catch (e) {}
+    var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
+    video.className = "visible"; modeVideo = true;
+  } else {
+    video.className = ""; modeVideo = false; try { video.pause(); } catch (e) {}
+  }
   debutScene = Date.now(); particules = []; yeux = []; bulles = []; griffes = []; aiguille = 0; flash = 0;
   document.getElementById("aide").style.display = "none";
   var t = document.getElementById("titre");
@@ -134,6 +156,14 @@ function ciel(montee) {
 
 function dessiner() {
   var t = (Date.now() - debutScene) / 1000, s = scene, c = hex2rgb(s && s.couleur);
+  if (modeVideo) {
+    cx.clearRect(0, 0, L, H);
+    dessinerYeux();
+    if (theme === "attaque" && t > 3 && t < 15 && Math.random() < 0.05) flash = 0.7;
+    if (flash > 0) { cx.fillStyle = "rgba(255,255,255," + flash + ")"; cx.fillRect(0, 0, L, H); flash = Math.max(0, flash - 0.08); }
+    requestAnimationFrame(dessiner);
+    return;
+  }
   switch (theme) {
     case "noir": fond("#000", "#000"); break;
     case "nuit": fond("#02030f", "#0b1640"); ciel(Math.min(1, t / 8)); foret([20, 40, 160]); break;

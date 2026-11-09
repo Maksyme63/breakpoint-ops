@@ -11,3 +11,4 @@ sounds/*.m4a
 __pycache__/
 sounds/lib/
 sounds/voix/
+videos/

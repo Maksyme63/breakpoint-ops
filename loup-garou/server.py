@@ -41,6 +41,7 @@ FICHIERS_AUTORISES = {
 }
 TYPES_AUDIO = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".flac": "audio/flac"}
+TYPES_VIDEO = {".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".m4v": "video/mp4"}
 
 
 def charger_json(nom, defaut=None):
@@ -979,6 +980,11 @@ class Handler(BaseHTTPRequestHandler):
                         rel = os.path.relpath(os.path.join(racine, f), ICI).replace(os.sep, "/")
                         noms.append(rel)
             return self.envoyer(200, sorted(noms))
+        if chemin == "/api/videos":  # vidéos de l'écran présentes dans videos/
+            dossier = os.path.join(ICI, "videos")
+            noms = sorted("videos/" + f for f in os.listdir(dossier)
+                          if os.path.splitext(f)[1].lower() in TYPES_VIDEO) if os.path.isdir(dossier) else []
+            return self.envoyer(200, noms)
         if chemin in FICHIERS_AUTORISES:
             nom, type_ = FICHIERS_AUTORISES[chemin]
             with open(os.path.join(ICI, nom), "rb") as f:
@@ -990,6 +996,13 @@ class Handler(BaseHTTPRequestHandler):
             ext = os.path.splitext(fichier)[1].lower()
             if fichier.startswith(dossier + os.sep) and ext in TYPES_AUDIO and os.path.isfile(fichier):
                 return self.envoyer_fichier(fichier, TYPES_AUDIO[ext])
+        if chemin.startswith("/videos/"):
+            from urllib.parse import unquote
+            dossier = os.path.realpath(os.path.join(ICI, "videos"))
+            fichier = os.path.realpath(os.path.join(ICI, unquote(chemin).lstrip("/")))
+            ext = os.path.splitext(fichier)[1].lower()
+            if fichier.startswith(dossier + os.sep) and ext in TYPES_VIDEO and os.path.isfile(fichier):
+                return self.envoyer_fichier(fichier, TYPES_VIDEO[ext])
         self.envoyer(404, {"erreur": "introuvable"})
 
     def do_POST(self):
