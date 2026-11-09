@@ -1018,9 +1018,13 @@
       // et suit le curseur Musique & ambiances.
       const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = 1;
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
-      try { niveleur(ctx.createMediaElementSource(a), sortie); a.route = true; }
+      // volume propre au fichier de la scène (ex. musique d'accueil plus basse que le feu)
+      const vf = ctx.createGain(); vf.gain.value = scene.volume_fichier ?? 1; vf.connect(sortie);
+      try { niveleur(ctx.createMediaElementSource(a), vf); a.route = true; }
       catch (e) { a.volume = Math.min(1, maitre.gain.value * niveaux.ambiance); }
       audioFichier = a; a.play().catch(() => {});
+      // sons joués en même temps que le fichier (ex. crépitement du feu)
+      (scene.sons_avec_fichier || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
     } else {
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
