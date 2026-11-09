@@ -802,7 +802,7 @@
    "couleur": "#c2255c",
    "camp": "village",
    "quand": "nuit",
-   "ordre": 51,
+   "ordre": 49.5,
    "desc": "Peut espionner les loups… à ses risques et périls.",
    "lsc": "rouge 15 %",
    "lumiere": {
