@@ -20,7 +20,7 @@
 <body>
 <canvas id="c"></canvas>
 <div id="titre"></div>
-<div id="aide">🐺 En attente du pad… appuie sur un bouton.</div>
+<div id="aide">🐺 En attente du pad… appuie sur un bouton.<br><small>Clique ici avec la télécommande pour passer en plein écran.</small></div>
 <script>
 /* Écran de la TV : suit le pad en direct (scène, hurlements, tics, glouglous, éclairs).
    Code volontairement simple (navigateur des TV un peu ancien). Tous les dessins sont générés ici. */
@@ -237,12 +237,22 @@ function dessiner() {
       while (particules.length < 45) particules.push({ x: rnd(0, L), y: rnd(-H, 0), v: rnd(0.6, 1.6), r: rnd(8, 16), o: rnd(0, 6.28) });
       particules.forEach(function (p) { p.y += p.v; p.x += Math.sin(Date.now() / 600 + p.o); if (p.y > H) { p.y = -20; p.x = rnd(0, L); }
         cx.fillStyle = "rgba(60,170,40,0.8)"; cx.beginPath(); cx.ellipse(p.x, p.y, p.r, p.r * 0.45, p.o + Date.now() / 1500, 0, 6.28); cx.fill(); }); break;
-    default: fond("#000", couleur(c, 0.25)); halo(L / 2, H / 2, H * 0.8, c, 0.25); particulesMontantes(c, 50, 1, 2.5);
+    default: if (!s) { fond("#000", "#000"); break; }
+      fond("#000", couleur(c, 0.25)); halo(L / 2, H / 2, H * 0.8, c, 0.25); particulesMontantes(c, 50, 1, 2.5);
   }
   if (flash > 0 && theme !== "horloge") { cx.fillStyle = "rgba(255,255,255," + flash + ")"; cx.fillRect(0, 0, L, H); flash = Math.max(0, flash - 0.08); }
   requestAnimationFrame(dessiner);
 }
 requestAnimationFrame(dessiner);
+
+/* Plein écran : un clic (ou la touche OK de la télécommande) sur la page */
+function pleinEcran() {
+  var d = document.documentElement;
+  var f = d.requestFullscreen || d.webkitRequestFullscreen || d.webkitRequestFullScreen || d.mozRequestFullScreen || d.msRequestFullscreen;
+  if (f) { try { f.call(d); } catch (e) {} }
+}
+document.addEventListener("click", pleinEcran);
+document.addEventListener("keydown", function (e) { if (e.keyCode === 13) pleinEcran(); });
 </script>
 </body>
 </html>
