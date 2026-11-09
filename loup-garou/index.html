@@ -285,6 +285,7 @@
     } catch (e) {}
     Sons.configurer({ surEclair: () => api("api/eclair", {}).catch(() => {}) });
     Sons.configurer({ surHurlement: () => api("api/oeil", {}).catch(() => {}) });
+    Sons.configurer({ surPic: () => api("api/pic", {}).catch(() => {}) });
   } else {
     await Promise.all(toutes.filter((s) => s.fichier).map(async (s) => {
       try { const r = await fetch(s.fichier, { method: "HEAD", cache: "no-store" }); fichiers[s.id] = r.ok; }

@@ -21,33 +21,22 @@
    "desc": "Se réveillent ensemble et choisissent une victime.",
    "lsc": "rouge 100 %",
    "lumiere": {
-    "mode": "static",
+    "mode": "battement",
     "couleur": [
-     40,
+     255,
      0,
      0
     ],
-    "lum": 6,
+    "lum_base": 6,
+    "lum_flash": 100,
+    "periode": 1.3,
     "yeux": true,
     "intro": [
      {
       "eteint": true,
       "duree": 0.6
      }
-    ],
-    "par_position": {
-     "cuisine": {
-      "mode": "battement",
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum_base": 4,
-      "lum_flash": 45,
-      "periode": 1.5
-     }
-    }
+    ]
    },
    "sons": [
     "loups",
@@ -110,7 +99,7 @@
          0
         ],
         "lum": 8,
-        "duree": 3.3,
+        "duree": 3.0,
         "vite": true
        },
        {
@@ -120,14 +109,14 @@
          0
         ],
         "lum": 100,
-        "duree": 1.4,
+        "duree": 0.9,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 1.5,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -137,14 +126,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.7,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -154,14 +143,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -171,14 +160,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -188,14 +177,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -205,6 +194,47 @@
          0
         ],
         "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
         "duree": 0.4,
         "vite": true
        },
@@ -216,6 +246,43 @@
         ],
         "lum": 8,
         "duree": 0.5,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
         "vite": true
        },
        {
@@ -263,7 +330,7 @@
          0
         ],
         "lum": 8,
-        "duree": 3.65,
+        "duree": 3.18,
         "vite": true
        },
        {
@@ -273,14 +340,14 @@
          0
         ],
         "lum": 100,
-        "duree": 1.4,
+        "duree": 0.9,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 1.3,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -290,14 +357,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.63,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -307,14 +374,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -324,14 +391,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -341,14 +408,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -358,7 +425,41 @@
          0
         ],
         "lum": 100,
-        "duree": 0.3,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.74,
         "vite": true
        },
        {
@@ -368,7 +469,44 @@
          0
         ],
         "lum": 8,
-        "duree": 1.0,
+        "duree": 0.72,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
         "vite": true
        },
        {
@@ -413,7 +551,7 @@
          0
         ],
         "lum": 8,
-        "duree": 4.0,
+        "duree": 3.36,
         "vite": true
        },
        {
@@ -423,14 +561,14 @@
          0
         ],
         "lum": 100,
-        "duree": 1.4,
+        "duree": 0.9,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 1.1,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -440,14 +578,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.56,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -457,14 +595,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -474,14 +612,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -491,14 +629,58 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.7,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.63,
         "vite": true
        },
        {
@@ -508,7 +690,44 @@
          0
         ],
         "lum": 8,
-        "duree": 1.6,
+        "duree": 0.94,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
         "vite": true
        },
        {
@@ -556,7 +775,7 @@
          0
         ],
         "lum": 8,
-        "duree": 4.35,
+        "duree": 3.54,
         "vite": true
        },
        {
@@ -566,7 +785,7 @@
          0
         ],
         "lum": 100,
-        "duree": 1.4,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -583,14 +802,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.49,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -600,14 +819,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -617,14 +836,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -634,14 +853,58 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.55,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.52,
         "vite": true
        },
        {
@@ -651,7 +914,44 @@
          0
         ],
         "lum": 8,
-        "duree": 2.15,
+        "duree": 1.16,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
         "vite": true
        },
        {
@@ -696,24 +996,7 @@
          0
         ],
         "lum": 8,
-        "duree": 4.7,
-        "vite": true
-       },
-       {
-        "couleur": [
-         255,
-         0,
-         0
-        ],
-        "lum": 100,
-        "duree": 1.4,
-        "vite": true
-       },
-       {
-        "blanc": true,
-        "lum": 100,
-        "temp": 100,
-        "duree": 0.5,
+        "duree": 3.7,
         "vite": true
        },
        {
@@ -740,14 +1023,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.9,
+        "duree": 0.7,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.9,
+        "duree": 0.7,
         "vite": true
        },
        {
@@ -757,14 +1040,48 @@
          0
         ],
         "lum": 100,
-        "duree": 0.9,
+        "duree": 0.7,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.3,
+        "duree": 0.7,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.7,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.7,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.7,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -802,7 +1119,7 @@
          0
         ],
         "lum": 8,
-        "duree": 3.3,
+        "duree": 3.0,
         "vite": true
        },
        {
@@ -812,14 +1129,14 @@
          0
         ],
         "lum": 100,
-        "duree": 1.4,
+        "duree": 0.9,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 1.5,
+        "duree": 0.9,
         "vite": true
        },
        {
@@ -829,14 +1146,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.7,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -846,14 +1163,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -863,14 +1180,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -880,14 +1197,14 @@
          0
         ],
         "lum": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
         "blanc": true,
         "lum": 100,
         "temp": 100,
-        "duree": 0.6,
+        "duree": 0.45,
         "vite": true
        },
        {
@@ -897,6 +1214,47 @@
          0
         ],
         "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.45,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
         "duree": 0.4,
         "vite": true
        },
@@ -908,6 +1266,43 @@
         ],
         "lum": 8,
         "duree": 0.5,
+        "vite": true
+       },
+       {
+        "couleur": [
+         255,
+         0,
+         0
+        ],
+        "lum": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.35,
+        "vite": true
+       },
+       {
+        "couleur": [
+         60,
+         0,
+         0
+        ],
+        "lum": 8,
+        "duree": 0.55,
         "vite": true
        },
        {
@@ -1587,22 +1982,13 @@
     ],
     "par_position": {
      "canape_g": {
-      "mode": "ambiance",
-      "couleurs": [
-       [
-        20,
-        255,
-        40
-       ],
-       [
-        0,
-        200,
-        90
-       ]
+      "mode": "static",
+      "couleur": [
+       20,
+       200,
+       40
       ],
-      "lum": 70,
-      "role": "glisse",
-      "derive": 3
+      "lum": 45
      },
      "tv_g": {
       "mode": "ambiance",
@@ -1640,6 +2026,20 @@
       ],
       "lum": 8
      }
+    },
+    "reactif": {
+     "lampes": [
+      "canape_g"
+     ],
+     "eclat": {
+      "couleur": [
+       140,
+       255,
+       120
+      ],
+      "lum": 100
+     },
+     "ecart": 1.0
     }
    },
    "sons": [

@@ -794,7 +794,7 @@
   };
 
   // ---------- vrais enregistrements (dossier sounds/lib) ----------
-  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null, surHurlement: null };
+  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null, surHurlement: null, surPic: null };
   function configurer(c) {
     if (c.echantillons) c.echantillons = new Set(c.echantillons);
     Object.assign(config, c);
@@ -978,7 +978,27 @@
   let enCours = []; // { stop() }
   let audioFichier = null;
 
+  // Lumière qui réagit au son (ex. glouglous du chaudron) : détection des pics de volume
+  let minuterieReactif = null;
+  function ecouterPics(sortie) {
+    const an = ctx.createAnalyser(); an.fftSize = 1024; sortie.connect(an);
+    const d = new Float32Array(an.fftSize);
+    let moyenne = 0, dernier = 0;
+    minuterieReactif = setInterval(() => {
+      an.getFloatTimeDomainData(d);
+      let s = 0; for (const v of d) s += v * v;
+      const rms = Math.sqrt(s / d.length);
+      const maintenant = performance.now();
+      if (moyenne && rms > moyenne * 1.35 && rms > 0.02 && maintenant - dernier > 1000) {
+        dernier = maintenant;
+        try { config.surPic && config.surPic(); } catch (e) {}
+      }
+      moyenne = moyenne ? moyenne * 0.9 + rms * 0.1 : rms;
+    }, 60);
+  }
+
   function toutArreter(rapide) {
+    clearInterval(minuterieReactif); minuterieReactif = null;
     arreterVoix();
     enCours.forEach((s) => { try { s.stop(); } catch (e) {} });
     enCours = [];
@@ -1004,6 +1024,7 @@
     } else {
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
+      if (scene.lumiere && scene.lumiere.reactif) ecouterPics(sortie);
     }
     if (config.narrateur) {
       const liste = [];

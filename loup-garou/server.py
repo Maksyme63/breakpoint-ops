@@ -338,8 +338,12 @@ class AmpouleTuya:
             h, s, _ = colorsys.rgb_to_hsv(r, g, b)
             v = int(max(10, min(1000, lum * 10)))
             texte += f"{vitesse:02x}{vitesse:02x}02{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}00000000"
+        # l'ampoule repasse d'abord par une couleur normale, sinon elle garde parfois l'ancien dégradé
+        couleur = self._etat_complet({"couleur": unites[0][0], "lum": unites[0][1]})
+        if couleur:
+            self._envoyer(None, self.dev_appel("set_multiple_values"), couleur)
         etat = {ds["switch"]: True, ds["mode"]: "scene", dp_scene: texte}
-        self._envoyer(("s", texte), self.dev_appel("set_multiple_values"), etat)
+        self._envoyer(None, self.dev_appel("set_multiple_values"), etat)
         return True
 
     def dev_appel(self, nom):
@@ -603,13 +607,6 @@ class Pilote(threading.Thread):
             palette = spec.get("couleurs") or [spec["couleur"]]
             bas, haut = spec.get("min", 35), spec.get("max", 80)
             lum = (bas + haut) / 2
-            # flammes : suite de teintes et d'intensités jouée en boucle par l'ampoule elle-même
-            flammes = [(palette[(self.rang + k) % len(palette)], self.lum(hasard.uniform(bas, haut))) for k in range(6)]
-            if self.ampoule.scene_native(flammes, 0x50):
-                self.actuel = None
-                while not self.attendre(3600):
-                    pass
-                return
             while True:
                 lum = max(bas, min(haut, lum * 0.5 + hasard.uniform(bas, haut) * 0.5))
                 coul = palette[(self.index + hasard.randrange(len(palette))) % len(palette)] if hasard.random() < 0.3 \
@@ -728,6 +725,20 @@ MOTIFS_ECLAIR = [
     # éclair lointain bleuté
     [{"couleur": [150, 170, 255], "lum": 70, "duree": 0.12}, {"eteint": True, "duree": 0.1}, {"couleur": [190, 200, 255], "lum": 50, "duree": 0.1}],
 ]
+
+
+def pic():
+    """Un « glouglou » vient d'être entendu : éclat bref sur les lampes réactives de la scène."""
+    spec = ETAT["derniere_spec"]
+    reactif = (spec or {}).get("reactif")
+    if not reactif or time.time() - ETAT.get("dernier_pic", 0) < float(reactif.get("ecart", 1.0)):
+        return
+    ETAT["dernier_pic"] = time.time()
+    motif = [dict(reactif.get("eclat", {"couleur": [120, 255, 120], "lum": 100}), duree=0.25)]
+    for p in PILOTES:
+        if p.position in reactif.get("lampes", []):
+            p.jouer(Programme({"mode": "eclair", "motif": motif, "retour": spec, "proba": 1.0},
+                              time.time(), random.randrange(1 << 30)))
 
 
 def oeil():
@@ -881,6 +892,9 @@ class Handler(BaseHTTPRequestHandler):
         if chemin.startswith("/api/scene/"):
             ok = lancer_scene(chemin.rsplit("/", 1)[1])
             return self.envoyer(200 if ok else 404, self.etat())
+        if chemin == "/api/pic":
+            pic()
+            return self.envoyer(200, {"ok": True})
         if chemin == "/api/oeil":
             oeil()
             return self.envoyer(200, {"ok": True})
