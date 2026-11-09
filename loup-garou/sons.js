@@ -627,6 +627,8 @@
     enregistrementA("grognement_loup", g, 4.2, 0.8);
     // 5 s : cri de la victime, morsures
     enregistrementA("cri_victime", g, 5.0, 0.9);
+    // 7,5 s : un homme agonise pendant que la meute dévore
+    enregistrementA("cri_homme", g, 7.5, 0.85);
     enregistrementA("morsure", g, 5.1, 1.0);
     enregistrementA("morsure", g, 5.5, 0.8);
     // 6 s : la meute dévore sa proie pendant 9 s
