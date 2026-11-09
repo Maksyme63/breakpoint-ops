@@ -106,6 +106,11 @@ class AmpouleSimulee:
         return True
 
 
+ECART_MIN = 0.3          # secondes minimum entre deux ordres à une même ampoule
+FENETRE = 10.0           # fenêtre de comptage (s)
+MAX_PAR_FENETRE = 18     # ordres maximum par ampoule dans cette fenêtre
+
+
 class AmpouleTuya:
     """Vraie ampoule LSC / Tuya pilotée en local avec tinytuya.
 
@@ -123,6 +128,7 @@ class AmpouleTuya:
         self.info = info
         self.nom = info.get("name") or info["id"]
         self.verrou = threading.Lock()
+        self.historique = []  # instants des derniers ordres (protection contre la saturation)
         self.dernier_envoi = 0.0
         self.derniere_cmd = None
         self.echecs = 0
@@ -219,10 +225,16 @@ class AmpouleTuya:
             # Inutile de renvoyer la même chose (sauf toutes les 20 s pour garder la connexion)
             if cle is not None and cle == self.derniere_cmd and now - self.dernier_envoi < 20:
                 return
-            ecart = 0.08 if rapide else float(CONFIG["intervalle_effets"])
+            # Protection permanente : jamais moins de 0,3 s entre deux ordres, et au plus
+            # 18 ordres par tranche de 10 s pour une même ampoule (au-delà elles décrochent)
+            ecart = ECART_MIN if rapide else max(ECART_MIN, float(CONFIG["intervalle_effets"]))
             attente = ecart - (now - self.dernier_envoi)
             if attente > 0:
                 time.sleep(attente)
+            self.historique = [t for t in self.historique if time.time() - t < FENETRE]
+            if len(self.historique) >= MAX_PAR_FENETRE:
+                time.sleep(max(0.0, self.historique[0] + FENETRE - time.time()))
+            self.historique.append(time.time())
             try:
                 if not self.ok and time.time() < self.prochain_essai:
                     return  # ampoule injoignable : on réessaie un peu plus tard
