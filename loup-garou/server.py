@@ -100,6 +100,11 @@ class AmpouleSimulee:
         self._dernier = 0
         self._log(f"éclair {etape}")
 
+    def scene_native(self, unites, vitesse):
+        self._dernier = 0
+        self._log(f"dégradé intégré ({len(unites)} couleurs, vitesse {vitesse})")
+        return True
+
 
 class AmpouleTuya:
     """Vraie ampoule LSC / Tuya pilotée en local avec tinytuya.
@@ -316,6 +321,26 @@ class AmpouleTuya:
             self._envoyer(None, self.dev_appel("set_multiple_values"), etat, rapide=True)
         elif etape == "eteint" or etape.get("eteint"):
             self._envoyer(None, self.dev_appel("turn_off"), rapide=True)
+
+    def scene_native(self, unites, vitesse):
+        """Dégradé fait par l'ampoule elle-même (mode « scène ») : une seule commande, parfaitement
+        fluide. Renvoie False si l'ampoule ne sait pas le faire (on garde alors l'ancien effet)."""
+        if not self.dev:
+            return False
+        ds = self.dev.dpset
+        codes = {v.get("code"): str(dp) for dp, v in (self.info.get("mapping") or {}).items() if isinstance(v, dict)}
+        dp_scene = codes.get("scene_data_v2") or codes.get("scene_data") or (None if codes else ds.get("scene"))
+        if not (dp_scene and ds.get("switch") and ds.get("mode")) or (ds.get("value_hexformat") or "hsv16") != "hsv16":
+            return False
+        texte = "05"
+        for rgb, lum in unites[:8]:
+            r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
+            h, s, _ = colorsys.rgb_to_hsv(r, g, b)
+            v = int(max(10, min(1000, lum * 10)))
+            texte += f"{vitesse:02x}{vitesse:02x}02{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}00000000"
+        etat = {ds["switch"]: True, ds["mode"]: "scene", dp_scene: texte}
+        self._envoyer(("s", texte), self.dev_appel("set_multiple_values"), etat)
+        return True
 
     def dev_appel(self, nom):
         # self.dev peut être recréé lors d'une reconnexion : on le relit au moment de l'appel
@@ -542,6 +567,19 @@ class Pilote(threading.Thread):
             i = self.index % len(palette)
             role = self.index % 3 if len(palette) > 1 else (self.index % 2)
             role = {"fixe": 0, "respire": 1, "glisse": 2}.get(spec.get("role"), role)
+            # Respiration / glissement : dégradé intégré à l'ampoule si possible (fluide, une seule commande)
+            if role in (1, 2):
+                if role == 1:
+                    unites = [(palette[i], self.lum(lum)), (palette[i], self.lum(max(3, lum * 0.4)))]
+                    vitesse = 0x32
+                else:
+                    unites = [(palette[(i + k) % len(palette)], self.lum(lum)) for k in range(len(palette))]
+                    vitesse = 0x14
+                if self.ampoule.scene_native(unites, vitesse):
+                    self.actuel = None
+                    while not self.attendre(3600):
+                        pass
+                    return
             self.appliquer({"couleur": palette[i], "lum": lum})
             haut = True
             while True:
@@ -565,6 +603,13 @@ class Pilote(threading.Thread):
             palette = spec.get("couleurs") or [spec["couleur"]]
             bas, haut = spec.get("min", 35), spec.get("max", 80)
             lum = (bas + haut) / 2
+            # flammes : suite de teintes et d'intensités jouée en boucle par l'ampoule elle-même
+            flammes = [(palette[(self.rang + k) % len(palette)], self.lum(hasard.uniform(bas, haut))) for k in range(6)]
+            if self.ampoule.scene_native(flammes, 0x50):
+                self.actuel = None
+                while not self.attendre(3600):
+                    pass
+                return
             while True:
                 lum = max(bas, min(haut, lum * 0.5 + hasard.uniform(bas, haut) * 0.5))
                 coul = palette[(self.index + hasard.randrange(len(palette))) % len(palette)] if hasard.random() < 0.3 \
