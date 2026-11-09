@@ -8,8 +8,8 @@
   "use strict";
 
   let ctx = null, maitre = null, reverb = null, bruitBlanc = null;
-  let busVoix = null, busAmbiance = null, canard = null, reverbVoix = null;
-  const niveaux = { voix: 1, ambiance: 1 };
+  let busVoix = null, busAmbiance = null, canard = null, reverbVoix = null, retourVoix = null;
+  const niveaux = { voix: 1, ambiance: 1, echoVoix: 1 };
 
   /** Égalisation : ramène chaque enregistrement à un niveau commun (mesure de son volume moyen). */
   const CIBLE = 0.1, normes = new WeakMap();
@@ -101,7 +101,7 @@
     reverb.connect(retour); retour.connect(busAmbiance);  // l'écho des ambiances suit le mixage
     // écho séparé pour la voix du narrateur : il suit le curseur Voix
     reverbVoix = ctx.createConvolver(); reverbVoix.buffer = ir;
-    const retourVoix = ctx.createGain(); retourVoix.gain.value = 0.55;
+    retourVoix = ctx.createGain(); retourVoix.gain.value = 0.55 * niveaux.echoVoix;
     reverbVoix.connect(retourVoix); retourVoix.connect(busVoix);
     // Bruit blanc réutilisable (vent, pluie, feu…)
     bruitBlanc = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
@@ -1023,6 +1023,7 @@
     Object.assign(niveaux, m);
     if (busVoix) busVoix.gain.setTargetAtTime(niveaux.voix, ctx.currentTime, 0.05);
     if (busAmbiance) busAmbiance.gain.setTargetAtTime(niveaux.ambiance, ctx.currentTime, 0.05);
+    if (retourVoix) retourVoix.gain.setTargetAtTime(0.55 * niveaux.echoVoix, ctx.currentTime, 0.05);
     if (audioFichier && maitre && !audioFichier.route) audioFichier.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
   }
 
