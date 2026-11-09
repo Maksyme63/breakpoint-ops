@@ -989,8 +989,15 @@
 
   // Lumière qui réagit au son (ex. glouglous du chaudron) : détection des pics de volume
   let minuterieReactif = null;
-  function ecouterPics(sortie) {
-    const an = ctx.createAnalyser(); an.fftSize = 1024; sortie.connect(an);
+  function ecouterPics(sortie, reglages = {}) {
+    const an = ctx.createAnalyser(); an.fftSize = 1024;
+    if (reglages.basses) {  // n'écouter que les basses : on suit le rythme de la musique
+      const filtre = ctx.createBiquadFilter(); filtre.type = "lowpass"; filtre.frequency.value = 150;
+      sortie.connect(filtre); filtre.connect(an);
+    } else {
+      sortie.connect(an);
+    }
+    const ecartMin = (reglages.ecart || 1) * 1000;
     const d = new Float32Array(an.fftSize);
     let moyenne = 0, dernier = 0;
     minuterieReactif = setInterval(() => {
@@ -998,7 +1005,7 @@
       let s = 0; for (const v of d) s += v * v;
       const rms = Math.sqrt(s / d.length);
       const maintenant = performance.now();
-      if (moyenne && rms > moyenne * 1.35 && rms > 0.02 && maintenant - dernier > 1000) {
+      if (moyenne && rms > moyenne * 1.35 && rms > 0.02 && maintenant - dernier > ecartMin) {
         dernier = maintenant;
         try { config.surPic && config.surPic(); } catch (e) {}
       }
@@ -1029,7 +1036,10 @@
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       // volume propre au fichier de la scène (ex. musique d'accueil plus basse que le feu)
       const vf = ctx.createGain(); vf.gain.value = scene.volume_fichier ?? 1; vf.connect(sortie);
-      try { niveleur(ctx.createMediaElementSource(a), vf); a.route = true; }
+      try {
+        niveleur(ctx.createMediaElementSource(a), vf); a.route = true;
+        if (scene.lumiere && scene.lumiere.reactif) ecouterPics(vf, scene.lumiere.reactif);  // la lumière suit la musique
+      }
       catch (e) { a.volume = Math.min(1, maitre.gain.value * niveaux.ambiance); }
       audioFichier = a; a.play().catch(() => {});
       // sons joués en même temps que le fichier (ex. crépitement du feu)
@@ -1037,7 +1047,7 @@
     } else {
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
-      if (scene.lumiere && scene.lumiere.reactif) ecouterPics(sortie);
+      if (scene.lumiere && scene.lumiere.reactif) ecouterPics(sortie, scene.lumiere.reactif);
     }
     if (config.narrateur) {
       const liste = [];

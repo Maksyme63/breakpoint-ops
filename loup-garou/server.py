@@ -781,6 +781,14 @@ def pic():
     if not reactif or time.time() - ETAT.get("dernier_pic", 0) < float(reactif.get("ecart", 1.0)):
         return
     ETAT["dernier_pic"] = time.time()
+    if reactif.get("tour"):
+        # au rythme de la musique : la lueur passe à la lampe suivante autour de la table
+        lampes = sorted((p for p in PILOTES if p.position in LAMPES), key=lambda p: LAMPES.index(p.position)) or PILOTES
+        ETAT["aiguille"] = (ETAT.get("aiguille", -1) + 1) % len(lampes)
+        motif = [dict(reactif.get("eclat", {"couleur": [255, 200, 90], "lum": 100}), duree=float(reactif.get("duree", 0.35)))]
+        lampes[ETAT["aiguille"]].jouer(Programme({"mode": "eclair", "motif": motif, "retour": spec, "proba": 1.0,
+                                                  "sans_delai": True}, time.time(), 0))
+        return
     for p in PILOTES:
         if p.position in reactif.get("lampes", []):
             eclat = (reactif.get("eclats") or {}).get(p.position) or reactif.get("eclat", {"couleur": [120, 255, 120], "lum": 100})
