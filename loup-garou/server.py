@@ -100,7 +100,7 @@ class AmpouleSimulee:
         self._dernier = 0
         self._log(f"éclair {etape}")
 
-    def scene_native(self, unites, vitesse):
+    def scene_native(self, unites, vitesse, saut=False):
         self._dernier = 0
         self._log(f"dégradé intégré ({len(unites)} couleurs, vitesse {vitesse})")
         return True
@@ -322,7 +322,7 @@ class AmpouleTuya:
         elif etape == "eteint" or etape.get("eteint"):
             self._envoyer(None, self.dev_appel("turn_off"), rapide=True)
 
-    def scene_native(self, unites, vitesse):
+    def scene_native(self, unites, vitesse, saut=False):
         """Dégradé fait par l'ampoule elle-même (mode « scène ») : une seule commande, parfaitement
         fluide. Renvoie False si l'ampoule ne sait pas le faire (on garde alors l'ancien effet)."""
         if not self.dev:
@@ -337,7 +337,7 @@ class AmpouleTuya:
             r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
             h, s, _ = colorsys.rgb_to_hsv(r, g, b)
             v = int(max(10, min(1000, lum * 10)))
-            texte += f"{vitesse:02x}{vitesse:02x}02{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}00000000"
+            texte += f"{vitesse:02x}{vitesse:02x}{'01' if saut else '02'}{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}00000000"
         # l'ampoule repasse d'abord par une couleur normale, sinon elle garde parfois l'ancien dégradé
         couleur = self._etat_complet({"couleur": unites[0][0], "lum": unites[0][1]})
         if couleur:
@@ -522,7 +522,7 @@ class Pilote(threading.Thread):
             if hasard.random() > spec.get("proba", 0.85) and self.index != 0:
                 pass  # cette lampe reste dans l'ombre pour cet éclair
             else:
-                if self.attendre(hasard.uniform(0, 0.18)):
+                if self.attendre(0 if spec.get("sans_delai") else hasard.uniform(0, 0.18)):
                     return
                 for etape in spec["motif"]:
                     self.ampoule.instantane(etape)
@@ -576,6 +576,8 @@ class Pilote(threading.Thread):
             role = {"fixe": 0, "respire": 1, "glisse": 2}.get(spec.get("role"), role)
             # Respiration / glissement : dégradé intégré à l'ampoule si possible (fluide, une seule commande)
             if role in (1, 2):
+                if self.attendre(float(spec.get("decalage_depart", 0)) * self.rang):
+                    return
                 if role == 1:
                     unites = [(palette[i], self.lum(lum)), (palette[i], self.lum(spec.get("bas", max(3, lum * 0.4))))]
                     vitesse = int(spec.get("vitesse", 0x32))
@@ -612,7 +614,7 @@ class Pilote(threading.Thread):
             lum = (bas + haut) / 2
             if spec.get("natif"):
                 flammes = [(palette[(self.rang + k) % len(palette)], self.lum(hasard.uniform(bas, haut))) for k in range(8)]
-                if self.ampoule.scene_native(flammes, int(spec.get("vitesse", 0x64))):
+                if self.ampoule.scene_native(flammes, int(spec.get("vitesse", 0x64)), bool(spec.get("saut"))):
                     self.actuel = None
                     while not self.attendre(3600):
                         pass
@@ -780,8 +782,34 @@ def lancer_scene(scene_id):
         return False
     ETAT["scene"] = scene_id
     print(f"🎬 Scène : {scene.get('emoji', '')} {scene['nom']}")
-    lancer_spec(scene.get("lumiere", {"mode": "off"}))
+    ETAT["spec_scene"] = scene.get("lumiere", {"mode": "off"})
+    ETAT["tic_bloque"] = False
+    ETAT["aiguille"] = -1
+    lancer_spec(ETAT["spec_scene"])
     return True
+
+
+def voix(phase):
+    """Le narrateur commence (phase « debut ») ou finit (« fin ») : effet prévu par la scène."""
+    spec = ETAT.get("spec_scene") or {}
+    cle = "pendant_voix" if phase == "debut" else "apres_voix"
+    if phase == "debut" and spec.get("pendant_voix"):
+        ETAT["tic_bloque"] = True  # l'aiguille s'arrête quand le narrateur parle
+    if spec.get(cle):
+        lancer_spec(spec[cle])
+
+
+def tic():
+    """Un tic de l'horloge : la lumière avance d'une lampe, comme une aiguille."""
+    spec = ETAT.get("spec_scene") or {}
+    aig = spec.get("aiguille")
+    if not aig or ETAT.get("tic_bloque"):
+        return
+    lampes = sorted((p for p in PILOTES if p.position in LAMPES), key=lambda p: LAMPES.index(p.position)) or PILOTES
+    ETAT["aiguille"] = (ETAT.get("aiguille", -1) + 1) % len(lampes)
+    motif = [dict(aig.get("eclat", {"couleur": [255, 150, 0], "lum": 100}), duree=0.3)]
+    lampes[ETAT["aiguille"]].jouer(Programme({"mode": "eclair", "motif": motif, "retour": ETAT["derniere_spec"],
+                                              "proba": 1.0, "sans_delai": True}, time.time(), 0))
 
 
 # --------------------------------------------------------------------------- #
@@ -902,6 +930,12 @@ class Handler(BaseHTTPRequestHandler):
         if chemin.startswith("/api/scene/"):
             ok = lancer_scene(chemin.rsplit("/", 1)[1])
             return self.envoyer(200 if ok else 404, self.etat())
+        if chemin == "/api/voix":
+            voix(donnees.get("phase"))
+            return self.envoyer(200, {"ok": True})
+        if chemin == "/api/tic":
+            tic()
+            return self.envoyer(200, {"ok": True})
         if chemin == "/api/pic":
             pic()
             return self.envoyer(200, {"ok": True})

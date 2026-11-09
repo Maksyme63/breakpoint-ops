@@ -702,10 +702,13 @@
       const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = aigu ? 1900 : 1500;
       env(og.gain, t, 0.12, 0.001, 0.03); o.connect(og); og.connect(b.entree); o.start(t); o.stop(t + 0.05);
     };
+    const debut = performance.now();
     const tick = () => {
       if (!actif) return;
       coup(ctx.currentTime + 0.02, tic); tic = !tic;
-      intervalle = Math.max(0.33, intervalle * 0.994);
+      try { config.surTic && config.surTic(); } catch (e) {}
+      // d'abord un tic-tac régulier, puis il accélère
+      if (performance.now() - debut > 8000) intervalle = Math.max(0.28, intervalle * 0.95);
       timer = setTimeout(tick, intervalle * 1000);
     };
     tick();
@@ -794,7 +797,7 @@
   };
 
   // ---------- vrais enregistrements (dossier sounds/lib) ----------
-  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null, surHurlement: null, surPic: null };
+  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null, surHurlement: null, surPic: null, surTic: null, surDebutVoix: null, surFinVoix: null };
   function configurer(c) {
     if (c.echantillons) c.echantillons = new Set(c.echantillons);
     Object.assign(config, c);
@@ -959,16 +962,18 @@
       setTimeout(fin, 30000);
     });
   }
+  const signal = (nom) => { try { config[nom] && config[nom](); } catch (e) {} };
   async function narrer(liste, delai = 0) {
     arreterVoix();
     const jeton = jetonVoix;
     await pause(400 + delai * 1000);
+    if (jeton === jetonVoix) signal("surDebutVoix");
     for (const [id, cle, texte] of liste) {
       if (jeton !== jetonVoix) return;
       await dire(id, cle, texte, jeton);
       await pause(500);
     }
-    if (jeton === jetonVoix) attenuerAmbiance(false);
+    if (jeton === jetonVoix) { attenuerAmbiance(false); signal("surFinVoix"); }
   }
   function debloquerVoix() {
     try { if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); speechSynthesis.getVoices(); } } catch (e) {}
@@ -1038,7 +1043,9 @@
       if (scene.voix && scene.voix.reveil) liste.push([scene.id, "reveil", scene.voix.reveil]);
       if (dodo && scene.dodo_apres) liste.push(dodo);  // ex. l'attaque, puis « les loups se rendorment »
       if (liste.length) return narrer(liste, scene.voix_delai || 0);
-      else arreterVoix();
+      else { arreterVoix(); setTimeout(() => signal("surFinVoix"), 300); }
+    } else {
+      setTimeout(() => signal("surFinVoix"), 300);  // sans narrateur : on passe directement à la suite
     }
   }
 

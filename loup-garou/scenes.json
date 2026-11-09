@@ -1278,7 +1278,8 @@
     "role": "respire",
     "respiration": 2.5,
     "bas": 5,
-    "vitesse": 80
+    "vitesse": 80,
+    "decalage_depart": 0.5
    },
    "sons": [
     "harpe"
@@ -1300,15 +1301,24 @@
    "desc": "Les deux amoureux ouvrent les yeux et se reconnaissent.",
    "lsc": "rose 100 %",
    "lumiere": {
-    "mode": "battement",
+    "mode": "static",
     "couleur": [
      255,
      40,
      140
     ],
-    "lum_base": 8,
-    "lum_flash": 95,
-    "periode": 1.2
+    "lum": 70,
+    "apres_voix": {
+     "mode": "battement",
+     "couleur": [
+      255,
+      40,
+      140
+     ],
+     "lum_base": 8,
+     "lum_flash": 95,
+     "periode": 1.2
+    }
    },
    "sons": [
     "harpe",
@@ -2329,10 +2339,11 @@
       40
      ]
     ],
-    "min": 55,
-    "max": 80,
+    "min": 30,
+    "max": 100,
     "natif": true,
-    "vitesse": 100
+    "vitesse": 100,
+    "saut": true
    },
    "sons": [
     "medieval",
@@ -3088,15 +3099,32 @@
    "emoji": "⚖️",
    "couleur": "#d97706",
    "lumiere": {
-    "mode": "pulse",
+    "mode": "static",
     "couleur": [
      255,
      120,
      0
     ],
-    "min": 20,
-    "max": 100,
-    "periode": 0.9
+    "lum": 10,
+    "aiguille": {
+     "eclat": {
+      "couleur": [
+       255,
+       150,
+       0
+      ],
+      "lum": 100
+     }
+    },
+    "pendant_voix": {
+     "mode": "static",
+     "couleur": [
+      255,
+      120,
+      0
+     ],
+     "lum": 70
+    }
    },
    "sons": [
     "horloge",

@@ -286,6 +286,11 @@
     Sons.configurer({ surEclair: () => api("api/eclair", {}).catch(() => {}) });
     Sons.configurer({ surHurlement: () => api("api/oeil", {}).catch(() => {}) });
     Sons.configurer({ surPic: () => api("api/pic", {}).catch(() => {}) });
+    Sons.configurer({
+      surTic: () => api("api/tic", {}).catch(() => {}),
+      surDebutVoix: () => api("api/voix", { phase: "debut" }).catch(() => {}),
+      surFinVoix: () => api("api/voix", { phase: "fin" }).catch(() => {}),
+    });
   } else {
     await Promise.all(toutes.filter((s) => s.fichier).map(async (s) => {
       try { const r = await fetch(s.fichier, { method: "HEAD", cache: "no-store" }); fichiers[s.id] = r.ok; }
