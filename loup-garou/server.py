@@ -36,6 +36,8 @@ FICHIERS_AUTORISES = {
     "/index.html": ("index.html", "text/html; charset=utf-8"),
     "/sons.js": ("sons.js", "application/javascript; charset=utf-8"),
     "/scenes.json": ("scenes.json", "application/json; charset=utf-8"),
+    "/ecran": ("ecran.html", "text/html; charset=utf-8"),          # page pour la TV / le projecteur
+    "/ecran.html": ("ecran.html", "text/html; charset=utf-8"),
 }
 TYPES_AUDIO = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".flac": "audio/flac"}
@@ -951,6 +953,7 @@ class Handler(BaseHTTPRequestHandler):
             "scene": ETAT["scene"],
             "luminosite": ETAT["luminosite"],
             "ampoules": [{"nom": a.nom, "ok": getattr(a, "ok", True)} for a in AMPOULES],
+            "evt": ETAT.get("evt", {}),  # compteurs d'événements (hurlement, tic, glouglou…) pour l'écran
         }
 
     def do_OPTIONS(self):
@@ -1000,6 +1003,12 @@ class Handler(BaseHTTPRequestHandler):
         if chemin.startswith("/api/scene/"):
             ok = lancer_scene(chemin.rsplit("/", 1)[1])
             return self.envoyer(200 if ok else 404, self.etat())
+        if chemin in ("/api/voix", "/api/tic", "/api/pic", "/api/oeil", "/api/eclair"):
+            nom = chemin.rsplit("/", 1)[1]
+            if nom == "voix":
+                nom = "voix_" + str(donnees.get("phase"))
+            compteurs = ETAT.setdefault("evt", {})
+            compteurs[nom] = compteurs.get(nom, 0) + 1
         if chemin == "/api/voix":
             voix(donnees.get("phase"))
             return self.envoyer(200, {"ok": True})
