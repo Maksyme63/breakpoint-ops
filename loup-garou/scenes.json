@@ -83,15 +83,15 @@
        0
       ],
       "lum": 8,
-      "duree": 3.3,
-      "vite": true
+      "vite": true,
+      "duree": 3.3
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.09,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -100,20 +100,15 @@
        0
       ],
       "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.09,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -122,20 +117,15 @@
        0
       ],
       "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.09,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -144,20 +134,13 @@
        0
       ],
       "lum": 100,
-      "duree": 0.11,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "eteint": true,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.09,
-      "vite": true
+      "vite": true,
+      "duree": 1.2
      },
      {
       "couleur": [
@@ -166,20 +149,15 @@
        0
       ],
       "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.09,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -188,172 +166,15 @@
        0
       ],
       "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.09,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.09,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.11,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 1.2,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.1,
-      "vite": true
-     },
-     {
-      "blanc": true,
-      "lum": 100,
-      "temp": 100,
-      "duree": 0.08,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.1,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -362,8 +183,8 @@
        0
       ],
       "lum": 8,
-      "duree": 1.4,
-      "vite": true
+      "vite": true,
+      "duree": 1.3
      },
      {
       "couleur": [
@@ -372,13 +193,8 @@
        0
       ],
       "lum": 100,
-      "duree": 0.12,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.15,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -387,20 +203,15 @@
        0
       ],
       "lum": 8,
-      "duree": 1.1,
-      "vite": true
+      "vite": true,
+      "duree": 1.2
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.12,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.15,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -409,8 +220,8 @@
        0
       ],
       "lum": 8,
-      "duree": 1.6,
-      "vite": true
+      "vite": true,
+      "duree": 1.5
      },
      {
       "couleur": [
@@ -419,13 +230,8 @@
        0
       ],
       "lum": 100,
-      "duree": 0.12,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.15,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -434,20 +240,15 @@
        0
       ],
       "lum": 8,
-      "duree": 0.9,
-      "vite": true
+      "vite": true,
+      "duree": 1.1
      },
      {
       "blanc": true,
       "lum": 100,
       "temp": 100,
-      "duree": 0.12,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.15,
-      "vite": true
+      "vite": true,
+      "duree": 0.3
      },
      {
       "couleur": [
@@ -456,23 +257,8 @@
        0
       ],
       "lum": 8,
-      "duree": 1.3,
-      "vite": true
-     },
-     {
-      "couleur": [
-       255,
-       0,
-       0
-      ],
-      "lum": 100,
-      "duree": 0.12,
-      "vite": true
-     },
-     {
-      "eteint": true,
-      "duree": 0.15,
-      "vite": true
+      "vite": true,
+      "duree": 0.5
      }
     ]
    },
