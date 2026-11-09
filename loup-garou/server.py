@@ -627,6 +627,20 @@ class Pilote(threading.Thread):
                 if self.attendre(hasard.uniform(0.45, 0.9)):
                     return
 
+        if mode == "flashs":
+            # couleur de fond, avec de temps en temps un flash bref (ex. éclairs blancs sur le ruban)
+            hasard = random.Random(prog.graine + self.index * 31)
+            fond = {"couleur": spec["couleur"], "lum": spec.get("lum", 90)}
+            eclat = spec.get("eclat", {"blanc": True, "lum": 100, "temp": 100})
+            self.appliquer(fond)
+            while True:
+                if self.attendre(hasard.uniform(float(spec.get("min", 2)), float(spec.get("max", 5)))):
+                    return
+                self.ampoule.instantane(eclat)
+                if self.attendre(0.35):
+                    return
+                self.appliquer(fond)
+
         if mode == "tour":
             # une lueur passe d'une lampe à l'autre dans le sens des aiguilles d'une montre
             base = {"couleur": spec["couleur"], "lum": spec.get("lum", 30)}

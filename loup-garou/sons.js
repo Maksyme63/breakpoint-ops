@@ -626,9 +626,9 @@
     enregistrementA("grognement_loup", g, 2.4, 1.0);
     enregistrementA("grognement_loup", g, 4.2, 0.8);
     // 5 s : cri de la victime, morsures
-    enregistrementA("cri_homme1", g, 5.0, 0.85);
+    enregistrementA("cri_homme1", g, 5.0, 1.6);
     // puis un second homme agonise, et enfin la femme hurle, pendant que la meute dévore
-    enregistrementA("cri_homme2", g, 6.8, 0.85);
+    enregistrementA("cri_homme2", g, 6.8, 1.6);
     enregistrementA("cri_victime", g, 8.6, 0.9);
     enregistrementA("morsure", g, 5.1, 1.0);
     enregistrementA("morsure", g, 5.5, 0.8);
@@ -917,9 +917,10 @@
       + (/thomas|amélie|audrey|aurélie|daniel|google/i.test(v.name) ? 3 : 0) + (v.lang === "fr-FR" ? 1 : 0);
     return vs.sort((a, b) => score(b) - score(a))[0];
   }
+  let niveauSousVoix = 0.28;  // niveau de la musique quand le narrateur parle (réglable par scène)
   function attenuerAmbiance(oui) {
-    if (canard) canard.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
-    else if (busScene) busScene.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
+    if (canard) canard.gain.setTargetAtTime(oui ? niveauSousVoix : 1, ctx.currentTime, 0.35);
+    else if (busScene) busScene.gain.setTargetAtTime(oui ? niveauSousVoix : 1, ctx.currentTime, 0.35);
   }
   function arreterVoix() {
     jetonVoix++;
@@ -1029,6 +1030,7 @@
   async function jouer(scene, fichierDisponible, precedente) {
     init();
     toutArreter(false);
+    niveauSousVoix = scene.attenuation ?? 0.28;
     if (fichierDisponible && scene.fichier) {
       // Le fichier de la scène passe par la table de mixage : il baisse quand le narrateur parle
       // et suit le curseur Musique & ambiances.

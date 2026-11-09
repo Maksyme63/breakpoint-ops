@@ -27,7 +27,7 @@
      0,
      0
     ],
-    "lum_base": 6,
+    "lum_base": 20,
     "lum_flash": 100,
     "periode": 1.3,
     "yeux": true,
@@ -1256,7 +1256,8 @@
    "dodo_apres": true,
    "volumes": {
     "horreur": 0.6
-   }
+   },
+   "attenuation": 0.1
   },
   {
    "id": "cupidon",
@@ -1280,7 +1281,7 @@
     "lum": 100,
     "role": "respire",
     "respiration": 2.5,
-    "bas": 5,
+    "bas": 40,
     "vitesse": 80,
     "decalage_depart": 0.5
    },
@@ -1310,7 +1311,7 @@
      40,
      140
     ],
-    "lum_base": 35,
+    "lum_base": 55,
     "lum_flash": 100,
     "periode": 1.2
    },
@@ -1444,7 +1445,45 @@
       100,
       180
      ]
-    ]
+    ],
+    "par_position": {
+     "canape_g": {
+      "mode": "static",
+      "couleur": [
+       255,
+       100,
+       180
+      ],
+      "lum": 65
+     },
+     "tv_d": {
+      "mode": "static",
+      "couleur": [
+       255,
+       100,
+       180
+      ],
+      "lum": 65
+     },
+     "tv_g": {
+      "mode": "static",
+      "couleur": [
+       160,
+       40,
+       255
+      ],
+      "lum": 65
+     },
+     "canape_d": {
+      "mode": "static",
+      "couleur": [
+       160,
+       40,
+       255
+      ],
+      "lum": 65
+     }
+    }
    },
    "sons": [
     "choeur"
@@ -1699,7 +1738,25 @@
       60,
       0
      ]
-    ]
+    ],
+    "par_position": {
+     "cuisine": {
+      "mode": "flashs",
+      "couleur": [
+       180,
+       0,
+       0
+      ],
+      "lum": 90,
+      "eclat": {
+       "blanc": true,
+       "lum": 100,
+       "temp": 100
+      },
+      "min": 2,
+      "max": 5
+     }
+    }
    },
    "sons": [
     "meute",
@@ -3172,7 +3229,7 @@
    "couleur": "#d9822b",
    "lsc": "orange doré 90 %",
    "lumiere": {
-    "mode": "cycle",
+    "mode": "ambiance",
     "couleurs": [
      [
       255,
@@ -3196,8 +3253,9 @@
      ]
     ],
     "lum": 90,
-    "periode": 2.2,
-    "decalage": 1
+    "role": "glisse",
+    "vitesse": 30,
+    "decalage_depart": 0.6
    },
    "sons": [
     "medieval"
