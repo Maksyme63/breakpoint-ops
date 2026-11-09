@@ -430,6 +430,8 @@ class Pilote(threading.Thread):
         return self.changement.wait(max(0.0, duree))
 
     def lum(self, valeur):
+        if self.position == "cuisine" and getattr(self, "ruban_max", False):
+            return 100  # le ruban en hauteur toujours au plus fort, pour bien le voir
         return max(1, min(100, valeur * ETAT["luminosite"] / 100.0))
 
     def appliquer(self, etape):
@@ -487,6 +489,7 @@ class Pilote(threading.Thread):
     # -- moteur d'effets --
     def executer(self, prog):
         spec = prog.spec
+        self.ruban_max = spec.get("mode", "static") not in ("battement", "pulse", "eclair", "off")
         pas = float(CONFIG["intervalle_effets"])
 
         # Séquence d'intro (flashs, noir…) jouée en même temps sur toutes les ampoules
@@ -574,11 +577,11 @@ class Pilote(threading.Thread):
             # Respiration / glissement : dégradé intégré à l'ampoule si possible (fluide, une seule commande)
             if role in (1, 2):
                 if role == 1:
-                    unites = [(palette[i], self.lum(lum)), (palette[i], self.lum(max(3, lum * 0.4)))]
-                    vitesse = 0x32
+                    unites = [(palette[i], self.lum(lum)), (palette[i], self.lum(spec.get("bas", max(3, lum * 0.4))))]
+                    vitesse = int(spec.get("vitesse", 0x32))
                 else:
                     unites = [(palette[(i + k) % len(palette)], self.lum(lum)) for k in range(len(palette))]
-                    vitesse = 0x14
+                    vitesse = int(spec.get("vitesse", 0x14))
                 if self.ampoule.scene_native(unites, vitesse):
                     self.actuel = None
                     while not self.attendre(3600):
@@ -607,6 +610,13 @@ class Pilote(threading.Thread):
             palette = spec.get("couleurs") or [spec["couleur"]]
             bas, haut = spec.get("min", 35), spec.get("max", 80)
             lum = (bas + haut) / 2
+            if spec.get("natif"):
+                flammes = [(palette[(self.rang + k) % len(palette)], self.lum(hasard.uniform(bas, haut))) for k in range(8)]
+                if self.ampoule.scene_native(flammes, int(spec.get("vitesse", 0x64))):
+                    self.actuel = None
+                    while not self.attendre(3600):
+                        pass
+                    return
             while True:
                 lum = max(bas, min(haut, lum * 0.5 + hasard.uniform(bas, haut) * 0.5))
                 coul = palette[(self.index + hasard.randrange(len(palette))) % len(palette)] if hasard.random() < 0.3 \

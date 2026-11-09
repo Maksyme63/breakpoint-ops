@@ -896,13 +896,10 @@
         "vite": true
        },
        {
-        "couleur": [
-         255,
-         0,
-         0
-        ],
+        "blanc": true,
         "lum": 100,
-        "duree": 0.4,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
@@ -912,17 +909,14 @@
          0
         ],
         "lum": 5,
-        "duree": 1.36,
+        "duree": 0.9,
         "vite": true
        },
        {
-        "couleur": [
-         255,
-         0,
-         0
-        ],
+        "blanc": true,
         "lum": 100,
-        "duree": 0.4,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
@@ -932,17 +926,14 @@
          0
         ],
         "lum": 5,
-        "duree": 1.36,
+        "duree": 0.6,
         "vite": true
        },
        {
-        "couleur": [
-         255,
-         0,
-         0
-        ],
+        "blanc": true,
         "lum": 100,
-        "duree": 0.4,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
@@ -952,17 +943,14 @@
          0
         ],
         "lum": 5,
-        "duree": 1.36,
+        "duree": 1.2,
         "vite": true
        },
        {
-        "couleur": [
-         255,
-         0,
-         0
-        ],
+        "blanc": true,
         "lum": 100,
-        "duree": 0.4,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
@@ -972,17 +960,65 @@
          0
         ],
         "lum": 5,
-        "duree": 1.36,
+        "duree": 0.4,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
         "couleur": [
-         255,
+         50,
          0,
          0
         ],
+        "lum": 5,
+        "duree": 1.2,
+        "vite": true
+       },
+       {
+        "blanc": true,
         "lum": 100,
-        "duree": 0.4,
+        "temp": 100,
+        "duree": 0.3,
+        "vite": true
+       },
+       {
+        "couleur": [
+         50,
+         0,
+         0
+        ],
+        "lum": 5,
+        "duree": 0.5,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.3,
+        "vite": true
+       },
+       {
+        "couleur": [
+         50,
+         0,
+         0
+        ],
+        "lum": 5,
+        "duree": 1.0,
+        "vite": true
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 100,
+        "duree": 0.3,
         "vite": true
        },
        {
@@ -1238,9 +1274,11 @@
       130
      ]
     ],
-    "lum": 80,
+    "lum": 100,
     "role": "respire",
-    "respiration": 2.5
+    "respiration": 2.5,
+    "bas": 5,
+    "vitesse": 80
    },
    "sons": [
     "harpe"
@@ -1450,41 +1488,47 @@
       "mode": "ambiance",
       "couleurs": [
        [
+        60,
+        80,
+        255
+       ],
+       [
+        255,
+        60,
+        200
+       ],
+       [
         150,
         0,
         255
        ]
       ],
-      "lum": 85,
-      "role": "respire",
-      "respiration": 3.5
+      "lum": 95,
+      "role": "glisse",
+      "vitesse": 40
      },
-     "cuisine": {
+     "autres": {
       "mode": "ambiance",
       "couleurs": [
        [
-        30,
-        0,
-        90
+        60,
+        80,
+        255
        ],
        [
+        255,
         60,
+        200
+       ],
+       [
+        150,
         0,
-        140
+        255
        ]
       ],
-      "lum": 12,
+      "lum": 45,
       "role": "glisse",
-      "derive": 6
-     },
-     "autres": {
-      "mode": "static",
-      "couleur": [
-       40,
-       0,
-       120
-      ],
-      "lum": 5
+      "vitesse": 30
      }
     }
    },
@@ -2276,17 +2320,19 @@
      ],
      [
       255,
-      60,
+      80,
       0
      ],
      [
       255,
-      160,
-      50
+      140,
+      40
      ]
     ],
-    "min": 35,
-    "max": 75
+    "min": 55,
+    "max": 80,
+    "natif": true,
+    "vitesse": 100
    },
    "sons": [
     "medieval",
@@ -2302,7 +2348,7 @@
    ],
    "volumes": {
     "medieval": 0.35,
-    "feu": 1.0
+    "feu": 0.65
    }
   },
   {
