@@ -8,7 +8,7 @@
   "use strict";
 
   let ctx = null, maitre = null, reverb = null, bruitBlanc = null;
-  let busVoix = null, busAmbiance = null;
+  let busVoix = null, busAmbiance = null, canard = null, reverbVoix = null;
   const niveaux = { voix: 1, ambiance: 1 };
 
   /** Égalisation : ramène chaque enregistrement à un niveau commun (mesure de son volume moyen). */
@@ -86,7 +86,9 @@
     maitre.connect(comp); comp.connect(limiteur); limiteur.connect(ctx.destination);
     // table de mixage : voix du narrateur / musique et ambiances
     busVoix = ctx.createGain(); busVoix.gain.value = niveaux.voix; busVoix.connect(maitre);
-    busAmbiance = ctx.createGain(); busAmbiance.gain.value = niveaux.ambiance; busAmbiance.connect(maitre);
+    busAmbiance = ctx.createGain(); busAmbiance.gain.value = niveaux.ambiance;
+    // « canard » : baisse toute la musique et les ambiances (échos compris) quand le narrateur parle
+    canard = ctx.createGain(); canard.gain.value = 1; busAmbiance.connect(canard); canard.connect(maitre);
     // Réverbération "grande église / forêt" : réponse impulsionnelle générée
     reverb = ctx.createConvolver();
     const len = ctx.sampleRate * 3.5, ir = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -96,7 +98,11 @@
     }
     reverb.buffer = ir;
     const retour = ctx.createGain(); retour.gain.value = 0.55;
-    reverb.connect(retour); retour.connect(maitre);
+    reverb.connect(retour); retour.connect(busAmbiance);  // l'écho des ambiances suit le mixage
+    // écho séparé pour la voix du narrateur : il suit le curseur Voix
+    reverbVoix = ctx.createConvolver(); reverbVoix.buffer = ir;
+    const retourVoix = ctx.createGain(); retourVoix.gain.value = 0.55;
+    reverbVoix.connect(retourVoix); retourVoix.connect(busVoix);
     // Bruit blanc réutilisable (vent, pluie, feu…)
     bruitBlanc = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
     const b = bruitBlanc.getChannelData(0);
@@ -901,7 +907,8 @@
     return vs.sort((a, b) => score(b) - score(a))[0];
   }
   function attenuerAmbiance(oui) {
-    if (busScene) busScene.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
+    if (canard) canard.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
+    else if (busScene) busScene.gain.setTargetAtTime(oui ? 0.28 : 1, ctx.currentTime, 0.35);
   }
   function arreterVoix() {
     jetonVoix++;
@@ -932,7 +939,7 @@
             src.connect(g);
           }
           g.gain.value *= gainNormalise(buf);
-          g.connect(busVoix || maitre); g.connect(r); r.connect(reverb);
+          g.connect(busVoix || maitre); g.connect(r); r.connect(reverbVoix || reverb);
           src.onended = fin; src.start(); sourceVoix = src;
         });
         return;
@@ -982,9 +989,13 @@
     init();
     toutArreter(false);
     if (fichierDisponible && scene.fichier) {
-      const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
+      // Le fichier de la scène passe par la table de mixage : il baisse quand le narrateur parle
+      // et suit le curseur Musique & ambiances.
+      const a = new Audio(scene.fichier); a.loop = scene.boucle !== false; a.volume = 1;
+      const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
+      try { niveleur(ctx.createMediaElementSource(a), sortie); a.route = true; }
+      catch (e) { a.volume = Math.min(1, maitre.gain.value * niveaux.ambiance); }
       audioFichier = a; a.play().catch(() => {});
-      busScene = null;
     } else {
       const sortie = ctx.createGain(); sortie.connect(busAmbiance || maitre); busScene = sortie;
       (scene.sons || []).forEach((nom) => { const c = couche(nom, sortie, scene.volumes); if (c) enCours.push(c); });
@@ -1004,7 +1015,7 @@
   function volume(v) {
     init();
     maitre.gain.setTargetAtTime(v, ctx.currentTime, 0.05);
-    if (audioFichier) audioFichier.volume = Math.min(1, v * niveaux.ambiance);
+    if (audioFichier && !audioFichier.route) audioFichier.volume = Math.min(1, v * niveaux.ambiance);
   }
 
   /** Table de mixage : niveau de la voix et de la musique/ambiances (0 à 2). */
@@ -1012,7 +1023,7 @@
     Object.assign(niveaux, m);
     if (busVoix) busVoix.gain.setTargetAtTime(niveaux.voix, ctx.currentTime, 0.05);
     if (busAmbiance) busAmbiance.gain.setTargetAtTime(niveaux.ambiance, ctx.currentTime, 0.05);
-    if (audioFichier && maitre) audioFichier.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
+    if (audioFichier && maitre && !audioFichier.route) audioFichier.volume = Math.min(1, maitre.gain.value * niveaux.ambiance);
   }
 
   function test() {
