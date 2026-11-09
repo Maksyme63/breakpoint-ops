@@ -1,0 +1,8 @@
+{
+  "_aide": "Place de chaque ampoule dans la pièce (nom tel qu'affiché par le pad). Places possibles : tv_g, tv_d, canape_g, canape_d, cuisine.",
+  "LSC SMART A60 RGB+CCT 3": "tv_g",
+  "LSC SMART A60 RGB+CCT 2": "tv_d",
+  "LSC Smart bulb RGB + CCT": "canape_g",
+  "LSC SMART A60 RGB+CCT": "canape_d",
+  "LSC smart 10M ledstrip RGBIC + CCT": "cuisine"
+}

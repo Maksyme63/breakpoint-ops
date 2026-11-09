@@ -794,7 +794,7 @@
   };
 
   // ---------- vrais enregistrements (dossier sounds/lib) ----------
-  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null };
+  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null, surHurlement: null };
   function configurer(c) {
     if (c.echantillons) c.echantillons = new Set(c.echantillons);
     Object.assign(config, c);
@@ -856,7 +856,7 @@
     return true;
   }
 
-  function echantillon(url, type, sortie, vol) {
+  function echantillon(url, type, sortie, vol, quand) {
     const g = ctx.createGain(), t = ctx.currentTime; g.connect(sortie);
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (type === "boucle" ? 2.5 : 0.05));
     const sources = []; let actif = true, timer;
@@ -877,6 +877,7 @@
     } else {
       const tick = async () => {
         if (!actif) return;
+        if (quand) { try { quand(); } catch (e) {} }  // ex. hurlement -> « yeux » rouges sur une lampe
         const x = await jouerUneFois(url, g, 1, rnd(-0.7, 0.7));
         if (x) sources.push(x.src);
         timer = setTimeout(tick, ((x && x.duree) || 5) * 1000 + rnd(4000, 10000));
@@ -894,7 +895,7 @@
     if (nom !== "tonnerre" && !TOUJOURS_SYNTHE.has(nom)) {
       const p = cheminEchantillon(nom);
       const vol = (volumes && volumes[nom]) ?? VOLUME[nom] ?? 0.7;
-      if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, vol);
+      if (p) return echantillon(p, TYPE[nom] || "boucle", sortie, vol, nom === "loups" ? config.surHurlement : null);
     }
     const synthe = SONS[nom] || SONS[REMPLACANT[nom]];
     return synthe ? synthe(sortie) : null;

@@ -58,6 +58,17 @@ CONFIG = {
 }
 CONFIG.update(charger_json("config.json", {}) or {})
 
+# Place de chaque ampoule dans la pièce (positions.json) : sert aux effets « dans l'espace »
+def _normaliser(nom):
+    return " ".join((nom or "").lower().split())
+
+POSITIONS = {_normaliser(k): v for k, v in (charger_json("positions.json", {}) or {}).items() if not k.startswith("_")}
+LAMPES = ("canape_g", "tv_g", "tv_d", "canape_d")  # les 4 lampes autour de la table, dans le sens du tour
+
+
+def position_de(nom):
+    return POSITIONS.get(_normaliser(nom))
+
 
 # --------------------------------------------------------------------------- #
 #  Ampoules                                                                   #
@@ -374,6 +385,7 @@ class Pilote(threading.Thread):
         self.index = index
         self.programme = None
         self.actuel = None  # dernière couleur envoyée, pour les transitions douces
+        self.position = position_de(ampoule.nom)
         self.changement = threading.Event()
 
     def jouer(self, programme):
@@ -427,6 +439,19 @@ class Pilote(threading.Thread):
             except Exception as e:
                 print(f"  ! effet interrompu sur {self.ampoule.nom}: {e}")
 
+    def resoudre(self, spec, prog):
+        """Choisit l'effet de cette lampe selon sa place dans la pièce."""
+        pp = spec.get("par_position")
+        if not pp:
+            return spec
+        hasard = pp.get("au_hasard")  # ex. la place de la victime, tirée au sort à chaque fois
+        if hasard:
+            places = sorted(p.position for p in PILOTES if p.position in LAMPES)
+            choisies = random.Random(prog.graine).sample(places, min(int(hasard.get("nombre", 1)), len(places)))
+            if self.position in choisies:
+                return hasard["spec"]
+        return pp.get(self.position) or pp.get("autres") or {k: v for k, v in spec.items() if k != "par_position"}
+
     # -- moteur d'effets --
     def executer(self, prog):
         spec = prog.spec
@@ -442,6 +467,13 @@ class Pilote(threading.Thread):
             t += etape.get("duree", 0.2)
             if self.attendre(t - time.time()):
                 return
+
+        # Rôle propre à la place de cette lampe (par_position), avec un départ décalé éventuel
+        sous = self.resoudre(spec, prog)
+        if sous is not spec:
+            if self.attendre(float(sous.get("delai", 0))):
+                return
+            return self.executer(Programme(sous, time.time(), prog.graine))
 
         mode = spec.get("mode", "static")
         debut = time.time()
@@ -493,6 +525,8 @@ class Pilote(threading.Thread):
                     self.ampoule.couleur(coul, self.lum(lum))
                 if x >= len(etapes) - 1:
                     self.appliquer(etapes[-1])
+                    if spec.get("puis"):
+                        return self.executer(Programme(spec["puis"], time.time(), prog.graine))
                     return
                 if self.attendre(max(1.0, pas * 2.5)):
                     return
@@ -504,6 +538,7 @@ class Pilote(threading.Thread):
             lum = spec.get("lum", 70)
             i = self.index % len(palette)
             role = self.index % 3 if len(palette) > 1 else (self.index % 2)
+            role = {"fixe": 0, "respire": 1, "glisse": 2}.get(spec.get("role"), role)
             self.appliquer({"couleur": palette[i], "lum": lum})
             haut = True
             while True:
@@ -647,6 +682,18 @@ MOTIFS_ECLAIR = [
 ]
 
 
+def oeil():
+    """Un hurlement vient d'être joué : une lampe différente s'allume en rouge, comme des yeux."""
+    spec = ETAT["derniere_spec"]
+    if not spec or not spec.get("yeux"):
+        return
+    lampes = sorted((p for p in PILOTES if p.position in LAMPES), key=lambda p: LAMPES.index(p.position)) or PILOTES
+    ETAT["oeil"] = (ETAT.get("oeil", -1) + 1) % len(lampes)
+    motif = [{"couleur": [255, 0, 0], "lum": 100, "duree": 1.6}, {"couleur": [150, 0, 0], "lum": 35, "duree": 0.8}]
+    lampes[ETAT["oeil"]].jouer(Programme({"mode": "eclair", "motif": motif, "retour": spec, "proba": 1.0},
+                                         time.time(), random.randrange(1 << 30)))
+
+
 def eclair():
     """Éclair déclenché par le tonnerre de la page : flash puis retour à l'ambiance d'orage."""
     spec = ETAT["derniere_spec"]
@@ -786,6 +833,9 @@ class Handler(BaseHTTPRequestHandler):
         if chemin.startswith("/api/scene/"):
             ok = lancer_scene(chemin.rsplit("/", 1)[1])
             return self.envoyer(200 if ok else 404, self.etat())
+        if chemin == "/api/oeil":
+            oeil()
+            return self.envoyer(200, {"ok": True})
         if chemin == "/api/eclair":
             eclair()
             return self.envoyer(200, {"ok": True})

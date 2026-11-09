@@ -21,22 +21,33 @@
    "desc": "Se réveillent ensemble et choisissent une victime.",
    "lsc": "rouge 100 %",
    "lumiere": {
-    "mode": "battement",
+    "mode": "static",
     "couleur": [
-     255,
+     40,
      0,
      0
     ],
-    "lum_base": 10,
-    "lum_flash": 100,
-    "periode": 1.1,
-    "double": true,
+    "lum": 6,
+    "yeux": true,
     "intro": [
      {
       "eteint": true,
       "duree": 0.6
      }
-    ]
+    ],
+    "par_position": {
+     "cuisine": {
+      "mode": "battement",
+      "couleur": [
+       255,
+       0,
+       0
+      ],
+      "lum_base": 4,
+      "lum_flash": 45,
+      "periode": 1.5
+     }
+    }
    },
    "sons": [
     "loups",
@@ -310,7 +321,47 @@
       110,
       190
      ]
-    ]
+    ],
+    "par_position": {
+     "canape_g": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        255,
+        30,
+        130
+       ]
+      ],
+      "lum": 80,
+      "role": "respire",
+      "respiration": 2.5
+     },
+     "canape_d": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        255,
+        30,
+        130
+       ]
+      ],
+      "lum": 80,
+      "role": "respire",
+      "respiration": 2.5
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       255,
+       60,
+       150
+      ],
+      "lum": 12
+     },
+     "autres": {
+      "mode": "off"
+     }
+    }
    },
    "sons": [
     "harpe"
@@ -355,7 +406,47 @@
       140,
       200
      ]
-    ]
+    ],
+    "par_position": {
+     "canape_g": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        255,
+        60,
+        150
+       ]
+      ],
+      "lum": 80,
+      "role": "respire",
+      "respiration": 2
+     },
+     "canape_d": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        255,
+        60,
+        150
+       ]
+      ],
+      "lum": 80,
+      "role": "respire",
+      "respiration": 2
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       255,
+       60,
+       150
+      ],
+      "lum": 12
+     },
+     "autres": {
+      "mode": "off"
+     }
+    }
    },
    "sons": [
     "harpe",
@@ -529,7 +620,49 @@
       80,
       255
      ]
-    ]
+    ],
+    "par_position": {
+     "tv_d": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        150,
+        0,
+        255
+       ]
+      ],
+      "lum": 85,
+      "role": "respire",
+      "respiration": 3.5
+     },
+     "cuisine": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        30,
+        0,
+        90
+       ],
+       [
+        60,
+        0,
+        140
+       ]
+      ],
+      "lum": 12,
+      "role": "glisse",
+      "derive": 6
+     },
+     "autres": {
+      "mode": "static",
+      "couleur": [
+       40,
+       0,
+       120
+      ],
+      "lum": 5
+     }
+    }
    },
    "sons": [
     "mystique"
@@ -778,7 +911,63 @@
       180,
       120
      ]
-    ]
+    ],
+    "par_position": {
+     "canape_g": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        20,
+        255,
+        40
+       ],
+       [
+        0,
+        200,
+        90
+       ]
+      ],
+      "lum": 70,
+      "role": "glisse",
+      "derive": 3
+     },
+     "tv_g": {
+      "mode": "ambiance",
+      "couleurs": [
+       [
+        60,
+        0,
+        90
+       ],
+       [
+        160,
+        0,
+        255
+       ]
+      ],
+      "lum": 60,
+      "role": "glisse",
+      "derive": 5
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       0,
+       80,
+       30
+      ],
+      "lum": 15
+     },
+     "autres": {
+      "mode": "static",
+      "couleur": [
+       0,
+       60,
+       10
+      ],
+      "lum": 8
+     }
+    }
    },
    "sons": [
     "chaudron",
@@ -1304,7 +1493,105 @@
       ],
       "lum": 15
      }
-    ]
+    ],
+    "par_position": {
+     "tv_g": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         255,
+         120,
+         30
+        ],
+        "lum": 60
+       },
+       {
+        "couleur": [
+         120,
+         40,
+         160
+        ],
+        "lum": 35
+       },
+       {
+        "couleur": [
+         170,
+         190,
+         255
+        ],
+        "lum": 40
+       }
+      ],
+      "puis": {
+       "mode": "ambiance",
+       "couleurs": [
+        [
+         170,
+         190,
+         255
+        ]
+       ],
+       "lum": 40,
+       "role": "respire",
+       "respiration": 8
+      }
+     },
+     "cuisine": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         255,
+         120,
+         30
+        ],
+        "lum": 60
+       },
+       {
+        "couleur": [
+         120,
+         40,
+         160
+        ],
+        "lum": 35
+       },
+       {
+        "couleur": [
+         20,
+         20,
+         120
+        ],
+        "lum": 18
+       }
+      ],
+      "puis": {
+       "mode": "ambiance",
+       "couleurs": [
+        [
+         20,
+         20,
+         120
+        ],
+        [
+         60,
+         0,
+         120
+        ],
+        [
+         0,
+         40,
+         140
+        ]
+       ],
+       "lum": 18,
+       "role": "glisse",
+       "derive": 7
+      }
+     }
+    }
    },
    "sons": [
     "vent",
@@ -1593,7 +1880,188 @@
       "lum": 100,
       "temp": 40
      }
-    ]
+    ],
+    "par_position": {
+     "cuisine": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         10,
+         30,
+         160
+        ],
+        "lum": 10
+       },
+       {
+        "couleur": [
+         255,
+         60,
+         20
+        ],
+        "lum": 40
+       },
+       {
+        "couleur": [
+         255,
+         160,
+         50
+        ],
+        "lum": 75
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 40
+       }
+      ]
+     },
+     "tv_g": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         10,
+         30,
+         160
+        ],
+        "lum": 10
+       },
+       {
+        "couleur": [
+         255,
+         60,
+         20
+        ],
+        "lum": 40
+       },
+       {
+        "couleur": [
+         255,
+         160,
+         50
+        ],
+        "lum": 75
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 40
+       }
+      ],
+      "delai": 2.5
+     },
+     "tv_d": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         10,
+         30,
+         160
+        ],
+        "lum": 10
+       },
+       {
+        "couleur": [
+         255,
+         60,
+         20
+        ],
+        "lum": 40
+       },
+       {
+        "couleur": [
+         255,
+         160,
+         50
+        ],
+        "lum": 75
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 40
+       }
+      ],
+      "delai": 2.5
+     },
+     "canape_g": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         10,
+         30,
+         160
+        ],
+        "lum": 10
+       },
+       {
+        "couleur": [
+         255,
+         60,
+         20
+        ],
+        "lum": 40
+       },
+       {
+        "couleur": [
+         255,
+         160,
+         50
+        ],
+        "lum": 75
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 40
+       }
+      ],
+      "delai": 5
+     },
+     "canape_d": {
+      "mode": "fade",
+      "duree": 6,
+      "etapes": [
+       {
+        "couleur": [
+         10,
+         30,
+         160
+        ],
+        "lum": 10
+       },
+       {
+        "couleur": [
+         255,
+         60,
+         20
+        ],
+        "lum": 40
+       },
+       {
+        "couleur": [
+         255,
+         160,
+         50
+        ],
+        "lum": 75
+       },
+       {
+        "blanc": true,
+        "lum": 100,
+        "temp": 40
+       }
+      ],
+      "delai": 5
+     }
+    }
    },
    "sons": [
     "coq",
@@ -1650,7 +2118,39 @@
       0,
       60
      ]
-    ]
+    ],
+    "par_position": {
+     "au_hasard": {
+      "nombre": 1,
+      "spec": {
+       "mode": "static",
+       "couleur": [
+        200,
+        0,
+        0
+       ],
+       "lum": 70
+      }
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       80,
+       0,
+       0
+      ],
+      "lum": 8
+     },
+     "autres": {
+      "mode": "static",
+      "couleur": [
+       60,
+       0,
+       20
+      ],
+      "lum": 5
+     }
+    }
    },
    "sons": [
     "cri",
@@ -2087,7 +2587,39 @@
       0,
       60
      ]
-    ]
+    ],
+    "par_position": {
+     "au_hasard": {
+      "nombre": 2,
+      "spec": {
+       "mode": "static",
+       "couleur": [
+        200,
+        0,
+        0
+       ],
+       "lum": 70
+      }
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       80,
+       0,
+       0
+      ],
+      "lum": 8
+     },
+     "autres": {
+      "mode": "static",
+      "couleur": [
+       60,
+       0,
+       20
+      ],
+      "lum": 5
+     }
+    }
    },
    "sons": [
     "cri",
@@ -2145,7 +2677,39 @@
       0,
       60
      ]
-    ]
+    ],
+    "par_position": {
+     "au_hasard": {
+      "nombre": 3,
+      "spec": {
+       "mode": "static",
+       "couleur": [
+        200,
+        0,
+        0
+       ],
+       "lum": 70
+      }
+     },
+     "cuisine": {
+      "mode": "static",
+      "couleur": [
+       80,
+       0,
+       0
+      ],
+      "lum": 8
+     },
+     "autres": {
+      "mode": "static",
+      "couleur": [
+       60,
+       0,
+       20
+      ],
+      "lum": 5
+     }
+    }
    },
    "sons": [
     "cri",
