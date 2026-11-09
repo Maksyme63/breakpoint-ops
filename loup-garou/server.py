@@ -311,59 +311,6 @@ class AmpouleTuya:
         return lambda *a: getattr(self.dev, nom)(*a)
 
 
-def chercher_adresses(ids, duree=8):
-    """Cherche sur le Wi-Fi l'adresse actuelle des ampoules (id -> (ip, version))."""
-    if not ids:
-        return {}
-    try:
-        from tinytuya import scanner
-        res = scanner.devices(verbose=False, scantime=duree, color=False, poll=False, byID=True, wantids=list(ids))
-    except Exception as e:
-        print(f"   (recherche impossible : {e})")
-        return {}
-    trouves = {}
-    for dev_id, d in (res or {}).items():
-        dev_id = d.get("id") or d.get("gwId") or dev_id
-        if d.get("ip"):
-            trouves[dev_id] = (d["ip"], d.get("version") or d.get("ver"))
-    return trouves
-
-
-def surveiller_ampoules(ampoules):
-    """Toutes les 10 s : reconnecte les ampoules qui ne répondent pas, et cherche leur nouvelle
-    adresse si elles en ont changé (ampoule ou box rallumée)."""
-    derniere_recherche = 0.0
-    while True:
-        time.sleep(10)
-        absentes = [a for a in ampoules if isinstance(a, AmpouleTuya) and not a.ok]
-        if not absentes:
-            continue
-        # nouvelle adresse ? (au plus une recherche par minute)
-        if time.time() - derniere_recherche > 60 and any(a.echecs >= 2 for a in absentes):
-            derniere_recherche = time.time()
-            nouvelles = chercher_adresses([a.info["id"] for a in absentes], duree=6)
-            for a in absentes:
-                if a.info["id"] in nouvelles:
-                    ip, ver = nouvelles[a.info["id"]]
-                    if ip != a.info.get("ip"):
-                        print(f"  🔎 {a.nom} a changé d'adresse : {ip}")
-                    a.info["ip"] = ip
-                    if ver:
-                        a.info["version"] = ver
-        for a in absentes:
-            with a.verrou:
-                if a.ok:
-                    continue
-                try:
-                    if a._connecter():
-                        a.echecs = 0
-                        print(f"  ✅ {a.nom} est de nouveau connectée")
-                        continue
-                except Exception:
-                    pass
-                a.echecs += 1
-
-
 def charger_ampoules():
     devices = charger_json("devices.json")
     if not devices:
@@ -379,11 +326,6 @@ def charger_ampoules():
             ips[d["id"]] = (d["ip"], d.get("ver") or d.get("version"))
 
     choix = [n.lower() for n in CONFIG.get("ampoules") or []]
-    # Les ampoules changent souvent d'adresse quand on les rallume : on cherche leur adresse actuelle
-    voulues = [d["id"] for d in devices if d.get("key")]
-    print("🔎 Recherche des ampoules sur le Wi-Fi (quelques secondes)…")
-    trouvees = chercher_adresses(voulues)
-    print(f"   {len(trouvees)} trouvée(s).")
     ampoules = []
     for info in devices:
         if not info.get("key"):
@@ -394,11 +336,7 @@ def charger_ampoules():
                 continue
         elif info.get("category") and info["category"] not in CATEGORIES_LUMIERE:
             continue
-        if info["id"] in trouvees:  # adresse trouvée à l'instant : prioritaire
-            info["ip"], ver = trouvees[info["id"]]
-            if ver:
-                info["version"] = ver
-        elif info["id"] in ips:
+        if info["id"] in ips:
             info.setdefault("ip", ips[info["id"]][0])
             if ips[info["id"]][1]:
                 info["version"] = ips[info["id"]][1]
@@ -683,8 +621,6 @@ AMPOULES, SIMULATION = charger_ampoules()
 PILOTES = [Pilote(a, i) for i, a in enumerate(AMPOULES)]
 for p in PILOTES:
     p.start()
-if not SIMULATION:
-    threading.Thread(target=surveiller_ampoules, args=(AMPOULES,), daemon=True).start()
 
 def scenes():
     donnees = charger_json("scenes.json", {"scenes": []})
