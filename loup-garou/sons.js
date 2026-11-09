@@ -791,7 +791,7 @@
   };
 
   // ---------- vrais enregistrements (dossier sounds/lib) ----------
-  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, surEclair: null };
+  let config = { echantillons: new Set(), narrateur: true, voixSombre: true, grave: 0.5, surEclair: null };
   function configurer(c) {
     if (c.echantillons) c.echantillons = new Set(c.echantillons);
     Object.assign(config, c);
@@ -928,9 +928,10 @@
           src.buffer = buf; g.gain.value = 1.15; r.gain.value = 0.3;
           if (config.voixSombre) {
             // Voix sombre : un peu plus grave et lente, basses renforcées, aigus adoucis, écho plus profond
-            src.playbackRate.value = 0.9;
+            const grave = Math.max(0, Math.min(1, config.grave ?? 0.5));  // curseur 🎚️ Grave
+            src.playbackRate.value = 1 - 0.2 * grave;
             const basses = ctx.createBiquadFilter(), presence = ctx.createBiquadFilter(), douceur = ctx.createBiquadFilter();
-            basses.type = "lowshelf"; basses.frequency.value = 200; basses.gain.value = 6;
+            basses.type = "lowshelf"; basses.frequency.value = 200; basses.gain.value = 12 * grave;
             presence.type = "peaking"; presence.frequency.value = 3000; presence.Q.value = 1; presence.gain.value = -3;
             douceur.type = "lowpass"; douceur.frequency.value = 7000;
             src.connect(basses); basses.connect(presence); presence.connect(douceur); douceur.connect(g);
