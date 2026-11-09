@@ -1530,30 +1530,7 @@
      ]
     ],
     "par_position": {
-     "tv_d": {
-      "mode": "ambiance",
-      "couleurs": [
-       [
-        60,
-        80,
-        255
-       ],
-       [
-        255,
-        60,
-        200
-       ],
-       [
-        150,
-        0,
-        255
-       ]
-      ],
-      "lum": 95,
-      "role": "glisse",
-      "vitesse": 40
-     },
-     "autres": {
+     "cuisine": {
       "mode": "ambiance",
       "couleurs": [
        [
@@ -1575,6 +1552,25 @@
       "lum": 45,
       "role": "glisse",
       "vitesse": 30
+     },
+     "autres": {
+      "mode": "tour",
+      "couleur": [
+       90,
+       0,
+       200
+      ],
+      "lum": 45,
+      "eclat": {
+       "couleur": [
+        255,
+        60,
+        200
+       ],
+       "lum": 100
+      },
+      "pas": 1.5,
+      "duree_eclat": 1.5
      }
     }
    },
