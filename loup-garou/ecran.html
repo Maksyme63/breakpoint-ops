@@ -74,10 +74,12 @@ function sonder() {
 setInterval(sonder, 200);
 var videos = [], video = document.getElementById("v"), modeVideo = false;
 charger("api/videos", function (l) { videos = l || []; });
+var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 function videoPour(s, th) {
-  var noms = [s.id, th], ext = ["mp4", "webm", "mov", "m4v"];
+  var noms = [s.id + SUFFIXE_ECRAN, th + SUFFIXE_ECRAN], ext = ["mp4", "webm", "mov", "m4v"];
   for (var i = 0; i < noms.length; i++) for (var j = 0; j < ext.length; j++) {
-    var u = "videos/" + noms[i] + "." + ext[j]; if (videos.indexOf(u) >= 0) return u;
+    var u = ("videos/" + noms[i] + "." + ext[j]).toLowerCase();
+    for (var k = 0; k < videos.length; k++) if (videos[k].toLowerCase() === u) return videos[k];
   }
   return null;
 }
