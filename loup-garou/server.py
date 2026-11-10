@@ -534,9 +534,11 @@ class Pilote(threading.Thread):
                     self.depuis_eteint = False
                 else:
                     if derniere:  # ruban (pas de dégradé intégré) : il descend par paliers au même rythme
-                        for k, part in enumerate((0.5, 0.2)):
-                            self.ampoule.couleur(derniere[0], max(1, derniere[1] * part))
-                            if self.attendre(t + float(etape["fondu_noir"]) * (k + 1) / 2 - time.time()):
+                        # paliers plus fins et adaptés à l'œil (les écarts se voient surtout dans le sombre)
+                        paliers = (0.6, 0.3, 0.1)
+                        for k, part in enumerate(paliers):
+                            self.ampoule.couleur(derniere[0], max(1, derniere[1] * part), rapide=True)
+                            if self.attendre(t + float(etape["fondu_noir"]) * (k + 1) / len(paliers) - time.time()):
                                 return
                     self.appliquer("eteint")
                     self.depuis_eteint = True
@@ -573,9 +575,10 @@ class Pilote(threading.Thread):
                         return
                 else:  # ruban : remontée par paliers, pendant le même temps que les ampoules
                     debut_montee = time.time()
-                    for k, part in enumerate((0.25, 0.55)):
-                        self.ampoule.couleur(c, max(1, l * part))
-                        if self.attendre(debut_montee + MONTEE_RESPIRATION * (k + 1) / 3 - time.time()):
+                    paliers = (0.08, 0.25, 0.5, 0.8)
+                    for k, part in enumerate(paliers):
+                        self.ampoule.couleur(c, max(1, l * part), rapide=True)
+                        if self.attendre(debut_montee + MONTEE_RESPIRATION * (k + 1) / (len(paliers) + 1) - time.time()):
                             return
 
         if mode == "off":
