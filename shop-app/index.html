@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+ <link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#1f3a5f">
+
+<link rel="apple-touch-icon" href="assets/icon.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rayon"> 
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Rayon</title>
+
+
+  <style>
+    :root{
+      --green:#1f3a5f;
+      --green-2:#33598c;
+      --orange:#e8911a;
+      --gray:#f0f2f5;
+      --gray2:#dfe3e8;
+      --text:#111827;
+      --muted:#6b7280;
+      --white:#fff;
+      --red:#cc3333;
+      --ok:#16a34a;
+      --shadow:0 4px 18px rgba(0,0,0,.12);
+      --radius:14px;
+      --maxw:500px;
+    }
+
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--gray);
+      color:var(--text);
+      max-width:var(--maxw);
+      margin-inline:auto;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .screen{display:none; min-height:100vh; background:var(--gray);}
+    .screen.active{display:block;}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:var(--green);
+      color:#fff;
+      padding:12px 14px;
+      box-shadow:0 4px 16px rgba(0,0,0,.18);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .back-btn{
+      border:none;
+      background:rgba(255,255,255,.14);
+      color:#fff;
+      width:40px;
+      height:40px;
+      border-radius:10px;
+      font-size:22px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .topbar-title{
+      font-size:17px;
+      font-weight:700;
+      line-height:1.2;
+    }
+
+    .topbar-sub{
+      font-size:11px;
+      opacity:.8;
+      margin-top:2px;
+    }
+
+    .hero-home{
+      min-height:240px;
+      background:
+        linear-gradient(135deg,#1f3a5f,#0f1f33);
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      text-align:center;
+      padding:28px 18px;
+      color:#fff;
+      position:relative;
+    }
+
+    .home-logo{
+      position:absolute;
+      top:22px;
+      left:50%;
+      transform:translateX(-50%);
+      width:86px;
+      height:86px;
+      object-fit:contain;
+      border-radius:50%;
+      background:rgba(255,255,255,.12);
+      padding:6px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+    }
+
+    .hero-home h1{
+      margin:0;
+      font-size:28px;
+      font-weight:800;
+      display:none;
+    }
+
+    .hero-home p{
+      margin:0;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .hero-station{
+      min-height:0;
+      background:
+        linear-gradient(135deg,#1f3a5f,#33598c);
+      display:flex;
+      align-items:flex-end;
+      padding:24px 18px;
+      color:#fff;
+    }
+
+    .hero-station-title{
+      font-size:25px;
+      font-weight:800;
+      margin:0 0 4px 0;
+    }
+
+    .hero-station-sub{
+      margin:0;
+      font-size:13px;
+      opacity:.92;
+      font-weight:600;
+    }
+
+    .section{
+      padding:18px 16px 28px;
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 6px;
+    }
+
+    .section-sub{
+      color:var(--muted);
+      font-size:13px;
+      margin:0 0 14px;
+    }
+
+    .station-btn,
+    .module-btn,
+    .action-btn,
+    .ghost-btn,
+    .save-btn{
+      width:100%;
+      border:none;
+      border-radius:var(--radius);
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      font-size:16px;
+    }
+
+    .station-btn{
+      background:#fff;
+      text-align:left;
+      padding:18px 16px;
+      margin-bottom:10px;
+      border:2px solid #e4e7eb;
+      font-weight:700;
+    }
+
+    .station-btn small{
+      display:none;
+    }
+
+    .module-list{
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+
+    .module-btn{
+      min-height:82px;
+      padding:16px;
+      color:#fff;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:800;
+    }
+
+    .module-btn .sub{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      opacity:.88;
+      font-weight:600;
+    }
+
+    .module-btn.stock{background:linear-gradient(135deg,var(--green-2),var(--green))}
+    .module-btn.orange{background:linear-gradient(135deg,#f4a122,var(--orange))}
+    .module-btn.gray{background:linear-gradient(135deg,#9aa3af,#6b7280)}
+
+    .badge-soon{
+      font-size:11px;
+      background:rgba(255,255,255,.18);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      white-space:nowrap;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+
+    .scan-card{
+      background:#101828;
+      color:#fff;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+
+    .scan-visual{
+      min-height:180px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:14px;
+      background:linear-gradient(180deg,#243041,#111827);
+      cursor:pointer;
+    }
+
+    .scan-box{
+      width:220px;
+      height:90px;
+      border:3px solid rgba(255,255,255,.9);
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .scan-line{
+      position:absolute;
+      left:0;
+      right:0;
+      height:3px;
+      background:linear-gradient(90deg, transparent, #ff4d4d, transparent);
+      box-shadow:0 0 10px #ff4d4d;
+      animation:scanMove 1.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes scanMove{
+      from{top:8px}
+      to{top:calc(100% - 8px)}
+    }
+
+    .scan-controls{
+      display:flex;
+      gap:8px;
+      padding:10px;
+      background:rgba(255,255,255,.06);
+    }
+
+    .scan-controls input{
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .scan-controls button{
+      border:none;
+      border-radius:12px;
+      width:52px;
+      background:#1d4ed8;
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+    }
+
+    .form-group{margin-bottom:14px}
+    .form-label{
+      display:block;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      color:var(--muted);
+      font-weight:700;
+      margin-bottom:7px;
+    }
+
+    .input{
+      width:100%;
+      border:2px solid #e3e7ec;
+      border-radius:12px;
+      padding:13px 14px;
+      font-size:15px;
+      outline:none;
+      background:#fff;
+    }
+
+    .qty-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .qty-row button{
+      width:48px;
+      height:48px;
+      border:none;
+      border-radius:12px;
+      background:var(--green);
+      color:#fff;
+      font-size:24px;
+      cursor:pointer;
+    }
+
+    .qty-row input{
+      flex:1;
+      text-align:center;
+      font-size:18px;
+      font-weight:700;
+      border:2px solid #e3e7ec;
+      border-radius:12px;
+      padding:11px;
+      outline:none;
+      background:#fff;
+    }
+
+    .save-btn{
+      background:var(--ok);
+      color:#fff;
+      padding:16px;
+      font-weight:800;
+      margin-top:4px;
+    }
+
+    .actions{
+      padding:16px;
+    }
+
+    .stock-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:8px;
+    }
+
+    .stock-square{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+      border:2px solid #e4e7eb;
+      border-radius:16px;
+      padding:22px 12px;
+      min-height:132px;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      text-align:center;
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .stock-square.disabled{
+      opacity:.6;
+      cursor:default;
+      background:#f8f9fa;
+    }
+
+    .stock-emoji{
+      font-size:34px;
+      margin-bottom:10px;
+    }
+
+    .stock-soon{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-weight:700;
+    }
+
+    .ghost-btn{
+      background:#fff;
+      padding:15px;
+      text-align:center;
+      border:2px dashed #cfd6dd;
+      font-weight:700;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%) translateY(20px);
+      background:#111827;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-size:14px;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:100;
+      white-space:nowrap;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.88);
+      display:none;
+      z-index:90;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .overlay.show{display:flex}
+
+    .overlay video{
+      width:100%;
+      max-width:420px;
+      border-radius:18px;
+      background:#000;
+    }
+
+    .overlay-tools{
+      width:100%;
+      max-width:420px;
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+    }
+
+    .overlay-tools input{
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .overlay-tools button{
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .overlay-close{background:#fff}
+    .overlay-confirm{background:var(--green); color:#fff}
+
+    .muted{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .location-btn{
+      border:none;
+      border-radius:12px;
+      min-height:44px;
+      background:#f3f4f6;
+      color:#111827;
+      font-weight:700;
+      cursor:pointer;
+      border:2px solid #e5e7eb;
+    }
+
+    .location-btn.active{
+      background:var(--green);
+      color:#fff;
+      border-color:var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- PIN MODAL -->
+  <div id="pinModal" style="visibility:hidden;pointer-events:none;opacity:0;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;-webkit-overflow-scrolling:touch;transition:opacity .15s;">
+    <div style="background:#fff;border-radius:20px;padding:24px 20px;width:100%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div id="pinModalTitle" style="font-size:18px;font-weight:900;color:#111827;"></div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px;">Entrez le code d'accès</div>
+      </div>
+
+      <!-- Affichage du code saisi -->
+      <div id="pinDisplay" style="font-size:28px;text-align:center;letter-spacing:10px;height:48px;line-height:48px;margin-bottom:8px;color:#111827;font-weight:900;">•</div>
+
+      <!-- Message erreur -->
+      <div id="pinError" style="display:none;color:#ef4444;font-size:13px;font-weight:700;text-align:center;margin-bottom:8px;">❌ Code incorrect</div>
+
+      <!-- Clavier numérique intégré — fiable sur tous les mobiles -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+        <button type="button" onclick="pinKey('1')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">1</button>
+        <button type="button" onclick="pinKey('2')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">2</button>
+        <button type="button" onclick="pinKey('3')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">3</button>
+        <button type="button" onclick="pinKey('4')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">4</button>
+        <button type="button" onclick="pinKey('5')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">5</button>
+        <button type="button" onclick="pinKey('6')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">6</button>
+        <button type="button" onclick="pinKey('7')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">7</button>
+        <button type="button" onclick="pinKey('8')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">8</button>
+        <button type="button" onclick="pinKey('9')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">9</button>
+        <button type="button" onclick="closePinModal()" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:13px;font-weight:700;background:#f3f4f6;cursor:pointer;font-family:inherit;color:#6b7280;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">Annuler</button>
+        <button type="button" onclick="pinKey('0')" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">0</button>
+        <button type="button" onclick="pinBackspace()" style="padding:16px;border:2px solid #e3e7ec;border-radius:12px;font-size:20px;font-weight:700;background:#f3f4f6;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">⌫</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PAGE 1 -->
+  <section class="screen active" id="page-home">
+
+    <!-- TOPBAR VERT (visible derrière zone système iPhone) -->
+    <div style="position:sticky;top:0;z-index:50;background:#1f3a5f;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:flex;align-items:center;">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:#fff;line-height:1.2;">Rayon</div>
+        <div style="font-size:11px;opacity:.8;margin-top:2px;color:#fff;">Sélectionnez votre point de vente</div>
+      </div>
+    </div>
+
+    <!-- HERO PHOTO -->
+    <div style="
+      position:relative;
+      min-height:280px;
+      background:linear-gradient(135deg,#1f3a5f,#0f1f33);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-end;
+      padding:0 20px 28px;
+      overflow:hidden;
+    ">
+      <!-- Dégradé sombre -->
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,31,51,.3) 0%,rgba(15,31,51,.82) 100%);"></div>
+
+      <!-- Logo + texte par-dessus le dégradé -->
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <img src="assets/icon.png" alt="logo" style="
+          width:72px;height:72px;
+          border-radius:50%;
+          object-fit:contain;
+          background:rgba(255,255,255,.15);
+          padding:7px;
+          box-shadow:0 6px 22px rgba(0,0,0,.35);
+        "/>
+        <div style="text-align:center;">
+          <div style="color:#fff;font-size:21px;font-weight:900;letter-spacing:-.2px;">Rayon</div>
+          <div style="color:rgba(255,255,255,.7);font-size:12px;font-weight:600;margin-top:2px;">Sélectionnez votre point de vente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POINTS DE VENTE -->
+    <div style="padding:18px 14px 36px;">
+      <div id="shopGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;"></div>
+      <button type="button" onclick="goSettings()" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:14px;background:#fff;color:#374151;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;">⚙️ Réglages</button>
+    </div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <section class="screen" id="page-modules">
+    <div class="topbar">
+      <button class="back-btn" onclick="goHome()">‹</button>
+      <div>
+        <div class="topbar-title" id="top-station-name">Point de vente</div>
+        <div class="topbar-sub">Choisissez un module</div>
+      </div>
+    </div>
+
+    <div class="hero-station">
+      <div>
+        <h2 class="hero-station-title" id="hero-station-name" style="display:none;"></h2>
+        <p class="hero-station-sub" style="display:none;"></p>
+      </div>
+    </div>
+
+    <div class="module-list">
+      <button class="module-btn stock" onclick="goStockHome()">
+        <span>
+          Gestion de stock
+          <span class="sub">Dates limites · Réception · Alertes</span>
+        </span>
+        <span>›</span>
+      </button>
+
+      <button class="module-btn gray" onclick="goMaintenance()">
+        <span>
+          Maintenance
+          <span class="sub">Rapport d'incident · Demande d'intervention</span>
+        </span>
+        <span>›</span>
+      </button>
+
+      <button class="module-btn" onclick="goPlanUrgence()" style="background:linear-gradient(135deg,#dc2626,#991b1b);">
+        <span>
+          🚨 Plan d'urgence
+          <span class="sub">Procédures vitales · Urgences · Numéros utiles</span>
+        </span>
+        <span>›</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- PAGE 3 -->
+  <section class="screen" id="page-stock-home">
+    <div class="topbar">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div>
+        <div class="topbar-title">Gestion de stock</div>
+        <div class="topbar-sub" id="stock-station-name">Point de vente</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="stock-grid">
+        <button class="stock-square" onclick="goReception()">
+          <div class="stock-emoji">📦</div>
+          <div>Réception livraison</div>
+        </button>
+
+        <button class="stock-square" onclick="goAlerts()">
+          <div class="stock-emoji">⚠️</div>
+          <div>Alertes DLC</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 4 -->
+  <section class="screen" id="page-reception">
+    <div class="topbar">
+      <button class="back-btn" onclick="goStockHome()">‹</button>
+      <div>
+        <div class="topbar-title">Réception livraison</div>
+        <div class="topbar-sub" id="reception-station-name">Point de vente</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="scan-card">
+        <div id="scanLive" style="position:relative;min-height:200px;background:#000;border-radius:18px 18px 0 0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          <video id="scannerVideoInline" autoplay muted playsinline style="width:100%;max-height:240px;object-fit:cover;display:none;"></video>
+          <div id="scanPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px;cursor:pointer;" onclick="startInlineScanner()">
+            <div class="scan-box"><div class="scan-line"></div></div>
+            <div style="font-size:13px;opacity:.7;">Appuyez pour activer la caméra</div>
+          </div>
+          <div id="scanCorners" style="display:none;position:absolute;inset:0;pointer-events:none;">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polyline points="8,20 8,8 20,8" fill="none" stroke="#22c55e" stroke-width="2"/>
+              <polyline points="80,8 92,8 92,20" fill="none" stroke="#22c55e" stroke-width="2"/>
+              <polyline points="8,80 8,92 20,92" fill="none" stroke="#22c55e" stroke-width="2"/>
+              <polyline points="80,92 92,92 92,80" fill="none" stroke="#22c55e" stroke-width="2"/>
+            </svg>
+          </div>
+          <div id="scanStatusBadge" style="display:none;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:5px 12px;border-radius:999px;">Recherche...</div>
+          <button id="scanStopBtn" onclick="stopInlineScanner()" style="display:none;position:absolute;top:10px;right:10px;border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">✕ Stop</button>
+          <!-- Panneau confirmation scan douteux -->
+          <div id="scanConfirmPanel" style="display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(17,24,39,.92);padding:12px 14px;text-align:center;">
+            <div id="scanConfirmCode" style="color:#fff;font-size:13px;font-weight:700;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;justify-content:center;">
+              <button onclick="confirmScanCode()" style="border:none;border-radius:10px;padding:9px 18px;background:#22c55e;color:#fff;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;">✅ Confirmer</button>
+              <button onclick="dismissScanConfirm()" style="border:none;border-radius:10px;padding:9px 18px;background:rgba(255,255,255,.18);color:#fff;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;">🔄 Scanner encore</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="scan-controls">
+          <input
+            id="eanInput"
+            type="text"
+            inputmode="numeric"
+            placeholder="Saisir le code EAN manuellement..."
+            oninput="onManualEAN(this.value)"
+          />
+          <button onclick="startInlineScanner()">📷</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; gap:14px; align-items:flex-start; margin-bottom:16px;">
+          <div
+            id="productPhotoBox"
+            onclick="document.getElementById('photoInput').click()"
+            style="
+              width:78px;
+              height:78px;
+              border-radius:14px;
+              border:2px dashed #d6dbe1;
+              background:#f8fafc;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              overflow:hidden;
+              font-size:30px;
+              flex-shrink:0;
+              cursor:pointer;
+            "
+          >📦</div>
+
+          <div style="flex:1;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Nom du produit</label>
+              <input class="input" id="nameInput" type="text" placeholder="Nom du produit" />
+            </div>
+          </div>
+        </div>
+
+        <input id="photoInput" type="file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+
+        <div class="form-group">
+          <label class="form-label">Date limite de consommation</label>
+          <input class="input" id="dlcInput" type="date" style="width:100%;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Emplacement(s)</label>
+          <div id="locationGrid" style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px;"></div>
+        </div>
+
+        <button class="save-btn" onclick="saveProduct()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 5 — ALERTES DLC -->
+  <section class="screen" id="page-alerts">
+    <div class="topbar">
+      <button class="back-btn" onclick="goStockHome()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Alertes DLC</div>
+        <div class="topbar-sub" id="alerts-station-name">Point de vente</div>
+      </div>
+      <div id="alertsBadge" style="background:#ef4444;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px;display:none;"></div>
+    </div>
+    <div style="padding:14px 14px 8px;display:flex;justify-content:flex-end;">
+      <button onclick="goHistory()" style="border:none;background:#f3f4f6;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;font-family:inherit;">📋 Historique</button>
+    </div>
+    <div style="padding:4px 14px 32px;">
+      <div id="alertsList" style="display:grid;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 6 — HISTORIQUE DLC -->
+  <section class="screen" id="page-history">
+    <div class="topbar">
+      <button class="back-btn" onclick="goAlerts()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Historique DLC</div>
+        <div class="topbar-sub" id="history-station-name">Point de vente</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 32px;">
+      <div id="historyList" style="display:grid;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 7 — MAINTENANCE ACCUEIL -->
+  <section class="screen" id="page-maintenance">
+    <div class="topbar">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Maintenance</div>
+        <div class="topbar-sub" id="maintenance-station-name">Point de vente</div>
+      </div>
+    </div>
+    <div style="padding:16px 14px 32px;">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:14px;font-weight:600;">Sélectionnez une catégorie</div>
+      <div id="maintenanceCatGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:11px;"></div>
+      <button type="button" onclick="goMaintenanceHistory()" style="width:100%;margin-top:18px;border:2px solid #e4e7eb;border-radius:14px;padding:16px 18px;background:#f9fafb;color:#374151;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+        <span style="font-size:20px;">📋</span>
+        <span style="flex:1;text-align:left;">Historique des interventions</span>
+        <span style="color:#9ca3af;font-size:18px;">›</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- PAGE 9 — HISTORIQUE MAINTENANCE -->
+  <section class="screen" id="page-maintenance-history">
+    <div class="topbar">
+      <button class="back-btn" onclick="goMaintenance()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">Historique interventions</div>
+        <div class="topbar-sub" id="maint-history-station">Point de vente</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 36px;">
+      <div id="maintHistoryList" style="display:grid;gap:11px;"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 8 — MAINTENANCE FORMULAIRE -->
+  <section class="screen" id="page-maintenance-form">
+    <div class="topbar">
+      <button class="back-btn" onclick="goMaintenance()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title" id="maint-form-title">Incident</div>
+        <div class="topbar-sub" id="maint-form-sub">Point de vente</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 40px;display:flex;flex-direction:column;gap:14px;">
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Sous-catégorie</label>
+        <select id="maintSubcat" onchange="onMaintSubcatChange()" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;"></select>
+      </div>
+
+      <div id="maintInfoBox" style="display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px;">ℹ️ Information</div>
+        <div id="maintInfoText" style="font-size:13px;color:#78350f;line-height:1.5;"></div>
+      </div>
+
+      <div id="maintContactBox" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:4px;">📬 Contact</div>
+        <div id="maintContactMail" style="font-size:13px;color:#374151;"></div>
+        <div id="maintContactPhone" style="font-size:13px;color:#374151;margin-top:3px;"></div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Titre</label>
+        <input id="maintTitre" type="text" placeholder="Ex: Frigo n°2 en panne" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;">
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Description de l'incident</label>
+        <textarea id="maintDescription" placeholder="Décrivez le problème en détail..." style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:13px 14px;font-size:15px;outline:none;background:#fff;font-family:inherit;min-height:100px;resize:vertical;"></textarea>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Photo (optionnel)</label>
+        <input id="maintPhotoInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleMaintPhoto(event)">
+        <div id="maintPhotoBox" onclick="document.getElementById('maintPhotoInput').click()" style="width:100%;min-height:80px;border:2px dashed #d6dbe1;border-radius:12px;background:#f8fafc;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;">
+          <div id="maintPhotoPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#9ca3af;padding:16px;">
+            <span style="font-size:28px;">📷</span>
+            <span style="font-size:12px;font-weight:600;">Appuyez pour ajouter une photo</span>
+          </div>
+          <img id="maintPhotoPreview" style="display:none;width:100%;max-height:200px;object-fit:cover;" />
+        </div>
+        <div id="maintPhotoRemove" style="display:none;margin-top:6px;text-align:right;">
+          <button onclick="removeMaintPhoto()" style="border:none;background:none;color:#ef4444;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Supprimer la photo</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Niveau d'urgence</label>
+        <div style="display:flex;gap:8px;">
+          <button id="urg-low"  onclick="setUrgence('low')"  style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🟢 Normal</button>
+          <button id="urg-med"  onclick="setUrgence('med')"  style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🟡 Urgent</button>
+          <button id="urg-high" onclick="setUrgence('high')" style="flex:1;border:2px solid #e3e7ec;border-radius:10px;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#374151;">🔴 Critique</button>
+        </div>
+      </div>
+
+      <div style="margin-top:4px;">
+        <button type="button" onclick="envoyerDemande()" class="envoyer-btn" style="width:100%;border:none;border-radius:12px;padding:17px;background:#1f3a5f;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PAGE — PLAN D'URGENCE ACCUEIL -->
+  <section class="screen" id="page-urgence">
+    <div class="topbar" style="background:#dc2626;">
+      <button class="back-btn" onclick="goModules()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title">🚨 Plan d'urgence</div>
+        <div class="topbar-sub" id="urgence-station-name">Point de vente</div>
+      </div>
+    </div>
+    <div style="padding:14px 14px 32px;">
+      <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:800;color:#dc2626;margin-bottom:2px;">⚠️ EN CAS D'URGENCE</div>
+        <div style="font-size:12px;color:#7f1d1d;">Restez calme · Appelez les secours · Suivez la procédure</div>
+      </div>
+      <div id="urgenceGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE — PLAN D'URGENCE FICHE DÉTAIL -->
+  <section class="screen" id="page-urgence-fiche">
+    <div class="topbar" id="urgence-fiche-topbar" style="background:#dc2626;">
+      <button class="back-btn" onclick="goPlanUrgence()">‹</button>
+      <div style="flex:1;">
+        <div class="topbar-title" id="urgence-fiche-title">Incident</div>
+        <div class="topbar-sub">Plan d'urgence</div>
+      </div>
+    </div>
+    <div id="urgence-fiche-content" style="padding:14px 14px 40px;display:flex;flex-direction:column;gap:12px;"></div>
+  </section>
+
+  <!-- PAGE — RÉGLAGES -->
+  <section class="screen" id="page-settings">
+    <div class="topbar">
+      <button class="back-btn" id="settingsBackBtn" onclick="goHome()">‹</button>
+      <div>
+        <div class="topbar-title">Réglages</div>
+        <div class="topbar-sub" id="settingsSub">Votre commerce</div>
+      </div>
+    </div>
+    <div style="padding:16px 14px 40px;display:flex;flex-direction:column;gap:14px;">
+      <div id="settingsWelcome" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:12px 14px;font-size:13px;color:#1e3a8a;line-height:1.5;">
+        Bienvenue. Indiquez le nom de votre commerce pour commencer. Tout le reste peut être complété plus tard.
+      </div>
+      <label class="set-field">Nom du commerce
+        <input id="setShopName" type="text" class="set-input" placeholder="Ex. Épicerie du Parc">
+      </label>
+      <label class="set-field">Points de vente (un par ligne, si vous en avez plusieurs)
+        <textarea id="setShops" class="set-input" rows="3" placeholder="Laissez vide si vous n'avez qu'un magasin"></textarea>
+      </label>
+      <label class="set-field">Emplacements de stockage (séparés par des virgules)
+        <input id="setLocations" type="text" class="set-input" placeholder="A, B, C, Frigo 1, Réserve">
+      </label>
+      <label class="set-field">Alerter combien de jours avant la date limite
+        <input id="setAlertDays" type="number" min="0" max="60" class="set-input">
+      </label>
+      <label class="set-field">Code d'accès (chiffres, facultatif)
+        <input id="setPin" type="text" inputmode="numeric" maxlength="6" class="set-input" placeholder="Aucun code">
+      </label>
+      <label class="set-field">Email du responsable (reçoit une copie des demandes)
+        <input id="setManagerEmail" type="email" class="set-input" placeholder="responsable@exemple.be">
+      </label>
+      <label class="set-field">Téléphone du responsable (affiché dans le plan d'urgence)
+        <input id="setManagerPhone" type="tel" class="set-input" placeholder="04xx xx xx xx">
+      </label>
+
+      <div style="font-size:14px;font-weight:800;color:#111827;margin-top:6px;">Contacts de dépannage</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:-8px;">Email et téléphone du réparateur pour chaque type de panne. Facultatif.</div>
+      <div id="setContacts" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+      <button type="button" onclick="saveSettings()" style="width:100%;border:none;border-radius:12px;padding:16px;background:#1f3a5f;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;">✅ Enregistrer</button>
+      <button type="button" onclick="exportData()" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:14px;background:#fff;color:#374151;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;">⬇️ Exporter mes données</button>
+      <div style="font-size:12px;color:#6b7280;line-height:1.5;">Vos données sont enregistrées sur cet appareil uniquement. Exportez-les régulièrement pour en garder une copie. Le code d'accès évite les erreurs de manipulation, il ne remplace pas le verrouillage de l'appareil.</div>
+    </div>
+  </section>
+  <style>
+    .set-field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#374151;}
+    .set-input{width:100%;box-sizing:border-box;padding:12px;border:2px solid #e3e7ec;border-radius:12px;font-size:16px;font-family:inherit;font-weight:400;color:#111827;background:#fff;}
+    .set-input:focus{outline:none;border-color:#1f3a5f;}
+    .hero-station{display:none;}
+    .location-btn{overflow:hidden;text-overflow:ellipsis;}
+  </style>
+
+<script>
+    const APP_VERSION = "2.0.7";
+    (function checkVersion(){
+      try {
+        var stored = localStorage.getItem("rayon_version");
+        if (stored !== APP_VERSION) {
+          localStorage.setItem("rayon_version", APP_VERSION);
+          // Clear SW caches on version change — but never reload
+          // Reloading resets state.station and makes history disappear
+          if ("caches" in window) {
+            caches.keys().then(function(names){
+              names.forEach(function(n){ caches.delete(n); });
+            });
+          }
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs){
+              regs.forEach(function(reg){ reg.unregister(); });
+            });
+          }
+        }
+      } catch(e){}
+    })();
+
+    /* ══ RÉGLAGES DU COMMERCE ══ */
+    const DEFAULT_SETTINGS = {
+      shopName: "", shops: [], pin: "",
+      locations: ["A","B","C","D","E","F","G","H","I","J","K","L"],
+      alertDays: 3, managerEmail: "", managerPhone: "", contacts: {}
+    };
+    let settings = (function(){
+      try {
+        var raw = JSON.parse(localStorage.getItem("rayon_settings") || "null");
+        return Object.assign({}, DEFAULT_SETTINGS, raw || {});
+      } catch(e){ return Object.assign({}, DEFAULT_SETTINGS); }
+    })();
+    function getShops(){ return settings.shops.length ? settings.shops : [settings.shopName]; }
+    function getLocations(){ return settings.locations.length ? settings.locations : DEFAULT_SETTINGS.locations; }
+    function escapeHtml(v){
+      return String(v == null ? "" : v).replace(/[&<>"']/g, function(c){
+        return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+      });
+    }
+
+    /* ══ DONNÉES LOCALES (enregistrées sur l'appareil) ══ */
+    const localDB = (function(){
+      var opening = null;
+      function open(){
+        if (!opening) opening = new Promise(function(res, rej){
+          var r = indexedDB.open("rayon", 1);
+          r.onupgradeneeded = function(){ r.result.createObjectStore("kv"); };
+          r.onsuccess = function(){ res(r.result); };
+          r.onerror = function(){ rej(r.error); };
+        });
+        return opening;
+      }
+      async function get(key){
+        var db = await open();
+        return new Promise(function(res, rej){
+          var q = db.transaction("kv").objectStore("kv").get(key);
+          q.onsuccess = function(){ res(q.result || []); };
+          q.onerror = function(){ rej(q.error); };
+        });
+      }
+      async function set(key, value){
+        var db = await open();
+        return new Promise(function(res, rej){
+          var tx = db.transaction("kv", "readwrite");
+          tx.objectStore("kv").put(value, key);
+          tx.oncomplete = function(){ res(); };
+          tx.onerror = function(){ rej(tx.error); };
+        });
+      }
+      return { get: get, set: set };
+    })();
+
+    function newId(){
+      return (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
+    function daysLeft(dlc){
+      var today = new Date(); today.setHours(0,0,0,0);
+      return Math.round((new Date(dlc + "T00:00:00") - today) / 86400000);
+    }
+    async function readTable(name){
+      if (name !== "v_alertes_dlc" && name !== "v_alertes_dlc_historique") return localDB.get(name);
+      var lots = await localDB.get("lots"), prods = await localDB.get("produits"), byEan = {};
+      prods.forEach(function(p){ byEan[p.ean] = p; });
+      var rows = lots.map(function(l){
+        var p = byEan[l.ean] || {};
+        return Object.assign({}, l, { nom: p.nom, photo: p.photo, jours_restants: daysLeft(l.dlc) });
+      });
+      if (name === "v_alertes_dlc")
+        return rows.filter(function(r){ return r.statut === "actif" && r.jours_restants <= Number(settings.alertDays); });
+      var since = Date.now() - 10 * 86400000;
+      return rows.filter(function(r){
+        return r.statut !== "actif" && new Date(r.traite_at || r.deleted_at || r.created_at).getTime() >= since;
+      });
+    }
+
+    /* Même forme d'appels qu'une base en ligne : la synchronisation pourra être branchée ici. */
+    function LocalQuery(table){ this.table = table; this.filters = []; this.op = "select"; }
+    LocalQuery.prototype.select = function(){ return this; };
+    LocalQuery.prototype.insert = function(rows){ this.op = "insert"; this.rows = rows; return this; };
+    LocalQuery.prototype.update = function(patch){ this.op = "update"; this.patch = patch; return this; };
+    LocalQuery.prototype.eq  = function(c, v){ this.filters.push(function(r){ return r[c] === v; }); return this; };
+    LocalQuery.prototype.gte = function(c, v){ this.filters.push(function(r){ return r[c] >= v; }); return this; };
+    LocalQuery.prototype.order = function(c, o){ this.orderBy = c; this.asc = !o || o.ascending !== false; return this; };
+    LocalQuery.prototype.limit = function(n){ this.max = n; return this; };
+    LocalQuery.prototype.maybeSingle = function(){ this.single = true; return this; };
+    LocalQuery.prototype.then = function(res, rej){ return this.run().then(res, rej); };
+    LocalQuery.prototype.run = async function(){
+      try {
+        var self = this;
+        var match = function(r){ return self.filters.every(function(f){ return f(r); }); };
+        if (this.op === "insert"){
+          var all = await localDB.get(this.table);
+          var added = this.rows.map(function(r){
+            return Object.assign({ id: newId(), created_at: new Date().toISOString() },
+              self.table === "lots" ? { quantite: 1 } : {}, r);
+          });
+          await localDB.set(this.table, all.concat(added));
+          return { data: added, error: null };
+        }
+        if (this.op === "update"){
+          var rows = await localDB.get(this.table);
+          rows.forEach(function(r){ if (match(r)) Object.assign(r, self.patch); });
+          await localDB.set(this.table, rows);
+          return { data: null, error: null };
+        }
+        var data = (await readTable(this.table)).filter(match);
+        if (this.orderBy){
+          var c = this.orderBy, dir = this.asc ? 1 : -1;
+          data.sort(function(a, b){ return a[c] < b[c] ? -dir : a[c] > b[c] ? dir : 0; });
+        }
+        if (this.max) data = data.slice(0, this.max);
+        return { data: this.single ? (data[0] || null) : data, error: null };
+      } catch(e){
+        return { data: null, error: { message: e && e.message ? e.message : String(e) } };
+      }
+    };
+    async function patchLot(id, patch){
+      try {
+        var lots = await localDB.get("lots");
+        var lot = lots.find(function(l){ return l.id === id; });
+        if (!lot) return { data: null, error: { message: "Lot introuvable" } };
+        Object.assign(lot, patch, { updated_at: new Date().toISOString() });
+        await localDB.set("lots", lots);
+        return { data: lot, error: null };
+      } catch(e){ return { data: null, error: { message: String(e && e.message || e) } }; }
+    }
+    const supabaseClient = {
+      from: function(table){ return new LocalQuery(table); },
+      rpc: function(name, args){
+        var now = new Date().toISOString();
+        if (name === "marquer_lot_traite")   return patchLot(args.p_lot_id, { statut: "traite", traite_at: now });
+        if (name === "supprimer_lot")        return patchLot(args.p_lot_id, { statut: "supprime", deleted_at: now });
+        if (name === "corriger_quantite_lot") return patchLot(args.p_lot_id, { quantite: args.p_quantite });
+        return Promise.resolve({ data: null, error: { message: "Action inconnue" } });
+      },
+      storage: { from: function(){ return { upload: function(){ return Promise.resolve({ error: null }); } }; } }
+    };
+
+    /* Réduit une photo avant de l'enregistrer, pour ne pas saturer l'appareil. */
+    function readShrunk(file, done){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var max = 800, k = Math.min(1, max / Math.max(img.width, img.height));
+          var c = document.createElement("canvas");
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          done(c.toDataURL("image/jpeg", 0.75));
+        };
+        img.onerror = function(){ done(e.target.result); };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ══ ACCUEIL ET RÉGLAGES ══ */
+    function renderHome(){
+      var grid = document.getElementById("shopGrid");
+      grid.innerHTML = "";
+      getShops().forEach(function(name){
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.style.cssText = "background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;touch-action:manipulation;";
+        btn.innerHTML = '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1f3a5f,#33598c);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>' +
+          '<div style="font-size:13px;font-weight:800;color:#111827;">' + escapeHtml(name) + '</div>';
+        btn.onclick = function(){ if (getPin()) openPinModal(name); else selectStation(name); };
+        grid.appendChild(btn);
+      });
+      if (getShops().length === 1) grid.style.gridTemplateColumns = "1fr";
+      else grid.style.gridTemplateColumns = "1fr 1fr";
+    }
+    function goSettings(){
+      var first = !settings.shopName;
+      document.getElementById("settingsWelcome").style.display = first ? "block" : "none";
+      document.getElementById("settingsBackBtn").style.visibility = first ? "hidden" : "visible";
+      document.getElementById("setShopName").value = settings.shopName;
+      document.getElementById("setShops").value = settings.shops.join("\n");
+      document.getElementById("setLocations").value = getLocations().join(", ");
+      document.getElementById("setAlertDays").value = settings.alertDays;
+      document.getElementById("setPin").value = settings.pin;
+      document.getElementById("setManagerEmail").value = settings.managerEmail;
+      document.getElementById("setManagerPhone").value = settings.managerPhone;
+      var box = document.getElementById("setContacts");
+      box.innerHTML = "";
+      Object.keys(maintenanceConfig).forEach(function(cat){
+        Object.keys(maintenanceConfig[cat].items).forEach(function(sub){
+          var item = maintenanceConfig[cat].items[sub];
+          if (item.key === "OTHER") return;
+          var saved = settings.contacts[item.key] || {};
+          var row = document.createElement("div");
+          row.style.cssText = "background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 6px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;";
+          row.innerHTML = '<div style="font-size:12px;font-weight:800;color:#111827;">' + escapeHtml(cat + " › " + sub) + '</div>' +
+            '<input type="email" class="set-input" data-contact="' + item.key + '" data-field="to" placeholder="Email" value="' + escapeHtml(saved.to) + '">' +
+            '<input type="tel" class="set-input" data-contact="' + item.key + '" data-field="phone" placeholder="Téléphone" value="' + escapeHtml(saved.phone) + '">';
+          box.appendChild(row);
+        });
+      });
+      showPage("page-settings");
+    }
+    function saveSettings(){
+      var name = document.getElementById("setShopName").value.trim();
+      if (!name){ showToast("⚠️ Indiquez le nom du commerce"); return; }
+      var split = function(v, sep){ return v.split(sep).map(function(x){ return x.trim(); }).filter(Boolean); };
+      var uniq = function(a){ return a.filter(function(v, i){ return a.indexOf(v) === i; }); };
+      var days = parseInt(document.getElementById("setAlertDays").value, 10);
+      var contacts = {};
+      document.querySelectorAll("#setContacts input").forEach(function(el){
+        var v = el.value.trim();
+        if (!v) return;
+        contacts[el.dataset.contact] = contacts[el.dataset.contact] || {};
+        contacts[el.dataset.contact][el.dataset.field] = v;
+      });
+      settings = {
+        shopName: name,
+        shops: uniq(split(document.getElementById("setShops").value, /\n/)),
+        locations: uniq(split(document.getElementById("setLocations").value, /,/)),
+        alertDays: isNaN(days) || days < 0 ? DEFAULT_SETTINGS.alertDays : days,
+        pin: document.getElementById("setPin").value.replace(/[^0-9]/g, ""),
+        managerEmail: document.getElementById("setManagerEmail").value.trim(),
+        managerPhone: document.getElementById("setManagerPhone").value.trim(),
+        contacts: contacts
+      };
+      try { localStorage.setItem("rayon_settings", JSON.stringify(settings)); }
+      catch(e){ showToast("❌ Enregistrement impossible sur cet appareil"); return; }
+      applyContacts();
+      buildLocationGrid();
+      resetLocationGrid();
+      renderHome();
+      showToast("✅ Réglages enregistrés");
+      goHome();
+    }
+    async function exportData(){
+      var dump = { exporte_le: new Date().toISOString(), reglages: settings };
+      for (var t of ["produits", "lots", "maintenance_incidents"]) dump[t] = await localDB.get(t);
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(dump, null, 2)], { type: "application/json" }));
+      a.download = "rayon-donnees-" + new Date().toISOString().slice(0, 10) + ".json";
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    }
+    function initApp(){
+      applyContacts();
+      buildLocationGrid();
+      if (!settings.shopName){ goSettings(); return; }
+      renderHome();
+    }
+
+    const state = {
+      station: null,
+      stream: null,
+      scanTimer: null,
+      barcodeDetector: null,
+      selectedLocations: [],
+      photoDataUrl: null,
+      quaggaRunning: false,
+      saving: false,
+      lastScanTime: 0,
+      scanLock: false
+    };
+
+    /* ══ NAVIGATION ══ */
+    function showPage(id){
+      // Always stop scanner when leaving reception
+      if (id !== "page-reception") {
+        stopInlineScanner();
+      }
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      window.scrollTo({top:0, behavior:"instant"});
+    }
+
+    function selectStation(name){
+      state.station = name;
+      try { sessionStorage.setItem("rayon_station", name); } catch(e){}
+      document.getElementById("top-station-name").textContent    = name;
+      document.getElementById("hero-station-name").textContent   = name;
+      document.getElementById("stock-station-name").textContent  = name;
+      document.getElementById("reception-station-name").textContent = name;
+      showPage("page-modules");
+    }
+
+    function goHome()      { showPage("page-home"); }
+    function goModules()   { showPage("page-modules"); }
+    function goStockHome() { showPage("page-stock-home"); }
+    function goReception() { showPage("page-reception"); }
+
+    function goAlerts(){
+      document.getElementById("alerts-station-name").textContent = state.station || "Point de vente";
+      showPage("page-alerts");
+      loadAlerts();
+    }
+
+    function goHistory(){
+      document.getElementById("history-station-name").textContent = state.station || "Point de vente";
+      showPage("page-history");
+      loadHistory();
+    }
+
+    /* ══ TOAST ══ */
+    function showToast(message){
+      const t = document.getElementById("toast");
+      t.textContent = message;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2600);
+    }
+
+    /* ══ FORMULAIRE RECEPTION ══ */
+
+
+    function setTodayMinDate(){
+      document.getElementById("dlcInput").min = new Date().toISOString().split("T")[0];
+    }
+    setTodayMinDate();
+
+    function buildLocationGrid(){
+      const grid = document.getElementById("locationGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      getLocations().forEach(letter => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "location-btn";
+        btn.textContent = letter;
+        btn.onclick = () => {
+          if (state.selectedLocations.includes(letter)){
+            state.selectedLocations = state.selectedLocations.filter(l => l !== letter);
+            btn.classList.remove("active");
+          } else {
+            state.selectedLocations.push(letter);
+            btn.classList.add("active");
+          }
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    function resetLocationGrid(){
+      state.selectedLocations = [];
+      document.querySelectorAll(".location-btn").forEach(b => b.classList.remove("active"));
+    }
+
+    function handlePhotoUpload(event){
+      const file = event.target.files[0];
+      if (!file) return;
+      readShrunk(file, function(dataUrl){
+        state.photoDataUrl = dataUrl;
+        document.getElementById("productPhotoBox").innerHTML =
+          `<img src="${dataUrl}" alt="Produit" style="width:100%;height:100%;object-fit:cover;">`;
+      });
+    }
+
+    function resetPhotoBox(){
+      state.photoDataUrl = null;
+      document.getElementById("productPhotoBox").innerHTML = "📦";
+      document.getElementById("photoInput").value = "";
+    }
+
+    function onManualEAN(value){
+      const ean = String(value || "").trim();
+      if (ean.length >= 8) loadProductByEAN(ean);
+    }
+
+    async function loadProductByEAN(ean){
+      try {
+        const { data } = await supabaseClient
+          .from("produits").select("*").eq("ean", ean).maybeSingle();
+        if (data && data.nom){
+          document.getElementById("nameInput").value = data.nom;
+          if (data.photo){
+            state.photoDataUrl = data.photo;
+            document.getElementById("productPhotoBox").innerHTML =
+              `<img src="${data.photo}" style="width:100%;height:100%;object-fit:cover;">`;
+          }
+          showToast("✅ Produit trouvé");
+        }
+      } catch(e){ console.error(e); }
+    }
+
+    /* ══ SAVE PRODUCT ══ */
+    async function saveProduct(){
+      if (state.saving) return;
+
+      const ean      = document.getElementById("eanInput").value.trim();
+      const nom      = document.getElementById("nameInput").value.trim();
+      const dlc      = document.getElementById("dlcInput").value;
+      const station  = state.station || (function(){ try { return sessionStorage.getItem("rayon_station"); } catch(e){ return null; } })();
+      if (station && !state.station) state.station = station;
+
+      if (!station)                      { showToast("Aucun point de vente sélectionné"); return; }
+      if (!ean)                          { showToast("⚠️ Code EAN requis");          return; }
+      if (!nom)                          { showToast("⚠️ Nom produit requis");       return; }
+      if (!dlc)                          { showToast("⚠️ DLC requise");              return; }
+      if (!state.selectedLocations.length){ showToast("⚠️ Choisis un emplacement"); return; }
+
+      state.saving = true;
+      const btn = document.querySelector(".save-btn");
+      if (btn){ btn.disabled = true; btn.textContent = "⏳ Enregistrement..."; }
+
+      try {
+        /* 1. Produit */
+        const { data: existingProd } = await supabaseClient
+          .from("produits").select("ean,photo").eq("ean", ean).maybeSingle();
+
+        if (!existingProd){
+          let photoUrl = null;
+          if (state.photoDataUrl){
+            const fileName = `${ean}-${Date.now()}.jpg`;
+            const { error: upErr } = await supabaseClient.storage
+              .from("produits").upload(fileName, dataURLtoBlob(state.photoDataUrl));
+            if (!upErr)
+              photoUrl = state.photoDataUrl;
+          }
+          const { error: pErr } = await supabaseClient
+            .from("produits").insert([{ ean, nom, photo: photoUrl }]);
+          if (pErr){ showToast("❌ Erreur produit : " + pErr.message); return; }
+
+        } else if (!existingProd.photo && state.photoDataUrl){
+          const fileName = `${ean}-${Date.now()}.jpg`;
+          const { error: upErr } = await supabaseClient.storage
+            .from("produits").upload(fileName, dataURLtoBlob(state.photoDataUrl));
+          if (!upErr){
+            const photoUrl = state.photoDataUrl;
+            await supabaseClient.from("produits").update({ photo: photoUrl }).eq("ean", ean);
+          }
+        }
+
+        /* 2. Lot */
+        const { error: lErr } = await supabaseClient
+          .from("lots").insert([{
+            ean, station, dlc,
+            statut: "actif",
+            emplacements: [...state.selectedLocations]
+          }]);
+        if (lErr){ showToast("❌ Erreur lot : " + lErr.message); return; }
+        showToast("✅ Enregistré");
+
+        /* 3. Reset */
+        document.getElementById("eanInput").value  = "";
+        document.getElementById("nameInput").value = "";
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
+        resetPhotoBox();
+        resetLocationGrid();
+
+      } catch(err){
+        console.error(err);
+        showToast("❌ " + err.message);
+      } finally {
+        state.saving = false;
+        if (btn){ btn.disabled = false; btn.textContent = "✅ Enregistrer"; }
+      }
+    }
+
+    /* ══ ALERTES DLC ══ */
+    async function loadAlerts(){
+      const list  = document.getElementById("alertsList");
+      const badge = document.getElementById("alertsBadge");
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+      const currentStation = state.station;
+      if (!currentStation){
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">🎉</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucune alerte pour ce point de vente</div></div>`;
+        return;
+      }
+      const _ts = Date.now();
+      const { data, error } = await supabaseClient
+        .from("v_alertes_dlc")
+        .select("id,ean,nom,photo,station,dlc,quantite,statut,created_at,jours_restants")
+        .eq("station", currentStation)
+        .order("jours_restants", { ascending: true })
+        .limit(1000);
+
+      if (error){
+        list.innerHTML = `<div class="card"><div class="muted">❌ ${error.message}</div></div>`;
+        return;
+      }
+      if (!data || data.length === 0){
+        if (badge) badge.style.display = "none";
+        list.innerHTML = `
+          <div style="text-align:center;padding:52px 20px;">
+            <div style="font-size:52px;margin-bottom:12px;">🎉</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucune alerte !</div>
+            <div style="font-size:13px;color:#9ca3af;">Tous les produits sont dans les délais.</div>
+          </div>`;
+        return;
+      }
+      if (badge){ badge.textContent = data.length; badge.style.display = "inline"; }
+      list.innerHTML = data.map(item => renderAlertCard(item)).join("");
+    }
+
+    function renderAlertCard(item){
+      const j = item.jours_restants;
+      const isExpired = j <= 0;
+      const isUrgent  = j === 1;
+      const pillColor = isExpired ? "#ef4444" : isUrgent ? "#f97316" : "#f59e0b";
+      const pillBg    = isExpired ? "#fef2f2" : isUrgent ? "#fff7ed" : "#fffbeb";
+      const pillText  = isExpired ? "⛔ EXPIRÉ" : isUrgent ? "⚠️ Expire demain" : `⚠️ ${j} jours restants`;
+      const border    = isExpired ? "#fca5a5" : isUrgent ? "#fdba74" : "#fcd34d";
+      const dlcFmt    = new Date(item.dlc).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"});
+      const photoHtml = item.photo
+        ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+        : `<div style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
+      return `
+        <div id="alert-card-${item.id}" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);border-left:4px solid ${border};padding:14px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:62px;height:62px;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">${photoHtml}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">DLC : ${dlcFmt}</div>
+              <span style="display:inline-block;background:${pillBg};color:${pillColor};border:1px solid ${border};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">${pillText}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;border-top:1px solid #f3f4f6;padding-top:10px;flex-wrap:wrap;">
+            <button onclick="marquerTraite('${item.id}')" style="flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 0;background:#dcfce7;color:#16a34a;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;">✅ Marquer traité</button>
+
+            <button onclick="supprimerLot('${item.id}')" style="width:42px;border:none;border-radius:10px;background:#fee2e2;color:#ef4444;font-size:16px;cursor:pointer;font-family:inherit;">🗑</button>
+          </div>
+        </div>`;
+    }
+
+    async function marquerTraite(id){
+      showToast("⏳ Traitement...");
+      const { error } = await supabaseClient.rpc("marquer_lot_traite", { p_lot_id: id });
+      if (error){ showToast("❌ " + error.message); return; }
+      showToast("✅ Lot marqué comme traité");
+      setTimeout(loadAlerts, 1000);
+    }
+
+    async function supprimerLot(id){
+      if (!confirm("Supprimer ce lot définitivement ?")) return;
+      showToast("⏳ Suppression...");
+      const { error } = await supabaseClient.rpc("supprimer_lot", { p_lot_id: id });
+      if (error){ showToast("❌ " + error.message); return; }
+      showToast("🗑 Lot supprimé");
+      setTimeout(loadAlerts, 1000);
+    }
+
+    async function corrigerQuantite(id, qteActuelle){
+      const val = prompt(`Nouvelle quantité (actuelle : ${qteActuelle})`, qteActuelle);
+      if (val === null) return;
+      const newQty = parseInt(val, 10);
+      if (isNaN(newQty) || newQty < 0){ showToast("⚠️ Quantité invalide"); return; }
+      showToast("⏳ Correction...");
+      console.log("corrigerQuantite → id:", id, "newQty:", newQty);
+      const { data, error } = await supabaseClient.rpc("corriger_quantite_lot", { p_lot_id: id, p_quantite: newQty });
+      console.log("corrigerQuantite → data:", data, "error:", error);
+      if (error){ showToast("❌ " + JSON.stringify(error)); return; }
+      showToast(`✅ Quantité corrigée : ${newQty}`);
+      setTimeout(loadAlerts, 1000);
+    }
+
+    /* ══ HISTORIQUE DLC ══ */
+    async function loadHistory(){
+      const list = document.getElementById("historyList");
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+      const currentStation2 = state.station;
+      if (!currentStation2){
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">📋</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucun historique pour ce point de vente</div></div>`;
+        return;
+      }
+      const { data, error } = await supabaseClient
+        .from("v_alertes_dlc_historique")
+        .select("*")
+        .eq("station", currentStation2)
+        .order("created_at", { ascending: false });
+
+      if (error){
+        list.innerHTML = `<div class="card"><div class="muted">❌ ${error.message}</div></div>`;
+        return;
+      }
+      if (!data || data.length === 0){
+        list.innerHTML = `
+          <div style="text-align:center;padding:52px 20px;">
+            <div style="font-size:48px;margin-bottom:12px;">📋</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucun historique</div>
+            <div style="font-size:13px;color:#9ca3af;">Aucun historique sur les 10 derniers jours</div>
+          </div>`;
+        return;
+      }
+      list.innerHTML = data.map(item => {
+        const dlcFmt = new Date(item.dlc).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"});
+        const isTraite   = item.statut === "traite";
+        const isSupp     = item.statut === "supprime" || item.statut === "deleted";
+        const isExpire   = item.statut === "expire";
+        const badgeBg    = isTraite ? "#dcfce7" : isSupp ? "#fee2e2" : "#fef9c3";
+        const badgeColor = isTraite ? "#16a34a" : isSupp ? "#ef4444" : "#92400e";
+        const badgeText  = isTraite ? "✅ Traité" : isSupp ? "🗑 Supprimé" : "⛔ Expiré";
+        const border     = isTraite ? "#86efac" : isSupp ? "#fca5a5" : "#fde68a";
+        const actionDate = item.traite_at || item.deleted_at || item.updated_at || item.created_at;
+        const dateFmt    = actionDate
+          ? new Date(actionDate).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"})
+          : "—";
+        const photoHtml = item.photo
+          ? `<img src="${item.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+          : `<div style="font-size:24px;display:flex;align-items:center;justify-content:center;height:100%;">📦</div>`;
+        return `
+          <div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);border-left:4px solid ${border};padding:13px;display:flex;gap:12px;align-items:flex-start;opacity:${isSupp?".7":"1"};">
+            <div style="width:52px;height:52px;border-radius:10px;border:1.5px solid #f3f4f6;overflow:hidden;flex-shrink:0;background:#f9fafb;">${photoHtml}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap;">
+                <div style="font-size:14px;font-weight:800;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom || item.ean}</div>
+                <span style="background:${badgeBg};color:${badgeColor};border-radius:999px;padding:2px 9px;font-size:10px;font-weight:800;white-space:nowrap;">${badgeText}</span>
+              </div>
+              <div style="font-size:11px;color:#6b7280;">${item.quantite} unité${item.quantite>1?"s":""} &nbsp;·&nbsp; DLC : ${dlcFmt}</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">Le ${dateFmt}</div>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    /* ══ SCANNER INLINE ══ */
+    function loadScript(src){
+      return new Promise((res,rej) => {
+        if (document.querySelector(`script[src="${src}"]`)){ res(); return; }
+        const s = document.createElement("script");
+        s.src = src; s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    /* ── Logique scan fiable : même code 2 fois de suite, chiffres uniquement, 8 ou 13 digits ── */
+    function isValidEAN(code){
+      return /^[0-9]{8}$|^[0-9]{13}$/.test(code);
+    }
+
+    /* ── EAN Checksum validation ── */
+    function validateEAN(code){
+      if (!/^[0-9]{8}$|^[0-9]{13}$/.test(code)) return false;
+      var digits = code.split("").map(Number);
+      var len = digits.length;
+      var sum = 0;
+      if (len === 13){
+        // EAN-13: odd positions *1, even positions *3
+        for (var i = 0; i < 12; i++){
+          sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+        }
+      } else {
+        // EAN-8: odd positions *3, even positions *1
+        for (var i = 0; i < 7; i++){
+          sum += digits[i] * (i % 2 === 0 ? 3 : 1);
+        }
+      }
+      var check = (10 - (sum % 10)) % 10;
+      return check === digits[len - 1];
+    }
+
+    function playBeep(type){
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (type === "success"){
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.3);
+        } else {
+          osc.frequency.setValueAtTime(300, ctx.currentTime);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.2);
+        }
+      } catch(e){}
+    }
+
+    function acceptScanCode(value){
+      if (state.scanLock) return;
+      state.scanLock = true;
+      document.getElementById("eanInput").value = value;
+      if (navigator.vibrate) navigator.vibrate(80);
+      playBeep("success");
+      stopInlineScanner();
+      loadProductByEAN(value);
+      showToast("✅ Code scanné : " + value);
+    }
+
+    function processScanResult(raw){
+      if (!raw || state.scanLock) return;
+      // Keep digits only
+      var code = raw.replace(/[^0-9]/g, "");
+      // Must be EAN-8 or EAN-13
+      if (code.length !== 8 && code.length !== 13) return;
+      // Checksum validation — rejects any bad read
+      if (!validateEAN(code)) return;
+      // Cooldown: ignore same code within 1s to prevent duplicate fires
+      var now = Date.now();
+      if (code === state.lastScanCode && (now - state.lastScanTime) < 1000) return;
+      state.lastScanCode = code;
+      state.lastScanTime = now;
+      // Accept immediately
+      acceptScanCode(code);
+    }
+
+    function showScanConfirm(value){
+      var panel = document.getElementById("scanConfirmPanel");
+      var label = document.getElementById("scanConfirmCode");
+      label.textContent = "Code détecté : " + value;
+      panel.dataset.code = value;
+      panel.style.display = "block";
+      document.getElementById("scanStatusBadge").style.display = "none";
+    }
+
+    function confirmScanCode(){
+      var panel = document.getElementById("scanConfirmPanel");
+      var value = panel.dataset.code;
+      if (value) acceptScanCode(value);
+    }
+
+    function dismissScanConfirm(){
+      var panel = document.getElementById("scanConfirmPanel");
+      panel.style.display = "none";
+      panel.dataset.code = "";
+      document.getElementById("scanStatusBadge").style.display = "block";
+      document.getElementById("scanStatusBadge").textContent = "Recherche...";
+      state.scanLock = false;
+    }
+
+    async function startInlineScanner(){
+      var video       = document.getElementById("scannerVideoInline");
+      var placeholder = document.getElementById("scanPlaceholder");
+      var corners     = document.getElementById("scanCorners");
+      var statusBadge = document.getElementById("scanStatusBadge");
+      var stopBtn     = document.getElementById("scanStopBtn");
+
+      state.scanLock = false;
+      state.lastScanCode = null;
+      state.lastScanTime = 0;
+      document.getElementById("scanConfirmPanel").style.display = "none";
+      stopInlineScanner();
+
+      try {
+        // iPhone: exact rear camera + high resolution for better EAN reads
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: "environment" },
+            width:  { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        }).catch(function(){
+          return navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+          });
+        });
+
+        video.srcObject = state.stream;
+        await video.play();
+        video.style.display = "block";
+        placeholder.style.display = "none";
+        corners.style.display = "block";
+        statusBadge.style.display = "block";
+        statusBadge.textContent = "Recherche...";
+        stopBtn.style.display = "block";
+
+        if ("BarcodeDetector" in window){
+          // Use only EAN formats — no code128/UPC to avoid false positives
+          state.barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8"] });
+          state.scanTimer = setInterval(async function(){
+            if (!state.stream || state.scanLock) return;
+            try {
+              var codes = await state.barcodeDetector.detect(video);
+              if (codes && codes.length > 0){
+                processScanResult(codes[0].rawValue);
+              }
+            } catch(e){}
+          }, 300);
+        } else {
+          // Quagga fallback for iOS Safari
+          statusBadge.textContent = "Chargement scanner...";
+          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js");
+          statusBadge.textContent = "Pointez vers le code-barres";
+          Quagga.init({
+            inputStream:{
+              name: "Live",
+              type: "LiveStream",
+              target: video,
+              constraints: { facingMode: "environment" },
+              area: { top: "20%", right: "10%", left: "10%", bottom: "20%" }
+            },
+            decoder:{
+              readers: ["ean_reader", "ean_8_reader"],
+              multiple: false
+            },
+            locate: true,
+            frequency: 10
+          }, function(err){ if (!err) Quagga.start(); });
+          Quagga.onDetected(function(data){
+            if (state.scanLock) return;
+            processScanResult(data.codeResult.code);
+          });
+          state.quaggaRunning = true;
+        }
+      } catch(err){
+        showToast("⚠️ Caméra indisponible");
+        placeholder.style.display = "flex";
+        video.style.display = "none";
+        corners.style.display = "none";
+        statusBadge.style.display = "none";
+        stopBtn.style.display = "none";
+      }
+    }
+
+    function stopInlineScanner(){
+      if (state.scanTimer){ clearInterval(state.scanTimer); state.scanTimer = null; }
+      if (state.quaggaRunning){ try{ Quagga.stop(); }catch(e){} state.quaggaRunning = false; }
+      if (state.stream){ state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
+      const video = document.getElementById("scannerVideoInline");
+      if (video) video.srcObject = null;
+      video.style.display = "none";
+      document.getElementById("scanPlaceholder").style.display = "flex";
+      document.getElementById("scanCorners").style.display = "none";
+      document.getElementById("scanStatusBadge").style.display = "none";
+      document.getElementById("scanStopBtn").style.display = "none";
+    }
+
+    /* ══ INIT ══ */
+    (function initDefaultDate(){
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById("dlcInput").value = tomorrow.toISOString().split("T")[0];
+      buildLocationGrid();
+      // Restore station from sessionStorage if page was reloaded
+      try {
+        var saved = sessionStorage.getItem("rayon_station");
+        if (saved && !state.station) state.station = saved;
+      } catch(e){}
+    })();
+
+    // Force désactivation SW + vidage cache
+    if ('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(reg){ reg.unregister(); });
+      });
+    }
+    if ('caches' in window){
+      caches.keys().then(function(names){
+        names.forEach(function(name){ caches.delete(name); });
+      });
+    }
+
+    /* ══ MAINTENANCE CONFIG ══ */
+    const stationEmails = {};
+
+    function mItem(key, info){ return { key: key, to: "", cc: [], phone: "", preferred: "mail", info: info || "" }; }
+    const maintenanceConfig = {
+      "Caisse et paiement": { icon:"💳", items: {
+        "Caisse": mItem("POS"),
+        "Terminal de paiement": mItem("PAYMENT", "Notez le message d'erreur affiché sur le terminal."),
+        "Imprimante de tickets": mItem("PRINTER")
+      }},
+      "Froid": { icon:"❄️", items: {
+        "Frigo": mItem("FRIDGE", "Relevez la température affichée et déplacez les produits sensibles."),
+        "Congélateur": mItem("FREEZER", "Relevez la température affichée et gardez la porte fermée."),
+        "Vitrine réfrigérée": mItem("COLD_DISPLAY")
+      }},
+      "Équipements": { icon:"☕", items: {
+        "Machine à café": mItem("COFFEE"),
+        "Four": mItem("OVEN"),
+        "Autre appareil": mItem("APPLIANCE")
+      }},
+      "Bâtiment": { icon:"🏠", items: {
+        "Électricité": mItem("ELECTRICITY"),
+        "Plomberie": mItem("PLUMBING"),
+        "Porte / serrure": mItem("DOOR"),
+        "Éclairage": mItem("LIGHTING")
+      }},
+      "Informatique": { icon:"💻", items: {
+        "Internet / Wi-Fi": mItem("INTERNET"),
+        "Ordinateur": mItem("COMPUTER"),
+        "Scanner": mItem("SCANNER")
+      }},
+      "Sécurité": { icon:"🔒", items: {
+        "Alarme": mItem("ALARM"),
+        "Caméras": mItem("CAMERAS"),
+        "Extincteurs": mItem("EXTINGUISHERS")
+      }},
+      "Autre": { icon:"📌", items: {
+        "Autre demande": mItem("OTHER")
+      }}
+    };
+    function applyContacts(){
+      Object.keys(maintenanceConfig).forEach(function(cat){
+        Object.keys(maintenanceConfig[cat].items).forEach(function(sub){
+          var item = maintenanceConfig[cat].items[sub];
+          var saved = settings.contacts[item.key] || {};
+          item.to = saved.to || "";
+          item.phone = saved.phone || "";
+        });
+      });
+    }
+
+    /* ══ MAINTENANCE STATE ══ */
+    const maintState = {
+      categorie: null,
+      urgence: "low",
+      photoDataUrl: null
+    };
+
+    /* ══ MAINTENANCE NAVIGATION ══ */
+    /* ══ PIN ACCESS ══ */
+    function getPin(){ return String(settings.pin || ""); }
+
+    let _pinTarget = null;
+    let _pinBuffer = "";
+
+    function openPinModal(stationName){
+      _pinTarget = stationName;
+      _pinBuffer = "";
+      document.getElementById("pinModalTitle").textContent = stationName;
+      document.getElementById("pinError").style.display = "none";
+      document.getElementById("pinDisplay").textContent = "";
+      const modal = document.getElementById("pinModal");
+      modal.style.visibility = "visible";
+      modal.style.pointerEvents = "auto";
+      modal.style.opacity = "1";
+    }
+
+    function closePinModal(){
+      const m = document.getElementById("pinModal");
+      m.style.visibility = "hidden";
+      m.style.pointerEvents = "none";
+      m.style.opacity = "0";
+      _pinTarget = null;
+      _pinBuffer = "";
+    }
+
+    function pinKey(digit){
+      if (_pinBuffer.length >= 6) return;
+      _pinBuffer += digit;
+      document.getElementById("pinError").style.display = "none";
+      document.getElementById("pinDisplay").textContent = "•".repeat(_pinBuffer.length);
+      // Auto-confirm when length matches expected code
+      const expected = getPin();
+      if (_pinBuffer.length >= expected.length) {
+        setTimeout(confirmPin, 120);
+      }
+    }
+
+    function pinBackspace(){
+      if (_pinBuffer.length === 0) return;
+      _pinBuffer = _pinBuffer.slice(0, -1);
+      document.getElementById("pinDisplay").textContent = "•".repeat(_pinBuffer.length);
+    }
+
+    function confirmPin(){
+      const expected = getPin();
+      if (_pinBuffer === expected){
+        const target = _pinTarget;
+        closePinModal();
+        selectStation(target);
+      } else {
+        document.getElementById("pinError").style.display = "block";
+        _pinBuffer = "";
+        document.getElementById("pinDisplay").textContent = "";
+      }
+    }
+
+    async function envoyerDemande(){
+      var cat   = maintState.categorie;
+      var sub   = document.getElementById("maintSubcat").value;
+      var titre = document.getElementById("maintTitre").value.trim();
+      var empl  = "";
+      var desc  = document.getElementById("maintDescription").value.trim();
+
+      if (!sub)   { showToast("Choisissez une sous-categorie"); return; }
+      if (!titre) { showToast("Ajoutez un titre"); return; }
+      if (!desc)  { showToast("Ajoutez une description"); return; }
+
+      var urgFr = { low:"Normal", med:"Urgent", high:"CRITIQUE" };
+      var urgDb = { low:"normal", med:"urgent", high:"critique" };
+      var item    = maintenanceConfig[cat].items[sub];
+      var station = state.station || "Point de vente";
+      var stMail  = stationEmails[station] || "";
+      var ccList  = [].concat(item.cc, settings.managerEmail ? [settings.managerEmail] : [], [stMail]).filter(function(x){ return !!x; });
+      ccList = ccList.filter(function(v,i,a){ return a.indexOf(v)===i; });
+
+      var btn = document.querySelector("#page-maintenance-form .envoyer-btn");
+      if (btn){ btn.disabled = true; btn.textContent = "Envoi..."; }
+
+      /* 1. Upload photo si présente */
+      var photoUrl = null;
+      if (maintState.photoDataUrl){
+        try {
+          var fileName = "incident-" + Date.now() + ".jpg";
+          var up = await supabaseClient.storage.from("maintenance_photos").upload(fileName, dataURLtoBlob(maintState.photoDataUrl));
+          if (!up.error) photoUrl = maintState.photoDataUrl;
+        } catch(e){ console.warn("Photo upload:", e); }
+      }
+
+      /* 2. Enregistrer dans maintenance_incidents */
+      var payload = {
+        station:        station,
+        categorie:      cat,
+        sous_categorie: sub,
+        cle:            item.key,
+        titre:          titre,
+        emplacement:    empl,
+        description:    desc,
+        urgence:        urgDb[maintState.urgence],
+        statut:         "ouvert",
+        photo:          photoUrl,
+        mail_envoye:    false,
+        to_email:       item.to,
+        cc_emails:      ccList.join(","),
+        created_at:     new Date().toISOString()
+      };
+
+      showToast("Enregistrement...");
+      var ins = await supabaseClient.from("maintenance_incidents").insert([payload]).select();
+      if (ins.error){ showToast("Erreur: " + ins.error.message); if(btn){btn.disabled=false;btn.textContent="Envoyer la demande";} return; }
+      var incidentId = ins.data && ins.data[0] ? ins.data[0].id : null;
+
+      /* 3. Prépare l'email dans l'application de messagerie de l'appareil */
+      var mailTo  = item.to || settings.managerEmail || "";
+      var subject = "[" + urgFr[maintState.urgence] + "] " + cat + " - " + sub + " - " + station;
+      var body    = "Point de vente : " + station + "\nCatégorie : " + cat + "\nSous-catégorie : " + sub +
+                    "\nTitre : " + titre + "\nUrgence : " + urgFr[maintState.urgence] + "\n\n" + desc;
+      showToast("✅ Demande enregistrée");
+      if (mailTo){
+        var ccOnly = ccList.filter(function(x){ return x !== mailTo; });
+        window.location.href = "mailto:" + encodeURIComponent(mailTo) +
+          "?subject=" + encodeURIComponent(subject) +
+          (ccOnly.length ? "&cc=" + encodeURIComponent(ccOnly.join(",")) : "") +
+          "&body=" + encodeURIComponent(body);
+      }
+
+      /* 4. Reset formulaire */
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintDescription").value = "";
+      removeMaintPhoto();
+      if (btn){ btn.disabled = false; btn.textContent = "Envoyer la demande"; }
+    }
+
+    /* ── Historique maintenance ── */
+    function goMaintenanceHistory(){
+      document.getElementById("maint-history-station").textContent = state.station || "Point de vente";
+      showPage("page-maintenance-history");
+      loadMaintenanceHistory();
+    }
+
+    async function loadMaintenanceHistory(){
+      const list = document.getElementById("maintHistoryList");
+      list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#9ca3af;font-size:14px;">⏳ Chargement...</div>`;
+
+      const maintHistStation = state.station;
+      if (!maintHistStation){
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">📋</div><div style="font-size:15px;font-weight:700;color:#111827;">Aucun historique pour ce point de vente</div></div>`;
+        return;
+      }
+
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const { data, error } = await supabaseClient
+        .from("maintenance_incidents")
+        .select("*")
+        .eq("station", maintHistStation)
+        .gte("created_at", sixMonthsAgo.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error){
+        list.innerHTML = `<div style="padding:16px;background:#fff;border-radius:14px;color:#ef4444;">❌ ${error.message}</div>`;
+        return;
+      }
+      if (!data || data.length === 0){
+        list.innerHTML = `
+          <div style="text-align:center;padding:52px 20px;">
+            <div style="font-size:48px;margin-bottom:12px;">📋</div>
+            <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:6px;">Aucune intervention</div>
+            <div style="font-size:13px;color:#9ca3af;">Aucune demande sur les 6 derniers mois</div>
+          </div>`;
+        return;
+      }
+
+      const urgColors = { normal:"#dcfce7", urgent:"#fef9c3", critique:"#fee2e2" };
+      const urgText   = { normal:"🟢 Normal", urgent:"🟡 Urgent", critique:"🔴 Critique" };
+      const mailIcon  = { true:"✅", false:"⚠️", undefined:"—" };
+
+      list.innerHTML = data.map(inc => {
+        const dateFmt = new Date(inc.created_at).toLocaleDateString("fr-BE", { day:"2-digit", month:"2-digit", year:"numeric" });
+        const hourFmt = new Date(inc.created_at).toLocaleTimeString("fr-BE", { hour:"2-digit", minute:"2-digit" });
+        const urg     = inc.urgence || "normal";
+        const badgeBg = urgColors[urg] || "#f3f4f6";
+        const photoHtml = inc.photo
+          ? `<img src="${inc.photo}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-top:8px;">`
+          : "";
+        const mailStatus = inc.mail_envoye === true ? "✅ Mail envoyé" : inc.statut === "mail_echec" ? "⚠️ Mail non envoyé" : "";
+        return `
+          <div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:14px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div style="font-size:14px;font-weight:800;color:#111827;">${inc.categorie} › ${inc.sous_categorie}</div>
+              <span style="background:${badgeBg};color:#374151;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">${urgText[urg] || urg}</span>
+            </div>
+            <div style="font-size:12px;color:#6b7280;">📅 ${dateFmt} à ${hourFmt} · 🏠 ${inc.station}</div>
+            ${inc.titre ? `<div style="font-size:13px;font-weight:700;color:#374151;margin-top:2px;">${inc.titre}</div>` : ""}
+            ${inc.emplacement ? `<div style="font-size:12px;color:#6b7280;">📍 ${inc.emplacement}</div>` : ""}
+            <div style="font-size:13px;color:#374151;line-height:1.5;margin-top:2px;">${inc.description}</div>
+            ${mailStatus ? `<div style="font-size:11px;color:#6b7280;">${mailStatus}</div>` : ""}
+            ${photoHtml}
+          </div>`;
+      }).join("");
+    }
+
+    function goMaintenance(){
+      document.getElementById("maintenance-station-name").textContent = state.station || "Point de vente";
+      showPage("page-maintenance");
+      buildMaintenanceCatGrid();
+    }
+
+    function buildMaintenanceCatGrid(){
+      const grid = document.getElementById("maintenanceCatGrid");
+      const cats = Object.entries(maintenanceConfig);
+      grid.innerHTML = cats.map(([cat, cfg]) =>
+        `<button type="button"
+          onclick="openMaintenanceForm('${cat.replace(/'/g, "\'")}')"
+          style="background:#fff;border:2px solid #e4e7eb;border-radius:16px;padding:22px 12px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">
+          <div style="font-size:32px;">${cfg.icon}</div>
+          <div style="font-size:13px;font-weight:800;color:#111827;text-align:center;line-height:1.3;">${cat}</div>
+        </button>`
+      ).join("");
+    }
+
+    function openMaintenanceForm(cat){
+      maintState.categorie = cat;
+      maintState.urgence = "low";
+      const cfg = maintenanceConfig[cat];
+
+      document.getElementById("maint-form-title").textContent = cfg.icon + " " + cat;
+      document.getElementById("maint-form-sub").textContent = state.station || "Point de vente";
+
+      // Populate subcategories
+      const sel = document.getElementById("maintSubcat");
+      sel.innerHTML = '<option value="">-- Choisir une sous-catégorie --</option>';
+      Object.keys(cfg.items).forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub;
+        opt.textContent = sub;
+        sel.appendChild(opt);
+      });
+
+      // Reset form
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintTitre").value = "";
+      document.getElementById("maintDescription").value = "";
+      document.getElementById("maintInfoBox").style.display = "none";
+      document.getElementById("maintContactBox").style.display = "none";
+      setUrgence("low");
+      removeMaintPhoto();
+
+      showPage("page-maintenance-form");
+    }
+
+    function onMaintSubcatChange(){
+      const cat  = maintState.categorie;
+      const sub  = document.getElementById("maintSubcat").value;
+      if (!sub || !cat) return;
+      const item = maintenanceConfig[cat].items[sub];
+
+      // Info box
+      const infoBox = document.getElementById("maintInfoBox");
+      if (item.info){
+        document.getElementById("maintInfoText").textContent = item.info;
+        infoBox.style.display = "block";
+      } else {
+        infoBox.style.display = "none";
+      }
+
+      // Contact box
+      const contactBox = document.getElementById("maintContactBox");
+      const hasMail  = item.to;
+      const hasPhone = item.phone;
+      if (hasMail || hasPhone){
+        document.getElementById("maintContactMail").innerHTML  = hasMail  ? `📧 <a href="mailto:${item.to}" style="color:#1f3a5f;font-weight:700;">${item.to}</a>` : "";
+        document.getElementById("maintContactPhone").innerHTML = hasPhone ? `📞 <a href="tel:${item.phone}" style="color:#1f3a5f;font-weight:700;">${item.phone}</a>` : "";
+        contactBox.style.display = "flex";
+      } else {
+        contactBox.style.display = "none";
+      }
+    }
+
+    function setUrgence(level){
+      maintState.urgence = level;
+      const btns = { low:"urg-low", med:"urg-med", high:"urg-high" };
+      const colors = { low:"#dcfce7", med:"#fef9c3", high:"#fee2e2" };
+      const borders = { low:"#86efac", med:"#fcd34d", high:"#fca5a5" };
+      Object.entries(btns).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (k === level){
+          el.style.background = colors[k];
+          el.style.borderColor = borders[k];
+        } else {
+          el.style.background = "#fff";
+          el.style.borderColor = "#e3e7ec";
+        }
+      });
+    }
+
+
+
+    function handleMaintPhoto(e){
+      const file = e.target.files[0];
+      if (!file) return;
+      readShrunk(file, function(dataUrl){
+        maintState.photoDataUrl  = dataUrl;
+        maintState.photoFileName = file.name || "photo.jpg";
+        document.getElementById("maintPhotoPreview").src = dataUrl;
+        document.getElementById("maintPhotoPreview").style.display = "block";
+        document.getElementById("maintPhotoPlaceholder").style.display = "none";
+        document.getElementById("maintPhotoRemove").style.display = "block";
+      });
+    }
+
+    function removeMaintPhoto(){
+      maintState.photoDataUrl = null;
+      document.getElementById("maintPhotoInput").value = "";
+      document.getElementById("maintPhotoPreview").style.display = "none";
+      document.getElementById("maintPhotoPlaceholder").style.display = "flex";
+      document.getElementById("maintPhotoRemove").style.display = "none";
+    }
+
+
+
+    /* ══ PLAN D'URGENCE ══ */
+    const urgenceData = {
+      "incendie": {
+        icon: "🔥", titre: "Incendie",
+        danger: "⚠️ N'essayez d'éteindre un feu que s'il est petit et sans risque pour vous.",
+        sections: [
+          { label: "Tout de suite", color: "#dc2626", items: [
+            "Gardez votre calme et arrêtez toute activité",
+            "Faites sortir les clients et le personnel",
+            "Appelez les secours : 112",
+            "Coupez le gaz et l'électricité si c'est possible sans danger"
+          ]},
+          { label: "Évacuation", color: "#f59e0b", items: [
+            "Fermez les portes derrière vous sans les verrouiller",
+            "Ne retournez pas à l'intérieur",
+            "Attendez les secours dehors et tenez les passants à distance"
+          ]},
+          { label: "Ensuite", color: "#6b7280", items: [
+            "Prévenez le responsable",
+            "Faites remplacer les extincteurs utilisés",
+            "Contactez l'assureur"
+          ]}
+        ],
+        tel: [{ label: "📞 Urgences", num: "112" }, { label: "📞 Responsable", num: "@manager" }]
+      },
+      "premiers-soins": {
+        icon: "🚑", titre: "Malaise / Blessure",
+        danger: "",
+        sections: [
+          { label: "Tout de suite", color: "#dc2626", items: [
+            "Mettez la personne et vous-même en sécurité",
+            "Appelez le 112 et décrivez la situation",
+            "Suivez les consignes données au téléphone",
+            "Ne déplacez pas la personne, sauf danger immédiat"
+          ]},
+          { label: "En attendant les secours", color: "#f59e0b", items: [
+            "Restez près de la personne et parlez-lui",
+            "Envoyez quelqu'un à l'entrée pour guider les secours",
+            "Ne donnez ni à boire ni à manger"
+          ]},
+          { label: "Ensuite", color: "#6b7280", items: [
+            "Prévenez le responsable",
+            "Notez l'heure et ce qui s'est passé"
+          ]}
+        ],
+        tel: [{ label: "📞 Urgences", num: "112" }, { label: "📞 Responsable", num: "@manager" }]
+      },
+      "agression": {
+        icon: "🔫", titre: "Agression / Braquage",
+        danger: "⚠️ Votre sécurité passe avant la caisse. Ne résistez pas.",
+        sections: [
+          { label: "Pendant", color: "#dc2626", items: [
+            "Restez calme, ne faites pas de geste brusque",
+            "Donnez ce qui est demandé",
+            "Ne poursuivez pas l'agresseur",
+            "Observez sans fixer : taille, vêtements, direction de fuite"
+          ]},
+          { label: "Juste après", color: "#f59e0b", items: [
+            "Fermez le magasin à clé",
+            "Appelez la police",
+            "Ne touchez à rien",
+            "Demandez aux témoins de rester et notez leurs coordonnées"
+          ]},
+          { label: "Client agressif", color: "#6b7280", items: [
+            "Parlez calmement et restez derrière le comptoir",
+            "Écoutez la plainte sans hausser le ton",
+            "Demandez-lui de sortir si la situation ne se calme pas",
+            "Appelez la police en cas de menace"
+          ]}
+        ],
+        tel: [{ label: "📞 Police", num: "101" }, { label: "📞 Urgences", num: "112" }, { label: "📞 Responsable", num: "@manager" }]
+      },
+      "vol": {
+        icon: "🚔", titre: "Vol / Vandalisme",
+        danger: "",
+        sections: [
+          { label: "Vol constaté", color: "#f97316", items: [
+            "Ne prenez aucun risque physique",
+            "Notez la description de la personne et l'heure",
+            "Conservez les images de vidéosurveillance",
+            "Prévenez le responsable"
+          ]},
+          { label: "Effraction ou dégradation", color: "#6b7280", items: [
+            "Ne touchez à rien et n'entrez pas si quelqu'un peut encore être sur place",
+            "Appelez la police",
+            "Prenez des photos des dégâts",
+            "Contactez l'assureur"
+          ]}
+        ],
+        tel: [{ label: "📞 Police", num: "101" }, { label: "📞 Responsable", num: "@manager" }]
+      },
+      "gaz": {
+        icon: "💨", titre: "Odeur de gaz",
+        danger: "⚠️ Ni flamme, ni interrupteur, ni téléphone à l'intérieur.",
+        sections: [
+          { label: "Tout de suite", color: "#dc2626", items: [
+            "Ne touchez à aucun interrupteur ni appareil électrique",
+            "Ouvrez portes et fenêtres",
+            "Fermez le robinet de gaz si vous savez où il se trouve",
+            "Faites sortir tout le monde"
+          ]},
+          { label: "Une fois dehors", color: "#f59e0b", items: [
+            "Appelez les secours : 112",
+            "Ne rentrez pas avant l'accord des secours",
+            "Prévenez le responsable"
+          ]}
+        ],
+        tel: [{ label: "📞 Urgences", num: "112" }, { label: "📞 Responsable", num: "@manager" }]
+      },
+      "froid": {
+        icon: "❄️", titre: "Panne de froid / Coupure de courant",
+        danger: "",
+        sections: [
+          { label: "Tout de suite", color: "#f97316", items: [
+            "Notez l'heure de la panne",
+            "Gardez frigos et congélateurs fermés",
+            "Relevez les températures si elles sont affichées",
+            "Prévenez le responsable et le dépanneur"
+          ]},
+          { label: "Si la panne dure", color: "#f59e0b", items: [
+            "Déplacez les produits vers un appareil qui fonctionne",
+            "Retirez de la vente les produits dont la température n'est plus garantie",
+            "Notez les produits écartés pour l'assureur"
+          ]},
+          { label: "Au retour du froid", color: "#6b7280", items: [
+            "Contrôlez les températures avant de remettre en vente",
+            "En cas de doute sur un produit, ne le vendez pas"
+          ]}
+        ],
+        tel: [{ label: "📞 Responsable", num: "@manager" }]
+      },
+      "numeros": {
+        icon: "📞", titre: "Numéros d'urgence",
+        danger: "",
+        sections: [],
+        tel: [
+          { label: "🌍 Urgences (Europe)", num: "112" },
+          { label: "🚔 Police (Belgique)", num: "101" },
+          { label: "☠️ Centre Antipoisons (Belgique)", num: "070245245" },
+          { label: "📞 Responsable", num: "@manager" }
+        ]
+      }
+    };
+    function renderUrgenceGrid(){
+      var grid = document.getElementById("urgenceGrid");
+      grid.innerHTML = Object.keys(urgenceData).map(function(key){
+        var d = urgenceData[key], red = key === "numeros";
+        return '<button type="button" onclick="goUrgenceFiche(\'' + key + '\')" style="background:' + (red ? "#dc2626" : "#fff") +
+          ';border:2px solid ' + (red ? "#dc2626" : "#fca5a5") + ';border-radius:14px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">' +
+          '<span style="font-size:30px;">' + d.icon + '</span>' +
+          '<span style="font-size:12px;font-weight:800;color:' + (red ? "#fff" : "#111827") + ';text-align:center;">' + d.titre + '</span></button>';
+      }).join("") +
+      '<div style="grid-column:1/-1;font-size:11px;color:#6b7280;line-height:1.5;margin-top:4px;">Consignes générales à adapter à votre commerce. Elles ne remplacent ni votre plan d\'urgence officiel ni les instructions des secours.</div>';
+    }
+
+    function goPlanUrgence(){
+      document.getElementById("urgence-station-name").textContent = state.station || "Point de vente";
+      renderUrgenceGrid();
+      showPage("page-urgence");
+    }
+
+    function goUrgenceFiche(key){
+      var d = urgenceData[key];
+      if (!d) return;
+      document.getElementById("urgence-fiche-title").textContent = d.icon + " " + d.titre;
+
+      var html = "";
+
+      // Danger banner
+      if (d.danger){
+        html += '<div style="background:#fef2f2;border:2px solid #dc2626;border-radius:12px;padding:12px 14px;">' +
+          '<div style="font-size:13px;font-weight:800;color:#dc2626;line-height:1.5;">' + d.danger + '</div></div>';
+      }
+
+      // Sections
+      d.sections.forEach(function(sec){
+        html += '<div style="background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">' +
+          '<div style="background:' + sec.color + ';padding:10px 14px;">' +
+          '<div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.4px;">' + sec.label + '</div></div>' +
+          '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">';
+        sec.items.forEach(function(item, i){
+          html += '<div style="display:flex;gap:10px;align-items:flex-start;">' +
+            '<div style="min-width:22px;height:22px;border-radius:50%;background:' + sec.color + ';color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;">' + (i+1) + '</div>' +
+            '<div style="font-size:14px;color:#111827;line-height:1.5;flex:1;">' + item + '</div></div>';
+        });
+        html += '</div></div>';
+      });
+
+      // Numéros d'urgence
+      if (d.tel && d.tel.length){
+        html += '<div style="background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">' +
+          '<div style="background:#dc2626;padding:10px 14px;">' +
+          '<div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.4px;">📞 Appeler</div></div>' +
+          '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">';
+        d.tel.forEach(function(t){
+          if (t.num === "@manager") t = { label: t.label, num: settings.managerPhone || "" };
+          if (!t.num) return;
+          html += '<a href="tel:' + t.num + '" style="display:flex;align-items:center;justify-content:space-between;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 14px;text-decoration:none;">' +
+            '<span style="font-size:14px;font-weight:700;color:#111827;">' + t.label + '</span>' +
+            '<span style="font-size:16px;font-weight:900;color:#dc2626;">' + t.num.replace(/^0+/,'0') + '</span></a>';
+        });
+        html += '</div></div>';
+      }
+
+      // Bouton rapport d'incident
+      var rapportBtn = '<button type="button" onclick="goUrgenceRapport()" ';
+      rapportBtn += 'style="width:100%;border:2px solid #e4e7eb;border-radius:12px;padding:14px;';
+      rapportBtn += 'background:#f9fafb;color:#374151;font-size:14px;font-weight:700;cursor:pointer;';
+      rapportBtn += 'font-family:inherit;touch-action:manipulation;">📋 Créer un rapport</button>';
+      html += rapportBtn;
+      document.getElementById("urgence-fiche-content").innerHTML = html;
+      showPage("page-urgence-fiche");
+    }
+
+    function goUrgenceRapport(){
+      goMaintenance();
+    }
+
+    function dataURLtoBlob(dataurl){
+      const arr  = dataurl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+      return new Blob([u8arr], { type: mime });
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
