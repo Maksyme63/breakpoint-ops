@@ -1059,7 +1059,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.envoyer(200, sorted(noms))
         if chemin == "/api/videos":  # vidéos de l'écran présentes dans videos/
             dossier = os.path.join(ICI, "videos")
-            noms = sorted("videos/" + f for f in os.listdir(dossier)
+            # « ?v=… » change quand le fichier est remplacé : la TV ne rejoue jamais une ancienne version gardée en mémoire
+            noms = sorted(f"videos/{f}?v={int(os.path.getmtime(os.path.join(dossier, f)))}" for f in os.listdir(dossier)
                           if os.path.splitext(f)[1].lower() in TYPES_VIDEO) if os.path.isdir(dossier) else []
             return self.envoyer(200, noms)
         if chemin in FICHIERS_AUTORISES:

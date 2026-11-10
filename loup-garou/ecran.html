@@ -95,10 +95,18 @@ function changerVideo(url, memeVideo, noir) {
   setTimeout(function () {
     if (j !== jetonVideo) return;
     video.src = url;
+    var depart = DEBUT_VIDEO[nomVideo(url).replace(/^videos\//, "").replace(/_\d\.\w+$/, "")] || 0;
+    if (depart) video.addEventListener("loadedmetadata", function sauter() {
+      video.removeEventListener("loadedmetadata", sauter); if (j === jetonVideo) try { video.currentTime = depart; } catch (e) {}
+    });
+    // vidéo illisible par la TV : on montre l'animation dessinée plutôt qu'un écran noir
+    video.addEventListener("error", function illisible() {
+      video.removeEventListener("error", illisible); if (j === jetonVideo) { modeVideo = false; cv.style.opacity = 1; }
+    });
     var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
     function pret() {
       if (j !== jetonVideo) { video.removeEventListener("timeupdate", pret); return; }
-      if (video.currentTime > 0.3 && Date.now() - debut >= mini) {
+      if (video.currentTime > depart + 0.3 && Date.now() - debut >= mini) {
         video.removeEventListener("timeupdate", pret); voile.style.opacity = 0; videoAffichee = true;
       }
     }
@@ -107,9 +115,11 @@ function changerVideo(url, memeVideo, noir) {
 }
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 // Boutons dont la vidéo porte un autre nom que le bouton (choisie d'après les noms du dossier videos)
-var VIDEO_BOUTON = { montreur_ours: "ours", chasseur: "foret", ancien: "defaut", victoire_loups: "victoire_loup",
+var VIDEO_BOUTON = { montreur_ours: "ours", ancien: "defaut", victoire_loups: "victoire_loup", amoureux: "amoureux_decouvre",
   fete: "fete_medieval", accueil: "fete_medieval" };
-function nomVideo(u) { return u.toLowerCase().replace(/-/g, "_"); } // « victoire-loups » = « victoire_loups »
+function nomVideo(u) { return u.split("?")[0].toLowerCase().replace(/-/g, "_"); } // « victoire-loups » = « victoire_loups »
+// Vidéos qui démarrent après leur première seconde (début avec un flash)
+var DEBUT_VIDEO = { horloge: 1.0 };
 function videoPour(s, th) {
   var noms = [s.id, VIDEO_BOUTON[s.id], th], ext = ["mp4", "webm", "mov", "m4v"];
   for (var i = 0; i < noms.length; i++) if (noms[i]) for (var j = 0; j < ext.length; j++) {
