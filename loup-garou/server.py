@@ -931,7 +931,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(longueur))
         if code == 206:
             self.send_header("Content-Range", f"bytes {debut}-{fin}/{taille}")
-        self.send_header("Cache-Control", "no-store")
+        # les vidéos de l'écran peuvent rester en mémoire de la TV : elles repartent plus vite
+        est_video = os.path.splitext(chemin)[1].lower() in TYPES_VIDEO
+        self.send_header("Cache-Control", "max-age=86400" if est_video else "no-store")
         self.end_headers()
         if self.command == "HEAD":
             return

@@ -73,7 +73,15 @@ function sonder() {
 }
 setInterval(sonder, 200);
 var videos = [], video = document.getElementById("v"), modeVideo = false;
-charger("api/videos", function (l) { videos = l || []; });
+charger("api/videos", function (l) {
+  videos = l || [];
+  if (scene && !modeVideo) nouvelleScene(scene); // la scène déjà en cours (ex. l'accueil) reçoit aussi sa vidéo
+});
+// la vidéo n'apparaît qu'une fois qu'elle joue vraiment : l'animation reste à l'écran pendant le chargement
+var videoVoulue = null;
+video.addEventListener("playing", function () {
+  if (videoVoulue && video.getAttribute("src") === videoVoulue) { video.className = "visible"; modeVideo = true; }
+});
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 function videoPour(s, th) {
   var noms = [s.id + SUFFIXE_ECRAN, th + SUFFIXE_ECRAN], ext = ["mp4", "webm", "mov", "m4v"];
@@ -89,12 +97,12 @@ function nouvelleScene(s) {
   // vraie vidéo en boucle si elle existe (fluide et cinématographique), sinon animation dessinée
   var url = theme === "noir" ? null : videoPour(s, theme);
   if (url) {
-    if (video.getAttribute("src") !== url) { video.src = url; }
+    videoVoulue = url;
+    if (video.getAttribute("src") !== url) { video.className = ""; modeVideo = false; video.src = url; }
     try { video.currentTime = 0; } catch (e) {}
     var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
-    video.className = "visible"; modeVideo = true;
   } else {
-    video.className = ""; modeVideo = false; try { video.pause(); } catch (e) {}
+    videoVoulue = null; video.className = ""; modeVideo = false; try { video.pause(); } catch (e) {}
   }
   debutScene = Date.now(); particules = []; yeux = []; bulles = []; griffes = []; aiguille = 0; flash = 0;
   document.getElementById("aide").style.display = "none";
