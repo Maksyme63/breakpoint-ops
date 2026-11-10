@@ -783,8 +783,13 @@ def scenes():
     return {s["id"]: s for s in donnees.get("roles", []) + donnees["scenes"]}
 
 
-def lancer_spec(spec):
-    ETAT["derniere_spec"] = spec
+NOIR_ENTRE_SCENES = 1.3  # secondes : toutes les lumières s'éteignent en fondu, puis la scène démarre avec la vidéo
+
+
+def lancer_spec(spec, noir_avant=False):
+    ETAT["derniere_spec"] = spec  # sans le noir : les éclairs, yeux… reviennent directement à l'ambiance
+    if noir_avant:
+        spec = dict(spec, intro=[{"eteint": True, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
         p.jouer(prog)
@@ -849,7 +854,7 @@ def eclair():
         p.jouer(prog)
 
 
-def lancer_scene(scene_id):
+def lancer_scene(scene_id, noir=True):
     scene = scenes().get(scene_id)
     if not scene:
         return False
@@ -858,7 +863,9 @@ def lancer_scene(scene_id):
     ETAT["spec_scene"] = scene.get("lumiere", {"mode": "off"})
     ETAT["tic_bloque"] = False
     ETAT["aiguille"] = -1
-    lancer_spec(ETAT["spec_scene"])
+    ETAT["n_scene"] = ETAT.get("n_scene", 0) + 1  # même bouton rappuyé : l'écran le voit aussi
+    ETAT["noir"] = noir  # noir seulement quand on appuie sur un bouton, pas dans un enchaînement automatique
+    lancer_spec(ETAT["spec_scene"], noir_avant=noir)
     return True
 
 
@@ -956,7 +963,8 @@ class Handler(BaseHTTPRequestHandler):
             "scene": ETAT["scene"],
             "luminosite": ETAT["luminosite"],
             "ampoules": [{"nom": a.nom, "ok": getattr(a, "ok", True)} for a in AMPOULES],
-            "evt": ETAT.get("evt", {}),  # compteurs d'événements (hurlement, tic, glouglou…) pour l'écran
+            "evt": ETAT.get("evt", {}),
+            "noir": ETAT.get("noir", True), "n_scene": ETAT.get("n_scene", 0),  # l'écran passe par le noir avec les lumières (bouton appuyé)  # compteurs d'événements (hurlement, tic, glouglou…) pour l'écran
         }
 
     def do_OPTIONS(self):
@@ -1016,7 +1024,7 @@ class Handler(BaseHTTPRequestHandler):
             donnees = {}
 
         if chemin.startswith("/api/scene/"):
-            ok = lancer_scene(chemin.rsplit("/", 1)[1])
+            ok = lancer_scene(chemin.rsplit("/", 1)[1], noir=not donnees.get("suite"))
             return self.envoyer(200 if ok else 404, self.etat())
         if chemin in ("/api/voix", "/api/tic", "/api/pic", "/api/oeil", "/api/eclair"):
             nom = chemin.rsplit("/", 1)[1]
