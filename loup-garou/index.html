@@ -304,18 +304,18 @@
   const attendreMs = (ms) => new Promise((r) => setTimeout(r, ms));
   async function enchainer(s) {
     const jeton = ++jetonEnchainement;
-    for (const [i, etape] of s.enchainement.entries()) {
+    for (const etape of s.enchainement) {
       if (jeton !== jetonEnchainement) return;
       const sc = scenes.find((x) => x.id === etape.scene);
       if (!sc) continue;
-      const finNarration = lancer(sc, true, i > 0);  // suite automatique : pas de passage au noir
+      const finNarration = lancer(sc, true);
       document.querySelectorAll(".bouton").forEach((b) => b.classList.toggle("actif", b.dataset.id === s.id));
       // on passe à l'étape suivante quand le narrateur a fini ET que la durée minimale est écoulée
       await Promise.all([Promise.resolve(finNarration).catch(() => {}), attendreMs((etape.duree || 0) * 1000)]);
     }
   }
 
-  function lancer(s, depuisEnchainement, suite) {
+  function lancer(s, depuisEnchainement) {
     if (!depuisEnchainement) jetonEnchainement++;  // un autre bouton arrête l'enchaînement en cours
     if (s.enchainement) return enchainer(s);
     document.querySelectorAll(".bouton").forEach((b) => b.classList.toggle("actif", b.dataset.id === s.id));
@@ -323,7 +323,7 @@
     const finNarration = Sons.jouer(s, fichiers[s.id], precedente);
     precedente = s;
     if (navigator.vibrate) navigator.vibrate(30);
-    if (serveur) api("api/scene/" + encodeURIComponent(s.id), suite ? { suite: true } : {}).then(afficherEtat).catch(() => afficherEtat(null));
+    if (serveur) api("api/scene/" + encodeURIComponent(s.id), {}).then(afficherEtat).catch(() => afficherEtat(null));
     return finNarration;
   }
 

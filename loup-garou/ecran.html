@@ -9,6 +9,7 @@
   canvas, video { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
   video { object-fit: cover; background: #000; }
   canvas { z-index: 3; transition: opacity 1.2s ease; }
+  #instant { z-index: 2; opacity: 0; }
   #voile { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: #000; z-index: 2; opacity: 1; transition: opacity 0.8s ease; }
   #titre { position: fixed; left: 0; right: 0; top: 38%; text-align: center; color: #f6eedd;
     font-family: Georgia, "Times New Roman", serif; font-size: 7vw; letter-spacing: 0.04em;
@@ -23,6 +24,7 @@
 <body>
 <video id="v" muted loop playsinline preload="auto"></video>
 <div id="voile"></div>
+<canvas id="instant"></canvas>
 <canvas id="c"></canvas>
 <div id="titre" style="display: none"></div><!-- titres masqués sur la TV -->
 <div id="aide">🐺 En attente du pad… appuie sur un bouton.<br><small>Clique ici avec la télécommande pour passer en plein écran.</small></div>
@@ -63,7 +65,7 @@ charger("scenes.json", function (d) {
 function sonder() {
   charger("api/etat", function (e) {
     var nouveau = e.scene && (!scene || e.scene !== scene.id || (e.n_scene !== undefined && e.n_scene !== nScene));
-    if (nouveau && scenes[e.scene]) nouvelleScene(scenes[e.scene], e.noir !== false);
+    if (nouveau && scenes[e.scene]) nouvelleScene(scenes[e.scene]);
     nScene = e.n_scene;
     var n = e.evt || {};
     if (!premier) {
@@ -81,29 +83,35 @@ charger("api/videos", function (l) {
   videos = l || [];
   if (scene && !modeVideo) nouvelleScene(scene); // la scène déjà en cours (ex. l'accueil) reçoit aussi sa vidéo
 });
-// Fondu par le noir : la TV ne sait décoder qu'une vidéo à la fois. On assombrit l'écran avec un voile noir,
-// on change de vidéo pendant le noir, et on ne retire le voile que quand la nouvelle vidéo défile vraiment.
-// Le voile ne se lève pas avant NOIR_MIN : en même temps que les lumières, qui passent par le noir entre deux scènes.
-var voile = document.getElementById("voile"), videoVoulue = null, jetonVideo = 0, videoAffichee = false, NOIR_MIN = 1100;
-function changerVideo(url, memeVideo, noir) {
-  var j = ++jetonVideo, attente = videoAffichee ? 900 : 0, debut = Date.now(), mini = noir ? NOIR_MIN : 0;
-  voile.style.opacity = 1; videoAffichee = false;
-  if (memeVideo) { // même vidéo : elle continue de tourner, on passe juste par le noir avec les lumières
-    setTimeout(function () { if (j === jetonVideo) { voile.style.opacity = 0; videoAffichee = true; } }, mini);
-    return;
-  }
-  setTimeout(function () {
-    if (j !== jetonVideo) return;
-    video.src = url;
-    var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
-    function pret() {
-      if (j !== jetonVideo) { video.removeEventListener("timeupdate", pret); return; }
-      if (video.currentTime > 0.3 && Date.now() - debut >= mini) {
-        video.removeEventListener("timeupdate", pret); voile.style.opacity = 0; videoAffichee = true;
-      }
+// Fondu enchaîné : la TV ne sait décoder qu'une vidéo à la fois. On photographie la dernière image de la vidéo
+// en cours, on la laisse à l'écran pendant que la nouvelle vidéo se charge dessous, puis la photo s'efface en fondu.
+var voile = document.getElementById("voile"), instant = document.getElementById("instant"), ix = instant.getContext("2d");
+var videoVoulue = null, jetonVideo = 0, videoAffichee = false;
+function photographier() {
+  try {
+    var w = video.videoWidth, h = video.videoHeight; if (!w || !h) return false;
+    instant.width = window.innerWidth; instant.height = window.innerHeight;
+    var e = Math.max(instant.width / w, instant.height / h); // même cadrage que la vidéo (« cover »)
+    ix.drawImage(video, (instant.width - w * e) / 2, (instant.height - h * e) / 2, w * e, h * e);
+    instant.style.transition = "none"; instant.style.opacity = 1;
+    return true;
+  } catch (err) { return false; }
+}
+function changerVideo(url) {
+  var j = ++jetonVideo;
+  var photo = videoAffichee && photographier();
+  if (!photo && instant.style.opacity !== "1") voile.style.opacity = 1; // pas de photo possible : passage par le noir
+  videoAffichee = false;
+  video.src = url;
+  var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
+  function pret() {
+    if (j !== jetonVideo) { video.removeEventListener("timeupdate", pret); return; }
+    if (video.currentTime > 0.15) {
+      video.removeEventListener("timeupdate", pret);
+      instant.style.transition = "opacity 1.2s ease"; instant.style.opacity = 0; voile.style.opacity = 0; videoAffichee = true;
     }
-    video.addEventListener("timeupdate", pret);
-  }, attente);
+  }
+  video.addEventListener("timeupdate", pret);
 }
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 function videoPour(s, th) {
@@ -115,19 +123,17 @@ function videoPour(s, th) {
   return null;
 }
 
-function nouvelleScene(s, noir) {
-  if (noir === undefined) noir = true;
+function nouvelleScene(s) {
   scene = s; theme = THEMES[s.id] || (s.id === "lumiere" ? "defaut" : "defaut");
   // vraie vidéo en boucle si elle existe (fluide et cinématographique), sinon animation dessinée
   var url = theme === "noir" ? null : videoPour(s, theme);
   if (url) {
     modeVideo = true; cv.style.opacity = 1;
-    var meme = url === videoVoulue && !video.paused;
-    if (!(meme && !noir)) changerVideo(url, meme, noir); // enchaînement automatique sur la même vidéo : aucune coupure
+    if (url !== videoVoulue || video.paused) changerVideo(url); // même vidéo : elle continue sans coupure
     videoVoulue = url;
   } else {
     var avant = modeVideo, j = ++jetonVideo;
-    videoVoulue = null; modeVideo = false; videoAffichee = false; voile.style.opacity = 1;
+    videoVoulue = null; modeVideo = false; videoAffichee = false; voile.style.opacity = 1; instant.style.opacity = 0;
     if (avant) { cv.style.opacity = 0; setTimeout(function () { cv.style.opacity = 1; }, 50); } // l'animation apparaît en fondu
     setTimeout(function () { if (j === jetonVideo) try { video.pause(); } catch (e) {} }, 900);
   }
