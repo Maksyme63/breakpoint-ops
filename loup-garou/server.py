@@ -533,7 +533,9 @@ class Pilote(threading.Thread):
         t = prog.depart
         for etape in spec.get("intro", []):
             if etape.get("fondu_noir") and not self.ampoule.sait_degrader():
-                self.depuis_noir = False  # ruban : comme à l'origine, il passe directement à la nouvelle scène
+                self.depuis_noir = False  # ruban : comme à l'origine, il passe directement à la nouvelle scène,
+                if self.attendre(t + RETARD_RUBAN - time.time()):  # avec un petit retard
+                    return
                 continue
             if etape.get("fondu_noir"):
                 # Respiration vers le noir, jouée par chaque ampoule elle-même (dégradé intégré, fluide),
@@ -846,6 +848,7 @@ def scenes():
 
 
 VITESSE_FONDU_NOIR = 0x55  # vitesse de la respiration intégrée (descente/remontée), plus grand = plus rapide
+RETARD_RUBAN = 0.5         # secondes avant que le ruban prenne la couleur de la nouvelle scène
 MONTEE_RESPIRATION = 1.3   # secondes laissées à la remontée avant que la scène prenne la main
 NOIR_ENTRE_SCENES = 1.1  # secondes : les lumières descendent lentement au noir, puis la scène remonte avec la vidéo
 
