@@ -7,7 +7,8 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   canvas, video { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
-  video { object-fit: cover; background: #000; opacity: 0; transition: opacity 0.8s ease; }
+  video { object-fit: cover; background: #000; opacity: 0; transition: opacity 1.5s ease; }
+  canvas { z-index: 3; transition: opacity 1.2s ease; }
   video.visible { opacity: 1; }
   #titre { position: fixed; left: 0; right: 0; top: 38%; text-align: center; color: #f6eedd;
     font-family: Georgia, "Times New Roman", serif; font-size: 7vw; letter-spacing: 0.04em;
@@ -21,6 +22,7 @@
 </head>
 <body>
 <video id="v" muted loop playsinline preload="auto"></video>
+<video id="v2" muted loop playsinline preload="auto"></video>
 <canvas id="c"></canvas>
 <div id="titre" style="display: none"></div><!-- titres masqués sur la TV -->
 <div id="aide">🐺 En attente du pad… appuie sur un bouton.<br><small>Clique ici avec la télécommande pour passer en plein écran.</small></div>
@@ -72,16 +74,25 @@ function sonder() {
   });
 }
 setInterval(sonder, 200);
-var videos = [], video = document.getElementById("v"), modeVideo = false;
+var videos = [], video = document.getElementById("v"), video2 = document.getElementById("v2"), modeVideo = false;
 charger("api/videos", function (l) {
   videos = l || [];
   if (scene && !modeVideo) nouvelleScene(scene); // la scène déjà en cours (ex. l'accueil) reçoit aussi sa vidéo
 });
-// la vidéo n'apparaît qu'une fois qu'elle joue vraiment : l'animation reste à l'écran pendant le chargement
-var videoVoulue = null;
-video.addEventListener("playing", function () {
-  if (videoVoulue && video.getAttribute("src") === videoVoulue) { video.className = "visible"; modeVideo = true; }
-});
+// fondu enchaîné : la nouvelle vidéo se charge derrière, l'ancienne reste à l'écran,
+// puis la nouvelle apparaît en fondu dès qu'elle joue vraiment (jamais d'animation dessinée entre deux vidéos)
+var videoVoulue = null, videoActive = null, couche = 1;
+function quandElleJoue() {
+  var v = this;
+  if (!videoVoulue || v.getAttribute("src") !== videoVoulue || v === videoActive) return;
+  var ancienne = videoActive;
+  couche++; v.style.zIndex = couche; v.className = "visible"; videoActive = v;
+  if (ancienne) setTimeout(function () {
+    if (videoActive !== ancienne) { ancienne.className = ""; try { ancienne.pause(); } catch (e) {} }
+  }, 1600);
+}
+video.addEventListener("playing", quandElleJoue);
+video2.addEventListener("playing", quandElleJoue);
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 function videoPour(s, th) {
   var noms = [s.id + SUFFIXE_ECRAN, th + SUFFIXE_ECRAN], ext = ["mp4", "webm", "mov", "m4v"];
@@ -97,12 +108,23 @@ function nouvelleScene(s) {
   // vraie vidéo en boucle si elle existe (fluide et cinématographique), sinon animation dessinée
   var url = theme === "noir" ? null : videoPour(s, theme);
   if (url) {
-    videoVoulue = url;
-    if (video.getAttribute("src") !== url) { video.className = ""; modeVideo = false; video.src = url; }
-    try { video.currentTime = 0; } catch (e) {}
-    var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
+    videoVoulue = url; modeVideo = true; cv.style.opacity = 1;
+    if (!videoActive || videoActive.getAttribute("src") !== url) {
+      var libre = videoActive === video ? video2 : video; // on charge dans le lecteur caché
+      if (libre.getAttribute("src") !== url) libre.src = url;
+      try { libre.currentTime = 0; } catch (e) {}
+      var lecture = libre.play(); if (lecture && lecture.catch) lecture.catch(function () {});
+    } else {
+      var autre = videoActive === video ? video2 : video; // retour à la vidéo déjà affichée : on arrête l'autre
+      autre.className = ""; try { autre.pause(); } catch (e) {}
+    }
   } else {
-    videoVoulue = null; video.className = ""; modeVideo = false; try { video.pause(); } catch (e) {}
+    var avant = modeVideo;
+    videoVoulue = null; modeVideo = false;
+    if (avant) { cv.style.opacity = 0; setTimeout(function () { cv.style.opacity = 1; }, 50); } // l'animation apparaît en fondu
+    [video, video2].forEach(function (v) { v.className = ""; });
+    var fin = videoActive; videoActive = null;
+    if (fin) setTimeout(function () { if (videoActive !== fin) try { fin.pause(); } catch (e) {} }, 1600);
   }
   debutScene = Date.now(); particules = []; yeux = []; bulles = []; griffes = []; aiguille = 0; flash = 0;
   document.getElementById("aide").style.display = "none";
