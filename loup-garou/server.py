@@ -103,6 +103,9 @@ class AmpouleSimulee:
         self._dernier = 0
         self._log(f"éclair {etape}")
 
+    def sait_degrader(self):
+        return True
+
     def scene_native(self, unites, vitesse, saut=False, rafraichir=True):
         self._dernier = 0
         self._log(f"dégradé intégré ({len(unites)} couleurs, vitesse {vitesse})")
@@ -343,6 +346,16 @@ class AmpouleTuya:
         elif etape == "eteint" or etape.get("eteint"):
             self._envoyer(None, self.dev_appel("turn_off"), rapide=True)
 
+    def sait_degrader(self):
+        """L'ampoule a-t-elle le dégradé intégré (mode « scène ») ? Le ruban RGBIC, lui, ne l'a pas."""
+        if not self.dev:
+            return False
+        ds = self.dev.dpset
+        codes = {v.get("code"): str(dp) for dp, v in (self.info.get("mapping") or {}).items() if isinstance(v, dict)}
+        dp_scene = codes.get("scene_data_v2") or codes.get("scene_data") or (None if codes else ds.get("scene"))
+        return bool(dp_scene and ds.get("switch") and ds.get("mode")) and \
+            (ds.get("value_hexformat") or "hsv16") == "hsv16"
+
     def scene_native(self, unites, vitesse, saut=False, rafraichir=True):
         """Dégradé fait par l'ampoule elle-même (mode « scène ») : une seule commande, parfaitement
         fluide. Renvoie False si l'ampoule ne sait pas le faire (on garde alors l'ancien effet)."""
@@ -519,6 +532,9 @@ class Pilote(threading.Thread):
         # Séquence d'intro (flashs, noir…) jouée en même temps sur toutes les ampoules
         t = prog.depart
         for etape in spec.get("intro", []):
+            if etape.get("fondu_noir") and not self.ampoule.sait_degrader():
+                self.depuis_noir = False  # ruban : comme à l'origine, il passe directement à la nouvelle scène
+                continue
             if etape.get("fondu_noir"):
                 # Respiration vers le noir, jouée par chaque ampoule elle-même (dégradé intégré, fluide),
                 # toutes en même temps, quelle que soit la scène d'avant
