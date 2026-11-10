@@ -533,13 +533,9 @@ class Pilote(threading.Thread):
                     self.actuel = None
                     self.depuis_eteint = False
                 else:
-                    if derniere:  # ruban (pas de dégradé intégré) : il descend par paliers au même rythme
-                        # paliers plus fins et adaptés à l'œil (les écarts se voient surtout dans le sombre)
-                        paliers = (0.6, 0.3, 0.1)
-                        for k, part in enumerate(paliers):
-                            self.ampoule.couleur(derniere[0], max(1, derniere[1] * part), rapide=True)
-                            if self.attendre(t + float(etape["fondu_noir"]) * (k + 1) / len(paliers) - time.time()):
-                                return
+                    if derniere:  # ruban (pas de dégradé intégré) : coupure nette pile quand les ampoules touchent le noir
+                        if self.attendre(t + float(etape["fondu_noir"]) - time.time()):
+                            return
                     self.appliquer("eteint")
                     self.depuis_eteint = True
                 self.depuis_noir = True  # la scène suivante remontera en fondu
@@ -573,13 +569,9 @@ class Pilote(threading.Thread):
                     self.actuel = (list(c), spec.get("lum", 100))
                     if self.attendre(MONTEE_RESPIRATION):
                         return
-                else:  # ruban : remontée par paliers, pendant le même temps que les ampoules
-                    debut_montee = time.time()
-                    paliers = (0.08, 0.25, 0.5, 0.8)
-                    for k, part in enumerate(paliers):
-                        self.ampoule.couleur(c, max(1, l * part), rapide=True)
-                        if self.attendre(debut_montee + MONTEE_RESPIRATION * (k + 1) / (len(paliers) + 1) - time.time()):
-                            return
+                else:  # ruban : se rallume net au milieu de la remontée des ampoules
+                    if self.attendre(MONTEE_RESPIRATION / 2):
+                        return
 
         if mode == "off":
             self.ampoule.eteindre()
