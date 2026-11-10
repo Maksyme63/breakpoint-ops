@@ -370,6 +370,27 @@ class AmpouleTuya:
         self.en_scene = True
         return True
 
+    def fondu_musique(self, rgb, lum):
+        """Rubans RGBIC : pas de dégradé intégré, mais le mode « musique » sait glisser en douceur
+        (« gradient ») vers une couleur. Une commande = une transition fluide. False si non disponible."""
+        if not self.dev:
+            return False
+        codes = {v.get("code"): str(dp) for dp, v in (self.info.get("mapping") or {}).items() if isinstance(v, dict)}
+        dp_musique, dp_mode = codes.get("music_data"), codes.get("work_mode")
+        dp_switch = codes.get("switch_led") or codes.get("switch")
+        if not (dp_musique and dp_mode and dp_switch):
+            return False
+        r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
+        h, s, _ = colorsys.rgb_to_hsv(r, g, b)
+        v = int(max(10, min(1000, lum * 10)))
+        # format Tuya : mode (1 = dégradé) + H, S, V, luminosité blanche, température (4 chiffres hexa chacun)
+        texte = f"1{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}{0:04x}{0:04x}"
+        self._envoyer(None, self.dev_appel("set_multiple_values"), {dp_switch: True, dp_mode: "music", dp_musique: texte},
+                      rapide=True)
+        self.derniere = (list(rgb), lum)
+        self.en_scene = True
+        return True
+
     def dev_appel(self, nom):
         # self.dev peut être recréé lors d'une reconnexion : on le relit au moment de l'appel
         return lambda *a: getattr(self.dev, nom)(*a)
@@ -533,7 +554,14 @@ class Pilote(threading.Thread):
                     self.actuel = None
                     self.depuis_eteint = False
                 else:
-                    if derniere:  # ruban (pas de dégradé intégré) : coupure nette pile quand les ampoules touchent le noir
+                    musique = getattr(self.ampoule, "fondu_musique", None)
+                    if derniere and musique:  # ruban : glissements fluides du mode musique, au même rythme
+                        for k, part in enumerate((0.35, 0.02)):
+                            if not musique(derniere[0], max(1, derniere[1] * part)):
+                                break
+                            if self.attendre(t + float(etape["fondu_noir"]) * (k + 1) / 2 - time.time()):
+                                return
+                    elif derniere:  # sans glissement possible : coupure nette pile quand les ampoules touchent le noir
                         if self.attendre(t + float(etape["fondu_noir"]) - time.time()):
                             return
                     self.appliquer("eteint")
@@ -569,7 +597,18 @@ class Pilote(threading.Thread):
                     self.actuel = (list(c), spec.get("lum", 100))
                     if self.attendre(MONTEE_RESPIRATION):
                         return
-                else:  # ruban : se rallume net au milieu de la remontée des ampoules
+                elif getattr(self.ampoule, "fondu_musique", None) and self.ampoule.fondu_musique(c, max(1, l * 0.3)):
+                    # ruban : remontée par glissements fluides, en même temps que les ampoules
+                    debut_montee = time.time()
+                    if self.attendre(MONTEE_RESPIRATION / 3):
+                        return
+                    self.ampoule.fondu_musique(c, max(1, l * 0.7))
+                    if self.attendre(debut_montee + MONTEE_RESPIRATION * 2 / 3 - time.time()):
+                        return
+                    self.ampoule.fondu_musique(c, l)
+                    if self.attendre(debut_montee + MONTEE_RESPIRATION - time.time()):
+                        return
+                else:  # ruban sans glissement : se rallume net au milieu de la remontée des ampoules
                     if self.attendre(MONTEE_RESPIRATION / 2):
                         return
 
