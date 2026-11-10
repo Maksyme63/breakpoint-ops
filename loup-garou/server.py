@@ -103,7 +103,7 @@ class AmpouleSimulee:
         self._dernier = 0
         self._log(f"éclair {etape}")
 
-    def scene_native(self, unites, vitesse, saut=False):
+    def scene_native(self, unites, vitesse, saut=False, rafraichir=True):
         self._dernier = 0
         self._log(f"dégradé intégré ({len(unites)} couleurs, vitesse {vitesse})")
         return True
@@ -301,6 +301,7 @@ class AmpouleTuya:
 
     def couleur(self, rgb, lum, rapide=False):
         self.derniere = (list(rgb), lum)  # pour la respiration vers le noir entre deux boutons
+        self.en_scene = False
         r, g, b = [max(0, min(255, c)) / 255.0 for c in rgb]
         h, s, _ = colorsys.rgb_to_hsv(r, g, b)
         h, s = round(h, 3), round(s, 2)
@@ -313,6 +314,7 @@ class AmpouleTuya:
 
     def blanc(self, lum, temp):
         self.derniere = ([255, 214, 170], lum)
+        self.en_scene = False
         lum = round(max(1, min(100, lum)))
         temp = round(max(0, min(100, temp)))
         etat = self._etat_complet({"blanc": True, "lum": lum, "temp": temp}) if self.dev else None
@@ -323,6 +325,7 @@ class AmpouleTuya:
 
     def eteindre(self):
         self.derniere = None
+        self.en_scene = False
         etat = self._etat_complet("eteint") if self.dev else None
         if etat:
             self._envoyer(("off",), self.dev_appel("set_multiple_values"), etat)
@@ -340,7 +343,7 @@ class AmpouleTuya:
         elif etape == "eteint" or etape.get("eteint"):
             self._envoyer(None, self.dev_appel("turn_off"), rapide=True)
 
-    def scene_native(self, unites, vitesse, saut=False):
+    def scene_native(self, unites, vitesse, saut=False, rafraichir=True):
         """Dégradé fait par l'ampoule elle-même (mode « scène ») : une seule commande, parfaitement
         fluide. Renvoie False si l'ampoule ne sait pas le faire (on garde alors l'ancien effet)."""
         if not self.dev:
@@ -357,13 +360,14 @@ class AmpouleTuya:
             v = int(max(10, min(1000, lum * 10)))
             texte += f"{vitesse:02x}{vitesse:02x}{'01' if saut else '02'}{int(round(h * 360)) % 360:04x}{int(round(s * 1000)):04x}{v:04x}00000000"
         # l'ampoule repasse d'abord par une couleur normale, sinon elle garde parfois l'ancien dégradé
-        couleur = self._etat_complet({"couleur": unites[0][0], "lum": unites[0][1]})
+        couleur = self._etat_complet({"couleur": unites[0][0], "lum": unites[0][1]}) if rafraichir else None
         if couleur:
             self._envoyer(None, self.dev_appel("set_multiple_values"), couleur)
         etat = {ds["switch"]: True, ds["mode"]: "scene", dp_scene: texte}
         self._envoyer(None, self.dev_appel("set_multiple_values"), etat)
         plus_vive = max(unites, key=lambda u: u[1])  # la couleur la plus lumineuse du dégradé
         self.derniere = (list(plus_vive[0]), plus_vive[1])
+        self.en_scene = True
         return True
 
     def dev_appel(self, nom):
@@ -518,11 +522,19 @@ class Pilote(threading.Thread):
             if etape.get("fondu_noir"):
                 # Respiration vers le noir, jouée par chaque ampoule elle-même (dégradé intégré, fluide),
                 # toutes en même temps, quelle que soit la scène d'avant
+                # Pas d'extinction complète : une ampoule rallumée rejoue parfois son ancien dégradé (ancienne couleur).
+                # On s'arrête donc sur le noir à 1 %, en mode couleur normal, d'où la remontée repart proprement.
                 derniere = getattr(self.ampoule, "derniere", None)
-                if derniere and self.ampoule.scene_native([derniere] + [(derniere[0], 1)] * 7, VITESSE_FONDU_NOIR):
+                if derniere and self.ampoule.scene_native([derniere] + [(derniere[0], 1)] * 7, VITESSE_FONDU_NOIR,
+                                                          rafraichir=getattr(self.ampoule, "en_scene", True)):
                     if self.attendre(float(etape["fondu_noir"])):
                         return
-                self.appliquer("eteint")
+                    self.ampoule.couleur(derniere[0], 1)
+                    self.actuel = None
+                    self.depuis_eteint = False
+                else:
+                    self.appliquer("eteint")  # ruban (pas de dégradé intégré) ou lampe déjà éteinte
+                    self.depuis_eteint = True
                 self.depuis_noir = True  # la scène suivante remontera en fondu
             elif etape.get("vite"):
                 self.depuis_noir = False  # la scène a sa propre entrée (flashs…) : pas de remontée
@@ -549,7 +561,8 @@ class Pilote(threading.Thread):
             palette = spec.get("couleurs") or ([spec["couleur"]] if spec.get("couleur") else [])
             if palette and mode not in ("off", "eclair", "white"):
                 c, l = palette[self.index % len(palette)], self.lum(spec.get("lum", 100))
-                if self.ampoule.scene_native([(c, 1)] + [(c, l)] * 7, VITESSE_FONDU_NOIR):
+                if self.ampoule.scene_native([(c, 1)] + [(c, l)] * 7, VITESSE_FONDU_NOIR,
+                                            rafraichir=getattr(self, "depuis_eteint", True)):
                     self.actuel = (list(c), spec.get("lum", 100))
                     if self.attendre(MONTEE_RESPIRATION):
                         return
@@ -818,7 +831,7 @@ NOIR_ENTRE_SCENES = 1.1  # secondes : les lumières descendent lentement au noir
 def lancer_spec(spec, noir_avant=False):
     ETAT["derniere_spec"] = spec  # sans le noir : les éclairs, yeux… reviennent directement à l'ambiance
     if noir_avant:
-        spec = dict(spec, intro=[{"fondu_noir": 0.5, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
+        spec = dict(spec, intro=[{"fondu_noir": 0.8, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
         p.jouer(prog)
