@@ -527,13 +527,18 @@ class Pilote(threading.Thread):
                 derniere = getattr(self.ampoule, "derniere", None)
                 if derniere and self.ampoule.scene_native([derniere] + [(derniere[0], 1)] * 7, VITESSE_FONDU_NOIR,
                                                           rafraichir=getattr(self.ampoule, "en_scene", True)):
-                    if self.attendre(float(etape["fondu_noir"])):
+                    if self.attendre(t + float(etape["fondu_noir"]) - time.time()):  # même horloge pour toutes
                         return
                     self.ampoule.couleur(derniere[0], 1)
                     self.actuel = None
                     self.depuis_eteint = False
                 else:
-                    self.appliquer("eteint")  # ruban (pas de dégradé intégré) ou lampe déjà éteinte
+                    if derniere:  # ruban (pas de dégradé intégré) : il descend par paliers au même rythme
+                        for k, part in enumerate((0.5, 0.2)):
+                            self.ampoule.couleur(derniere[0], max(1, derniere[1] * part))
+                            if self.attendre(t + float(etape["fondu_noir"]) * (k + 1) / 2 - time.time()):
+                                return
+                    self.appliquer("eteint")
                     self.depuis_eteint = True
                 self.depuis_noir = True  # la scène suivante remontera en fondu
             elif etape.get("vite"):
@@ -566,6 +571,12 @@ class Pilote(threading.Thread):
                     self.actuel = (list(c), spec.get("lum", 100))
                     if self.attendre(MONTEE_RESPIRATION):
                         return
+                else:  # ruban : remontée par paliers, pendant le même temps que les ampoules
+                    debut_montee = time.time()
+                    for k, part in enumerate((0.25, 0.55)):
+                        self.ampoule.couleur(c, max(1, l * part))
+                        if self.attendre(debut_montee + MONTEE_RESPIRATION * (k + 1) / 3 - time.time()):
+                            return
 
         if mode == "off":
             self.ampoule.eteindre()
@@ -831,7 +842,7 @@ NOIR_ENTRE_SCENES = 1.1  # secondes : les lumières descendent lentement au noir
 def lancer_spec(spec, noir_avant=False):
     ETAT["derniere_spec"] = spec  # sans le noir : les éclairs, yeux… reviennent directement à l'ambiance
     if noir_avant:
-        spec = dict(spec, intro=[{"fondu_noir": 0.8, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
+        spec = dict(spec, intro=[{"fondu_noir": 0.9, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
         p.jouer(prog)
