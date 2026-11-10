@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e3a5f">
+<title>VisaFiche</title>
+<style>
+  :root{ --ink:#111827; --muted:#6b7280; --line:#e3e7ec; --bg:#f3f4f6; --brand:#1e3a5f; --ok:#16a34a; --ko:#dc2626; --np:#d97706; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  .screen{ display:none; max-width:720px; margin:0 auto; min-height:100vh; }
+  .screen.active{ display:block; }
+  .topbar{ position:sticky; top:0; z-index:5; background:var(--brand); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .topbar h1{ font-size:18px; margin:0; line-height:1.2; }
+  .topbar small{ display:block; font-size:12px; opacity:.8; font-weight:400; }
+  .back{ border:none; background:rgba(255,255,255,.15); color:#fff; width:40px; height:40px; border-radius:10px; font-size:22px; cursor:pointer; flex-shrink:0; }
+  .pad{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tile{ background:#fff; border:none; border-radius:16px; padding:18px 12px; box-shadow:0 2px 10px rgba(0,0,0,.07); cursor:pointer; font-family:inherit; text-align:center; display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .tile .ico{ font-size:30px; }
+  .tile b{ font-size:14px; }
+  .tile span{ font-size:12px; color:var(--muted); }
+  .row{ background:#fff; border:none; border-radius:14px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,.06); cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; color:var(--ink); }
+  .row small{ display:block; font-weight:400; color:var(--muted); font-size:12px; margin-top:2px; }
+  .btn{ border:none; border-radius:12px; padding:15px; background:var(--brand); color:#fff; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; width:100%; }
+  .btn.ghost{ background:#fff; color:#374151; border:2px solid var(--line); }
+  .btn.danger{ background:#fff; color:var(--ko); border:2px solid #fca5a5; }
+  label{ font-size:13px; font-weight:700; color:#374151; display:flex; flex-direction:column; gap:6px; }
+  input,textarea,select{ width:100%; padding:12px; border:2px solid var(--line); border-radius:12px; font-size:16px; font-family:inherit; background:#fff; color:var(--ink); }
+  input:focus,textarea:focus,select:focus{ outline:none; border-color:var(--brand); }
+  .card{ background:#fff; border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); display:flex; flex-direction:column; gap:10px; }
+  .point-title{ font-size:15px; font-weight:700; line-height:1.4; }
+  .tri{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .tri button{ border:2px solid var(--line); background:#fff; border-radius:10px; padding:10px 4px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit; color:#374151; }
+  .tri button.on[data-v="ok"]{ background:#dcfce7; border-color:#86efac; color:var(--ok); }
+  .tri button.on[data-v="nc"]{ background:#fee2e2; border-color:#fca5a5; color:var(--ko); }
+  .tri button.on[data-v="np"]{ background:#fef3c7; border-color:#fcd34d; color:var(--np); }
+  .verdict{ border-radius:12px; padding:12px 14px; font-weight:800; font-size:15px; text-align:center; }
+  .v-ok{ background:#dcfce7; color:var(--ok); } .v-rem{ background:#fef3c7; color:var(--np); } .v-ko{ background:#fee2e2; color:var(--ko); } .v-todo{ background:#e5e7eb; color:#374151; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.5; }
+  .empty{ text-align:center; color:var(--muted); font-size:14px; padding:28px 10px; }
+  #toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111827; color:#fff; padding:12px 18px; border-radius:999px; font-size:14px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s; z-index:20; }
+  #toast.show{ opacity:1; }
+  #printDoc{ display:none; }
+  @media print{
+    body{ background:#fff; }
+    .screen, #toast{ display:none !important; }
+    #printDoc{ display:block; padding:0; font-size:12pt; }
+    #printDoc h1{ font-size:18pt; margin:0 0 4pt; }
+    #printDoc table{ width:100%; border-collapse:collapse; margin-top:10pt; }
+    #printDoc th,#printDoc td{ border:1px solid #999; padding:5pt 6pt; text-align:left; vertical-align:top; font-size:10.5pt; }
+    #printDoc .meta td{ border:none; padding:2pt 0; }
+    #printDoc .big{ font-size:14pt; font-weight:bold; margin-top:12pt; }
+  }
+</style>
+</head>
+<body>
+
+<section class="screen active" id="s-home">
+  <div class="topbar"><div><h1>VisaFiche<small>Points d'attention pour le visa des fiches techniques</small></h1></div></div>
+  <div class="pad">
+    <div class="grid" id="catGrid"></div>
+    <button class="btn ghost" onclick="openHistory()">📋 Avis enregistrés</button>
+    <button class="btn ghost" onclick="exportLibrary()">⬇️ Exporter ma bibliothèque</button>
+    <div class="note">Aide-mémoire pour Bruxelles. Les exigences du cahier des charges du projet et les normes en vigueur priment toujours sur cette liste.</div>
+  </div>
+</section>
+
+<section class="screen" id="s-cat">
+  <div class="topbar"><button class="back" onclick="show('s-home')">‹</button><div><h1 id="catTitle"></h1><small>Choisissez un produit</small></div></div>
+  <div class="pad">
+    <div id="prodList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <button class="btn ghost" onclick="openEditor()">➕ Ajouter un produit</button>
+  </div>
+</section>
+
+<section class="screen" id="s-edit">
+  <div class="topbar"><button class="back" onclick="openCategory(state.cat)">‹</button><div><h1 id="editTitle">Nouveau produit</h1><small id="editCat"></small></div></div>
+  <div class="pad">
+    <label>Nom du produit<input id="edName" placeholder="Ex. Vanne d'équilibrage"></label>
+    <label>Points d'attention (un par ligne)<textarea id="edPoints" rows="8" placeholder="Ex. Marquage CE"></textarea></label>
+    <button class="btn" onclick="saveProduct()">✅ Enregistrer le produit</button>
+    <button class="btn danger" id="edDelete" onclick="deleteProduct()" style="display:none;">🗑 Supprimer ce produit</button>
+  </div>
+</section>
+
+<section class="screen" id="s-review">
+  <div class="topbar"><button class="back" onclick="leaveReview()">‹</button><div><h1 id="revTitle"></h1><small id="revCat"></small></div></div>
+  <div class="pad">
+    <div class="card">
+      <label>Chantier<input id="rvSite" oninput="touch()"></label>
+      <label>Entreprise<input id="rvFirm" oninput="touch()"></label>
+      <label>Référence de la fiche<input id="rvRef" oninput="touch()"></label>
+      <label>Fabricant / modèle<input id="rvModel" oninput="touch()"></label>
+    </div>
+    <div id="pointList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="verdictBox" class="verdict v-todo"></div>
+    <label>Avis retenu
+      <select id="rvVerdict" onchange="touch()">
+        <option value="">Suivre l'avis proposé</option>
+        <option>Approuvé</option>
+        <option>Approuvé avec remarques</option>
+        <option>Refusé</option>
+      </select>
+    </label>
+    <label>Remarque générale<textarea id="rvNote" rows="3" oninput="touch()"></textarea></label>
+    <button class="btn" onclick="saveReview()">✅ Enregistrer l'avis</button>
+    <button class="btn ghost" onclick="printReview()">🖨 Imprimer / PDF</button>
+    <button class="btn ghost" onclick="editCurrentProduct()">✏️ Modifier les points de ce produit</button>
+  </div>
+</section>
+
+<section class="screen" id="s-history">
+  <div class="topbar"><button class="back" onclick="show('s-home')">‹</button><div><h1>Avis enregistrés</h1><small>Du plus récent au plus ancien</small></div></div>
+  <div class="pad"><div id="histList" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+</section>
+
+<div id="printDoc"></div>
+<div id="toast"></div>
+
+<script>
+/* ══ BIBLIOTHÈQUE DE DÉPART ══
+   Points fournis par l'utilisateur. À relire par une personne du métier avant tout usage réel. */
+const CATEGORIES = [
+  { id:"aeraulique",  nom:"Aéraulique",       ico:"💨" },
+  { id:"hydraulique", nom:"Hydraulique",      ico:"💧" },
+  { id:"adduction",   nom:"Adduction",        ico:"🚰" },
+  { id:"evacuation",  nom:"Évacuation",       ico:"🕳️" },
+  { id:"gtc",         nom:"GTC / Régulation", ico:"🎛️" },
+  { id:"acoustique",  nom:"Acoustique",       ico:"🔇" }
+];
+const BASE_LIBRARY = [
+  { id:"gaine-galva", cat:"aeraulique", nom:"Gaine de ventilation galvanisée", points:[
+    "Classe d'étanchéité C minimum",
+    "Procédé de galvanisation Sendzimir, Z275"
+  ]},
+  { id:"clapet-coupe-feu", cat:"aeraulique", nom:"Clapet coupe-feu", points:[
+    "Type de clapet adapté à la situation (type A ou type B)",
+    "Marquage CE",
+    "Essai suivant la norme EN 1366-2",
+    "Classement suivant la norme EN 13501-3"
+  ]},
+  { id:"flexible-acoustique", cat:"aeraulique", nom:"Flexible acoustique", points:[
+    "Même classe d'étanchéité que le réseau",
+    "Épaisseur d'isolant : 25 mm"
+  ]},
+  { id:"piege-a-son", cat:"acoustique", nom:"Piège à son", points:[
+    "Note de sélection fournie",
+    "Étude acoustique fournie"
+  ]}
+];
+
+/* ══ STOCKAGE LOCAL ══ */
+function load(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e){ return fallback; } }
+function store(key, value){ try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch(e){ toast("❌ Enregistrement impossible sur cet appareil"); return false; } }
+let custom  = load("visafiche_custom", {});    // produits ajoutés ou modifiés, par id ; null = supprimé
+let reviews = load("visafiche_reviews", []);
+const state = { cat:null, review:null, dirty:false, editId:null };
+
+function library(){
+  const byId = {};
+  BASE_LIBRARY.forEach(p => byId[p.id] = p);
+  Object.keys(custom).forEach(id => { if (custom[id] === null) delete byId[id]; else byId[id] = custom[id]; });
+  return Object.values(byId);
+}
+function esc(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+function catName(id){ const c = CATEGORIES.find(c => c.id === id); return c ? c.nom : id; }
+function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); if (id === "s-home") renderHome(); }
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2400); }
+
+/* ══ ACCUEIL ET CATÉGORIES ══ */
+function renderHome(){
+  const lib = library();
+  document.getElementById("catGrid").innerHTML = CATEGORIES.map(c => {
+    const n = lib.filter(p => p.cat === c.id).length;
+    return `<button class="tile" onclick="openCategory('${c.id}')"><div class="ico">${c.ico}</div><b>${esc(c.nom)}</b><span>${n} produit${n > 1 ? "s" : ""}</span></button>`;
+  }).join("");
+}
+function openCategory(catId){
+  state.cat = catId;
+  document.getElementById("catTitle").textContent = catName(catId);
+  const items = library().filter(p => p.cat === catId).sort((a,b) => a.nom.localeCompare(b.nom, "fr"));
+  document.getElementById("prodList").innerHTML = items.length
+    ? items.map(p => `<button class="row" onclick="startReview('${esc(p.id)}')"><span>${esc(p.nom)}<small>${p.points.length} point${p.points.length > 1 ? "s" : ""} d'attention</small></span><span>›</span></button>`).join("")
+    : `<div class="empty">Aucun produit dans cette catégorie pour l'instant.<br>Ajoutez le premier ci-dessous.</div>`;
+  show("s-cat");
+}
+
+/* ══ ÉDITEUR DE PRODUIT ══ */
+function openEditor(productId){
+  const p = productId ? library().find(x => x.id === productId) : null;
+  state.editId = p ? p.id : null;
+  document.getElementById("editTitle").textContent = p ? "Modifier le produit" : "Nouveau produit";
+  document.getElementById("editCat").textContent = catName(state.cat);
+  document.getElementById("edName").value = p ? p.nom : "";
+  document.getElementById("edPoints").value = p ? p.points.join("\n") : "";
+  document.getElementById("edDelete").style.display = p ? "block" : "none";
+  show("s-edit");
+}
+function editCurrentProduct(){ if (state.review) openEditor(state.review.productId); }
+function saveProduct(){
+  const nom = document.getElementById("edName").value.trim();
+  const points = document.getElementById("edPoints").value.split("\n").map(x => x.trim()).filter(Boolean);
+  if (!nom){ toast("⚠️ Indiquez le nom du produit"); return; }
+  if (!points.length){ toast("⚠️ Ajoutez au moins un point d'attention"); return; }
+  const id = state.editId || "perso-" + Date.now();
+  custom[id] = { id, cat: state.cat, nom, points };
+  if (!store("visafiche_custom", custom)) return;
+  toast("✅ Produit enregistré");
+  openCategory(state.cat);
+}
+function deleteProduct(){
+  if (!state.editId || !confirm("Supprimer ce produit de votre bibliothèque ?")) return;
+  custom[state.editId] = null;
+  if (!store("visafiche_custom", custom)) return;
+  toast("🗑 Produit supprimé");
+  openCategory(state.cat);
+}
+function exportLibrary(){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ exporte_le: new Date().toISOString(), produits: library() }, null, 2)], { type:"application/json" }));
+  a.download = "visafiche-bibliotheque.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ══ AVIS SUR UNE FICHE ══ */
+const LABELS = { ok:"Conforme", nc:"Non conforme", np:"Non précisé" };
+function startReview(productId){
+  const p = library().find(x => x.id === productId);
+  if (!p) return;
+  state.review = { id:"avis-" + Date.now(), date:new Date().toISOString(), productId:p.id, produit:p.nom, cat:p.cat,
+    site:"", firm:"", ref:"", model:"", note:"", verdict:"",
+    points: p.points.map(t => ({ texte:t, etat:"", remarque:"" })) };
+  state.dirty = false;
+  renderReview();
+}
+function renderReview(){
+  const r = state.review;
+  document.getElementById("revTitle").textContent = r.produit;
+  document.getElementById("revCat").textContent = catName(r.cat);
+  document.getElementById("rvSite").value = r.site;  document.getElementById("rvFirm").value = r.firm;
+  document.getElementById("rvRef").value = r.ref;    document.getElementById("rvModel").value = r.model;
+  document.getElementById("rvNote").value = r.note;  document.getElementById("rvVerdict").value = r.verdict;
+  document.getElementById("pointList").innerHTML = r.points.map((pt, i) => `
+    <div class="card">
+      <div class="point-title">${i + 1}. ${esc(pt.texte)}</div>
+      <div class="tri">${["ok","nc","np"].map(v => `<button type="button" data-v="${v}" class="${pt.etat === v ? "on" : ""}" onclick="setPoint(${i},'${v}')">${LABELS[v]}</button>`).join("")}</div>
+      <input placeholder="Remarque (facultatif)" value="${esc(pt.remarque)}" oninput="state.review.points[${i}].remarque=this.value;state.dirty=true;">
+    </div>`).join("");
+  updateVerdict();
+  show("s-review");
+}
+function setPoint(i, v){
+  const pt = state.review.points[i];
+  pt.etat = pt.etat === v ? "" : v;
+  state.dirty = true;
+  document.querySelectorAll("#pointList .card")[i].querySelectorAll(".tri button").forEach(b => b.classList.toggle("on", b.dataset.v === pt.etat));
+  updateVerdict();
+}
+function proposedVerdict(r){
+  if (r.points.some(p => !p.etat)) return "À compléter";
+  if (r.points.some(p => p.etat === "nc")) return "Refusé";
+  if (r.points.some(p => p.etat === "np")) return "Approuvé avec remarques";
+  return "Approuvé";
+}
+function finalVerdict(r){ return r.verdict || proposedVerdict(r); }
+function updateVerdict(){
+  const r = state.review, v = finalVerdict(r), box = document.getElementById("verdictBox");
+  const left = r.points.filter(p => !p.etat).length;
+  box.className = "verdict " + ({ "Approuvé":"v-ok", "Approuvé avec remarques":"v-rem", "Refusé":"v-ko" }[v] || "v-todo");
+  box.textContent = v === "À compléter" ? `À compléter : ${left} point${left > 1 ? "s" : ""} restant${left > 1 ? "s" : ""}` : (r.verdict ? "Avis retenu : " : "Avis proposé : ") + v;
+}
+function touch(){
+  const r = state.review;
+  r.site = document.getElementById("rvSite").value;  r.firm = document.getElementById("rvFirm").value;
+  r.ref = document.getElementById("rvRef").value;    r.model = document.getElementById("rvModel").value;
+  r.note = document.getElementById("rvNote").value;  r.verdict = document.getElementById("rvVerdict").value;
+  state.dirty = true;
+  updateVerdict();
+}
+function saveReview(){
+  const r = state.review;
+  const i = reviews.findIndex(x => x.id === r.id);
+  if (i >= 0) reviews[i] = r; else reviews.unshift(r);
+  if (!store("visafiche_reviews", reviews)) return;
+  state.dirty = false;
+  toast("✅ Avis enregistré");
+}
+function leaveReview(){
+  if (state.dirty && !confirm("Quitter sans enregistrer cet avis ?")) return;
+  openCategory(state.review.cat);
+}
+function printReview(){
+  const r = state.review, d = new Date(r.date).toLocaleDateString("fr-BE");
+  document.getElementById("printDoc").innerHTML = `
+    <h1>Avis sur fiche technique</h1>
+    <table class="meta">
+      <tr><td><b>Produit :</b> ${esc(r.produit)} (${esc(catName(r.cat))})</td><td><b>Date :</b> ${d}</td></tr>
+      <tr><td><b>Chantier :</b> ${esc(r.site)}</td><td><b>Entreprise :</b> ${esc(r.firm)}</td></tr>
+      <tr><td><b>Référence de la fiche :</b> ${esc(r.ref)}</td><td><b>Fabricant / modèle :</b> ${esc(r.model)}</td></tr>
+    </table>
+    <table>
+      <tr><th style="width:5%">N°</th><th>Point contrôlé</th><th style="width:18%">Résultat</th><th style="width:30%">Remarque</th></tr>
+      ${r.points.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.texte)}</td><td>${esc(LABELS[p.etat] || "Non contrôlé")}</td><td>${esc(p.remarque)}</td></tr>`).join("")}
+    </table>
+    <div class="big">Avis : ${esc(finalVerdict(r))}</div>
+    ${r.note ? `<p><b>Remarque générale :</b> ${esc(r.note)}</p>` : ""}
+    <p style="font-size:9pt;color:#555;margin-top:16pt;">Cet avis porte sur les points listés ci-dessus. Il ne dispense pas l'entreprise du respect du cahier des charges et des normes en vigueur.</p>`;
+  window.print();
+}
+
+/* ══ HISTORIQUE ══ */
+function openHistory(){
+  document.getElementById("histList").innerHTML = reviews.length
+    ? reviews.map(r => `<button class="row" onclick="reopenReview('${esc(r.id)}')"><span>${esc(r.produit)}<small>${esc(r.site || "Chantier non renseigné")} · ${new Date(r.date).toLocaleDateString("fr-BE")} · ${esc(finalVerdict(r))}</small></span><span>›</span></button>`).join("")
+    : `<div class="empty">Aucun avis enregistré pour l'instant.</div>`;
+  show("s-history");
+}
+function reopenReview(id){
+  const r = reviews.find(x => x.id === id);
+  if (!r) return;
+  state.review = JSON.parse(JSON.stringify(r));
+  state.cat = r.cat;
+  state.dirty = false;
+  renderReview();
+}
+
+renderHome();
+</script>
+</body>
+</html>
