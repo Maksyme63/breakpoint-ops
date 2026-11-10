@@ -106,11 +106,14 @@ function changerVideo(url, memeVideo, noir) {
   }, attente);
 }
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
+// Boutons dont la vidéo porte un autre nom que le bouton (choisie d'après les noms du dossier videos)
+var VIDEO_BOUTON = { montreur_ours: "ours", chasseur: "foret", ange: "aube", victoire_solitaire: "orbes", ancien: "defaut" };
+function nomVideo(u) { return u.toLowerCase().replace(/-/g, "_"); } // « victoire-loups » = « victoire_loups »
 function videoPour(s, th) {
-  var noms = [s.id + SUFFIXE_ECRAN, th + SUFFIXE_ECRAN], ext = ["mp4", "webm", "mov", "m4v"];
-  for (var i = 0; i < noms.length; i++) for (var j = 0; j < ext.length; j++) {
-    var u = ("videos/" + noms[i] + "." + ext[j]).toLowerCase();
-    for (var k = 0; k < videos.length; k++) if (videos[k].toLowerCase() === u) return videos[k];
+  var noms = [s.id, VIDEO_BOUTON[s.id], th], ext = ["mp4", "webm", "mov", "m4v"];
+  for (var i = 0; i < noms.length; i++) if (noms[i]) for (var j = 0; j < ext.length; j++) {
+    var u = nomVideo("videos/" + noms[i] + SUFFIXE_ECRAN + "." + ext[j]);
+    for (var k = 0; k < videos.length; k++) if (nomVideo(videos[k]) === u) return videos[k];
   }
   return null;
 }
