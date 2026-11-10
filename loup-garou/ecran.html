@@ -107,7 +107,8 @@ function changerVideo(url, memeVideo, noir) {
 }
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 // Boutons dont la vidéo porte un autre nom que le bouton (choisie d'après les noms du dossier videos)
-var VIDEO_BOUTON = { montreur_ours: "ours", chasseur: "foret", ancien: "defaut", victoire_loups: "victoire_loup" };
+var VIDEO_BOUTON = { montreur_ours: "ours", chasseur: "foret", ancien: "defaut", victoire_loups: "victoire_loup",
+  fete: "fete_medieval", accueil: "fete_medieval" };
 function nomVideo(u) { return u.toLowerCase().replace(/-/g, "_"); } // « victoire-loups » = « victoire_loups »
 function videoPour(s, th) {
   var noms = [s.id, VIDEO_BOUTON[s.id], th], ext = ["mp4", "webm", "mov", "m4v"];
