@@ -3,25 +3,25 @@
 <head>
  <link rel="manifest" href="manifest.json">
 
-<meta name="theme-color" content="#1f3a5f">
+<meta name="theme-color" content="#1b6b45">
 
 <link rel="apple-touch-icon" href="assets/icon.png">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Rayon"> 
+<meta name="apple-mobile-web-app-title" content="Basile"> 
   <meta charset="UTF-8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Rayon</title>
+  <title>Basile</title>
 
 
   <style>
     :root{
-      --green:#1f3a5f;
-      --green-2:#33598c;
+      --green:#1b6b45;
+      --green-2:#2f9461;
       --orange:#e8911a;
       --gray:#f0f2f5;
       --gray2:#dfe3e8;
@@ -92,7 +92,7 @@
     .hero-home{
       min-height:240px;
       background:
-        linear-gradient(135deg,#1f3a5f,#0f1f33);
+        linear-gradient(135deg,#1b6b45,#0e3d27);
       display:flex;
       align-items:flex-end;
       justify-content:center;
@@ -132,7 +132,7 @@
     .hero-station{
       min-height:0;
       background:
-        linear-gradient(135deg,#1f3a5f,#33598c);
+        linear-gradient(135deg,#1b6b45,#2f9461);
       display:flex;
       align-items:flex-end;
       padding:24px 18px;
@@ -559,9 +559,9 @@
   <section class="screen active" id="page-home">
 
     <!-- TOPBAR VERT (visible derrière zone système iPhone) -->
-    <div style="position:sticky;top:0;z-index:50;background:#1f3a5f;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:flex;align-items:center;">
+    <div style="position:sticky;top:0;z-index:50;background:#1b6b45;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:flex;align-items:center;">
       <div>
-        <div style="font-size:17px;font-weight:700;color:#fff;line-height:1.2;">Rayon</div>
+        <div style="font-size:17px;font-weight:700;color:#fff;line-height:1.2;">Basile</div>
         <div style="font-size:11px;opacity:.8;margin-top:2px;color:#fff;">Sélectionnez votre point de vente</div>
       </div>
     </div>
@@ -570,7 +570,7 @@
     <div style="
       position:relative;
       min-height:280px;
-      background:linear-gradient(135deg,#1f3a5f,#0f1f33);
+      background:linear-gradient(135deg,#1b6b45,#0e3d27);
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -579,7 +579,7 @@
       overflow:hidden;
     ">
       <!-- Dégradé sombre -->
-      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,31,51,.3) 0%,rgba(15,31,51,.82) 100%);"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,61,39,.3) 0%,rgba(14,61,39,.82) 100%);"></div>
 
       <!-- Logo + texte par-dessus le dégradé -->
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -592,7 +592,7 @@
           box-shadow:0 6px 22px rgba(0,0,0,.35);
         "/>
         <div style="text-align:center;">
-          <div style="color:#fff;font-size:21px;font-weight:900;letter-spacing:-.2px;">Rayon</div>
+          <div style="color:#fff;font-size:21px;font-weight:900;letter-spacing:-.2px;">Basile</div>
           <div style="color:rgba(255,255,255,.7);font-size:12px;font-weight:600;margin-top:2px;">Sélectionnez votre point de vente</div>
         </div>
       </div>
@@ -898,7 +898,7 @@
       </div>
 
       <div style="margin-top:4px;">
-        <button type="button" onclick="envoyerDemande()" class="envoyer-btn" style="width:100%;border:none;border-radius:12px;padding:17px;background:#1f3a5f;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
+        <button type="button" onclick="envoyerDemande()" class="envoyer-btn" style="width:100%;border:none;border-radius:12px;padding:17px;background:#1b6b45;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🚀 Envoyer la demande</button>
       </div>
 
     </div>
@@ -974,7 +974,7 @@
       <div style="font-size:12px;color:#6b7280;margin-top:-8px;">Email et téléphone du réparateur pour chaque type de panne. Facultatif.</div>
       <div id="setContacts" style="display:flex;flex-direction:column;gap:10px;"></div>
 
-      <button type="button" onclick="saveSettings()" style="width:100%;border:none;border-radius:12px;padding:16px;background:#1f3a5f;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;">✅ Enregistrer</button>
+      <button type="button" onclick="saveSettings()" style="width:100%;border:none;border-radius:12px;padding:16px;background:#1b6b45;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;">✅ Enregistrer</button>
       <button type="button" onclick="exportData()" style="width:100%;border:2px solid #e3e7ec;border-radius:12px;padding:14px;background:#fff;color:#374151;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;">⬇️ Exporter mes données</button>
       <div style="font-size:12px;color:#6b7280;line-height:1.5;">Vos données sont enregistrées sur cet appareil uniquement. Exportez-les régulièrement pour en garder une copie. Le code d'accès évite les erreurs de manipulation, il ne remplace pas le verrouillage de l'appareil.</div>
     </div>
@@ -982,7 +982,7 @@
   <style>
     .set-field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#374151;}
     .set-input{width:100%;box-sizing:border-box;padding:12px;border:2px solid #e3e7ec;border-radius:12px;font-size:16px;font-family:inherit;font-weight:400;color:#111827;background:#fff;}
-    .set-input:focus{outline:none;border-color:#1f3a5f;}
+    .set-input:focus{outline:none;border-color:#1b6b45;}
     .hero-station{display:none;}
     .location-btn{overflow:hidden;text-overflow:ellipsis;}
   </style>
@@ -991,9 +991,9 @@
     const APP_VERSION = "2.0.7";
     (function checkVersion(){
       try {
-        var stored = localStorage.getItem("rayon_version");
+        var stored = localStorage.getItem("basile_version");
         if (stored !== APP_VERSION) {
-          localStorage.setItem("rayon_version", APP_VERSION);
+          localStorage.setItem("basile_version", APP_VERSION);
           // Clear SW caches on version change — but never reload
           // Reloading resets state.station and makes history disappear
           if ("caches" in window) {
@@ -1018,7 +1018,7 @@
     };
     let settings = (function(){
       try {
-        var raw = JSON.parse(localStorage.getItem("rayon_settings") || "null");
+        var raw = JSON.parse(localStorage.getItem("basile_settings") || "null");
         return Object.assign({}, DEFAULT_SETTINGS, raw || {});
       } catch(e){ return Object.assign({}, DEFAULT_SETTINGS); }
     })();
@@ -1035,7 +1035,7 @@
       var opening = null;
       function open(){
         if (!opening) opening = new Promise(function(res, rej){
-          var r = indexedDB.open("rayon", 1);
+          var r = indexedDB.open("basile", 1);
           r.onupgradeneeded = function(){ r.result.createObjectStore("kv"); };
           r.onsuccess = function(){ res(r.result); };
           r.onerror = function(){ rej(r.error); };
@@ -1175,7 +1175,7 @@
         var btn = document.createElement("button");
         btn.type = "button";
         btn.style.cssText = "background:#fff;border:none;border-radius:16px;padding:18px 10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;touch-action:manipulation;";
-        btn.innerHTML = '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1f3a5f,#33598c);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>' +
+        btn.innerHTML = '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1b6b45,#2f9461);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>' +
           '<div style="font-size:13px;font-weight:800;color:#111827;">' + escapeHtml(name) + '</div>';
         btn.onclick = function(){ if (getPin()) openPinModal(name); else selectStation(name); };
         grid.appendChild(btn);
@@ -1234,7 +1234,7 @@
         managerPhone: document.getElementById("setManagerPhone").value.trim(),
         contacts: contacts
       };
-      try { localStorage.setItem("rayon_settings", JSON.stringify(settings)); }
+      try { localStorage.setItem("basile_settings", JSON.stringify(settings)); }
       catch(e){ showToast("❌ Enregistrement impossible sur cet appareil"); return; }
       applyContacts();
       buildLocationGrid();
@@ -1248,7 +1248,7 @@
       for (var t of ["produits", "lots", "maintenance_incidents"]) dump[t] = await localDB.get(t);
       var a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify(dump, null, 2)], { type: "application/json" }));
-      a.download = "rayon-donnees-" + new Date().toISOString().slice(0, 10) + ".json";
+      a.download = "basile-donnees-" + new Date().toISOString().slice(0, 10) + ".json";
       a.click();
       setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
     }
@@ -1285,7 +1285,7 @@
 
     function selectStation(name){
       state.station = name;
-      try { sessionStorage.setItem("rayon_station", name); } catch(e){}
+      try { sessionStorage.setItem("basile_station", name); } catch(e){}
       document.getElementById("top-station-name").textContent    = name;
       document.getElementById("hero-station-name").textContent   = name;
       document.getElementById("stock-station-name").textContent  = name;
@@ -1397,7 +1397,7 @@
       const ean      = document.getElementById("eanInput").value.trim();
       const nom      = document.getElementById("nameInput").value.trim();
       const dlc      = document.getElementById("dlcInput").value;
-      const station  = state.station || (function(){ try { return sessionStorage.getItem("rayon_station"); } catch(e){ return null; } })();
+      const station  = state.station || (function(){ try { return sessionStorage.getItem("basile_station"); } catch(e){ return null; } })();
       if (station && !state.station) state.station = station;
 
       if (!station)                      { showToast("Aucun point de vente sélectionné"); return; }
@@ -1841,7 +1841,7 @@
       buildLocationGrid();
       // Restore station from sessionStorage if page was reloaded
       try {
-        var saved = sessionStorage.getItem("rayon_station");
+        var saved = sessionStorage.getItem("basile_station");
         if (saved && !state.station) state.station = saved;
       } catch(e){}
     })();
@@ -2191,8 +2191,8 @@
       const hasMail  = item.to;
       const hasPhone = item.phone;
       if (hasMail || hasPhone){
-        document.getElementById("maintContactMail").innerHTML  = hasMail  ? `📧 <a href="mailto:${item.to}" style="color:#1f3a5f;font-weight:700;">${item.to}</a>` : "";
-        document.getElementById("maintContactPhone").innerHTML = hasPhone ? `📞 <a href="tel:${item.phone}" style="color:#1f3a5f;font-weight:700;">${item.phone}</a>` : "";
+        document.getElementById("maintContactMail").innerHTML  = hasMail  ? `📧 <a href="mailto:${item.to}" style="color:#1b6b45;font-weight:700;">${item.to}</a>` : "";
+        document.getElementById("maintContactPhone").innerHTML = hasPhone ? `📞 <a href="tel:${item.phone}" style="color:#1b6b45;font-weight:700;">${item.phone}</a>` : "";
         contactBox.style.display = "flex";
       } else {
         contactBox.style.display = "none";
