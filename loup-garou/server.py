@@ -460,12 +460,12 @@ class Pilote(threading.Thread):
             self.ampoule.couleur(etape["couleur"], self.lum(etape.get("lum", 100)))
             self.actuel = (list(etape["couleur"]), etape.get("lum", 100))
 
-    def fondu_depuis_actuel(self, cible, prog, duree=1.6, pas=None):
+    def fondu_depuis_actuel(self, cible, prog, duree=1.6):
         """Transition douce depuis la couleur actuelle. Renvoie True si interrompue."""
         if not getattr(self, "actuel", None):
             return False
         (c0, l0), c1, l1 = self.actuel, cible["couleur"], cible.get("lum", 100)
-        debut, pas = time.time(), float(CONFIG["intervalle_effets"]) if pas is None else pas
+        debut, pas = time.time(), float(CONFIG["intervalle_effets"])
         while True:
             f = min(1.0, (time.time() - debut) / duree)
             coul = [round(c0[k] + (c1[k] - c0[k]) * f) for k in range(3)]
@@ -512,10 +512,13 @@ class Pilote(threading.Thread):
         for etape in spec.get("intro", []):
             if etape.get("fondu_noir"):
                 # descente lente vers le noir depuis la couleur actuelle (le ruban aussi), puis extinction
+                # fondu joué par l'ampoule elle-même (dégradé intégré) : parfaitement fluide, sans à-coups
                 self.ruban_max = False
-                if self.actuel and self.fondu_depuis_actuel({"couleur": self.actuel[0], "lum": 1}, prog,
-                                                            duree=float(etape["fondu_noir"]), pas=0.15):
-                    return
+                if self.actuel:
+                    c, l = self.actuel
+                    if self.ampoule.scene_native([(c, self.lum(l))] + [(c, 1)] * 7, VITESSE_FONDU_NOIR):
+                        if self.attendre(float(etape["fondu_noir"])):
+                            return
                 self.appliquer("eteint")
                 self.ruban_max = spec.get("mode", "static") not in ("battement", "pulse", "eclair", "off")
                 self.depuis_noir = True  # la couleur de la scène suivante remontera en fondu
@@ -564,10 +567,14 @@ class Pilote(threading.Thread):
             # "couleurs" : une palette, chaque ampoule prend sa propre teinte
             palette = spec.get("couleurs") or [spec["couleur"]]
             cible = {"couleur": palette[self.index % len(palette)], "lum": spec.get("lum", 100)}
-            if getattr(self, "depuis_noir", False):  # après le noir entre deux boutons : remontée lente
+            if getattr(self, "depuis_noir", False):  # après le noir entre deux boutons : remontée lente et fluide
                 self.depuis_noir = False
-                self.actuel = (list(cible["couleur"]), 1)
-                self.fondu_depuis_actuel(cible, prog, duree=1.0, pas=0.15)
+                c, l = cible["couleur"], self.lum(cible["lum"])
+                self.actuel = (list(c), cible["lum"])  # si un autre bouton arrive pendant la remontée
+                if self.ampoule.scene_native([(c, 1)] + [(c, l)] * 7, VITESSE_FONDU_NOIR):
+                    if self.attendre(1.3):
+                        return
+                self.appliquer(cible)  # puis la couleur fixe normale, qui ne bouge plus
                 return
             self.appliquer(cible)
             return
@@ -800,13 +807,14 @@ def scenes():
     return {s["id"]: s for s in donnees.get("roles", []) + donnees["scenes"]}
 
 
+VITESSE_FONDU_NOIR = 0x55  # vitesse du dégradé intégré pour la descente/remontée (plus grand = plus rapide)
 NOIR_ENTRE_SCENES = 1.1  # secondes : les lumières descendent lentement au noir, puis la scène remonte avec la vidéo
 
 
 def lancer_spec(spec, noir_avant=False):
     ETAT["derniere_spec"] = spec  # sans le noir : les éclairs, yeux… reviennent directement à l'ambiance
     if noir_avant:
-        spec = dict(spec, intro=[{"fondu_noir": 0.7, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
+        spec = dict(spec, intro=[{"fondu_noir": 0.5, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
         p.jouer(prog)
