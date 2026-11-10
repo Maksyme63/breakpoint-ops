@@ -394,8 +394,9 @@
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !$("#jeu").hidden) garderEcranAllume(); });
   $("#go").addEventListener("click", () => {
-    Sons.init(); Sons.volume($("#volume").value / 100);
-    if (!audioPret) { Sons.test(); Sons.debloquerVoix(); audioPret = true; }
+    // le son ne doit jamais empêcher la partie de s'ouvrir (en cas d'erreur, on l'affiche dans la console)
+    try { Sons.init(); Sons.volume($("#volume").value / 100); } catch (e) { console.error("son :", e); }
+    if (!audioPret) { try { Sons.test(); Sons.debloquerVoix(); } catch (e) { console.error("son :", e); } audioPret = true; }
     construirePad();
     $("#preparation").hidden = true; $("#jeu").hidden = false;
     window.scrollTo(0, 0);
