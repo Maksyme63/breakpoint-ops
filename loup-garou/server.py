@@ -460,12 +460,12 @@ class Pilote(threading.Thread):
             self.ampoule.couleur(etape["couleur"], self.lum(etape.get("lum", 100)))
             self.actuel = (list(etape["couleur"]), etape.get("lum", 100))
 
-    def fondu_depuis_actuel(self, cible, prog, duree=1.6):
+    def fondu_depuis_actuel(self, cible, prog, duree=1.6, pas=None):
         """Transition douce depuis la couleur actuelle. Renvoie True si interrompue."""
         if not getattr(self, "actuel", None):
             return False
         (c0, l0), c1, l1 = self.actuel, cible["couleur"], cible.get("lum", 100)
-        debut, pas = time.time(), float(CONFIG["intervalle_effets"])
+        debut, pas = time.time(), float(CONFIG["intervalle_effets"]) if pas is None else pas
         while True:
             f = min(1.0, (time.time() - debut) / duree)
             coul = [round(c0[k] + (c1[k] - c0[k]) * f) for k in range(3)]
@@ -510,7 +510,16 @@ class Pilote(threading.Thread):
         # Séquence d'intro (flashs, noir…) jouée en même temps sur toutes les ampoules
         t = prog.depart
         for etape in spec.get("intro", []):
-            if etape.get("vite"):
+            if etape.get("fondu_noir"):
+                # descente lente vers le noir depuis la couleur actuelle (le ruban aussi), puis extinction
+                self.ruban_max = False
+                if self.actuel and self.fondu_depuis_actuel({"couleur": self.actuel[0], "lum": 1}, prog,
+                                                            duree=float(etape["fondu_noir"]), pas=0.15):
+                    return
+                self.appliquer("eteint")
+                self.ruban_max = spec.get("mode", "static") not in ("battement", "pulse", "eclair", "off")
+                self.depuis_noir = True  # la couleur de la scène suivante remontera en fondu
+            elif etape.get("vite"):
                 self.ampoule.instantane(etape)  # flashs : envoyés sans attendre
             else:
                 self.appliquer(etape)
@@ -527,6 +536,8 @@ class Pilote(threading.Thread):
 
         mode = spec.get("mode", "static")
         debut = time.time()
+        if mode != "static":
+            self.depuis_noir = False  # la remontée en fondu ne concerne que les couleurs fixes
 
         if mode == "off":
             self.ampoule.eteindre()
@@ -552,7 +563,13 @@ class Pilote(threading.Thread):
             # un seul changement net : les ampoules font elles-mêmes une transition douce
             # "couleurs" : une palette, chaque ampoule prend sa propre teinte
             palette = spec.get("couleurs") or [spec["couleur"]]
-            self.appliquer({"couleur": palette[self.index % len(palette)], "lum": spec.get("lum", 100)})
+            cible = {"couleur": palette[self.index % len(palette)], "lum": spec.get("lum", 100)}
+            if getattr(self, "depuis_noir", False):  # après le noir entre deux boutons : remontée lente
+                self.depuis_noir = False
+                self.actuel = (list(cible["couleur"]), 1)
+                self.fondu_depuis_actuel(cible, prog, duree=1.0, pas=0.15)
+                return
+            self.appliquer(cible)
             return
         if mode == "white":
             self.appliquer({"blanc": True, "lum": spec.get("lum", 100), "temp": spec.get("temp", 50)})
@@ -783,8 +800,13 @@ def scenes():
     return {s["id"]: s for s in donnees.get("roles", []) + donnees["scenes"]}
 
 
-def lancer_spec(spec):
-    ETAT["derniere_spec"] = spec
+NOIR_ENTRE_SCENES = 1.1  # secondes : les lumières descendent lentement au noir, puis la scène remonte avec la vidéo
+
+
+def lancer_spec(spec, noir_avant=False):
+    ETAT["derniere_spec"] = spec  # sans le noir : les éclairs, yeux… reviennent directement à l'ambiance
+    if noir_avant:
+        spec = dict(spec, intro=[{"fondu_noir": 0.7, "duree": NOIR_ENTRE_SCENES}] + list(spec.get("intro", [])))
     prog = Programme(spec, time.time() + 0.05, random.randrange(1 << 30))
     for p in PILOTES:
         p.jouer(prog)
@@ -849,7 +871,7 @@ def eclair():
         p.jouer(prog)
 
 
-def lancer_scene(scene_id):
+def lancer_scene(scene_id, noir=True):
     scene = scenes().get(scene_id)
     if not scene:
         return False
@@ -859,7 +881,8 @@ def lancer_scene(scene_id):
     ETAT["tic_bloque"] = False
     ETAT["aiguille"] = -1
     ETAT["n_scene"] = ETAT.get("n_scene", 0) + 1  # même bouton rappuyé : l'écran le voit aussi
-    lancer_spec(ETAT["spec_scene"])
+    ETAT["noir"] = noir  # noir seulement quand on appuie sur un bouton, pas dans un enchaînement automatique
+    lancer_spec(ETAT["spec_scene"], noir_avant=noir)
     return True
 
 
@@ -958,7 +981,7 @@ class Handler(BaseHTTPRequestHandler):
             "luminosite": ETAT["luminosite"],
             "ampoules": [{"nom": a.nom, "ok": getattr(a, "ok", True)} for a in AMPOULES],
             "evt": ETAT.get("evt", {}),
-            "n_scene": ETAT.get("n_scene", 0),  # l'écran passe par le noir avec les lumières (bouton appuyé)  # compteurs d'événements (hurlement, tic, glouglou…) pour l'écran
+            "noir": ETAT.get("noir", True), "n_scene": ETAT.get("n_scene", 0),  # l'écran passe par le noir avec les lumières (bouton appuyé)  # compteurs d'événements (hurlement, tic, glouglou…) pour l'écran
         }
 
     def do_OPTIONS(self):
@@ -1018,7 +1041,7 @@ class Handler(BaseHTTPRequestHandler):
             donnees = {}
 
         if chemin.startswith("/api/scene/"):
-            ok = lancer_scene(chemin.rsplit("/", 1)[1])
+            ok = lancer_scene(chemin.rsplit("/", 1)[1], noir=not donnees.get("suite"))
             return self.envoyer(200 if ok else 404, self.etat())
         if chemin in ("/api/voix", "/api/tic", "/api/pic", "/api/oeil", "/api/eclair"):
             nom = chemin.rsplit("/", 1)[1]
