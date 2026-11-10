@@ -7,9 +7,9 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   canvas, video { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
-  video { object-fit: cover; background: #000; opacity: 0; transition: opacity 1.5s ease; }
+  video { object-fit: cover; background: #000; }
   canvas { z-index: 3; transition: opacity 1.2s ease; }
-  video.visible { opacity: 1; }
+  #voile { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: #000; z-index: 2; opacity: 1; transition: opacity 0.8s ease; }
   #titre { position: fixed; left: 0; right: 0; top: 38%; text-align: center; color: #f6eedd;
     font-family: Georgia, "Times New Roman", serif; font-size: 7vw; letter-spacing: 0.04em;
     text-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 60px var(--lueur, #900);
@@ -22,7 +22,7 @@
 </head>
 <body>
 <video id="v" muted loop playsinline preload="auto"></video>
-<video id="v2" muted loop playsinline preload="auto"></video>
+<div id="voile"></div>
 <canvas id="c"></canvas>
 <div id="titre" style="display: none"></div><!-- titres masqués sur la TV -->
 <div id="aide">🐺 En attente du pad… appuie sur un bouton.<br><small>Clique ici avec la télécommande pour passer en plein écran.</small></div>
@@ -74,25 +74,28 @@ function sonder() {
   });
 }
 setInterval(sonder, 200);
-var videos = [], video = document.getElementById("v"), video2 = document.getElementById("v2"), modeVideo = false;
+var videos = [], video = document.getElementById("v"), modeVideo = false;
 charger("api/videos", function (l) {
   videos = l || [];
   if (scene && !modeVideo) nouvelleScene(scene); // la scène déjà en cours (ex. l'accueil) reçoit aussi sa vidéo
 });
-// fondu enchaîné : la nouvelle vidéo se charge derrière, l'ancienne reste à l'écran,
-// puis la nouvelle apparaît en fondu dès qu'elle joue vraiment (jamais d'animation dessinée entre deux vidéos)
-var videoVoulue = null, videoActive = null, couche = 1;
-function quandElleJoue() {
-  var v = this;
-  if (!videoVoulue || v.getAttribute("src") !== videoVoulue || v === videoActive) return;
-  var ancienne = videoActive;
-  couche++; v.style.zIndex = couche; v.className = "visible"; videoActive = v;
-  if (ancienne) setTimeout(function () {
-    if (videoActive !== ancienne) { ancienne.className = ""; try { ancienne.pause(); } catch (e) {} }
-  }, 1600);
+// Fondu par le noir : la TV ne sait décoder qu'une vidéo à la fois. On assombrit l'écran avec un voile noir,
+// on change de vidéo pendant le noir, et on ne retire le voile que quand la nouvelle vidéo défile vraiment.
+var voile = document.getElementById("voile"), videoVoulue = null, jetonVideo = 0, videoAffichee = false;
+function changerVideo(url) {
+  var j = ++jetonVideo, attente = videoAffichee ? 900 : 0;
+  voile.style.opacity = 1; videoAffichee = false;
+  setTimeout(function () {
+    if (j !== jetonVideo) return;
+    video.src = url;
+    var lecture = video.play(); if (lecture && lecture.catch) lecture.catch(function () {});
+    function pret() {
+      if (j !== jetonVideo) { video.removeEventListener("timeupdate", pret); return; }
+      if (video.currentTime > 0.3) { video.removeEventListener("timeupdate", pret); voile.style.opacity = 0; videoAffichee = true; }
+    }
+    video.addEventListener("timeupdate", pret);
+  }, attente);
 }
-video.addEventListener("playing", quandElleJoue);
-video2.addEventListener("playing", quandElleJoue);
 var SUFFIXE_ECRAN = "_1"; // _1 = vidéos de la TV, _2 = vidéos du vidéoprojecteur
 function videoPour(s, th) {
   var noms = [s.id + SUFFIXE_ECRAN, th + SUFFIXE_ECRAN], ext = ["mp4", "webm", "mov", "m4v"];
@@ -108,23 +111,13 @@ function nouvelleScene(s) {
   // vraie vidéo en boucle si elle existe (fluide et cinématographique), sinon animation dessinée
   var url = theme === "noir" ? null : videoPour(s, theme);
   if (url) {
-    videoVoulue = url; modeVideo = true; cv.style.opacity = 1;
-    if (!videoActive || videoActive.getAttribute("src") !== url) {
-      var libre = videoActive === video ? video2 : video; // on charge dans le lecteur caché
-      if (libre.getAttribute("src") !== url) libre.src = url;
-      try { libre.currentTime = 0; } catch (e) {}
-      var lecture = libre.play(); if (lecture && lecture.catch) lecture.catch(function () {});
-    } else {
-      var autre = videoActive === video ? video2 : video; // retour à la vidéo déjà affichée : on arrête l'autre
-      autre.className = ""; try { autre.pause(); } catch (e) {}
-    }
+    modeVideo = true; cv.style.opacity = 1;
+    if (url !== videoVoulue) { videoVoulue = url; changerVideo(url); } // même vidéo : elle continue sans coupure
   } else {
-    var avant = modeVideo;
-    videoVoulue = null; modeVideo = false;
+    var avant = modeVideo, j = ++jetonVideo;
+    videoVoulue = null; modeVideo = false; videoAffichee = false; voile.style.opacity = 1;
     if (avant) { cv.style.opacity = 0; setTimeout(function () { cv.style.opacity = 1; }, 50); } // l'animation apparaît en fondu
-    [video, video2].forEach(function (v) { v.className = ""; });
-    var fin = videoActive; videoActive = null;
-    if (fin) setTimeout(function () { if (videoActive !== fin) try { fin.pause(); } catch (e) {} }, 1600);
+    setTimeout(function () { if (j === jetonVideo) try { video.pause(); } catch (e) {} }, 900);
   }
   debutScene = Date.now(); particules = []; yeux = []; bulles = []; griffes = []; aiguille = 0; flash = 0;
   document.getElementById("aide").style.display = "none";
