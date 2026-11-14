@@ -1,0 +1,2334 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+<Item class="Workspace" referent="RBX1"><Properties><string name="Name">Workspace</string></Properties></Item>
+<Item class="Lighting" referent="RBX2"><Properties><string name="Name">Lighting</string></Properties></Item>
+<Item class="ReplicatedStorage" referent="RBX5"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX4"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX3"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- Port Mirage : reglages du jeu (modifiable sans toucher au reste du code)
+local Config = {}
+
+Config.GameName = "Port Mirage"
+
+-- Ville : grille de paves separes par des routes
+Config.Grid = {
+	Blocks = 6, -- nombre de paves par cote
+	Pitch = 220, -- distance entre deux centres de paves
+	BlockSize = 170, -- taille d'un pave (trottoir compris)
+	RoadWidth = 50,
+}
+
+Config.StartCash = 500
+Config.DayLengthMinutes = 12 -- duree d'un cycle jour/nuit complet
+
+-- Vehicules. Price = 0 : voiture garee dans la rue.
+Config.Cars = {
+	Moineau = {
+		DisplayName = "Moineau",
+		Price = 0,
+		MaxSpeed = 80,
+		Accel = 40,
+		Turn = 2.1,
+		Size = Vector3.new(6, 1.2, 12),
+		Spoiler = false,
+	},
+	Baroudeur = {
+		DisplayName = "Baroudeur",
+		Price = 2500,
+		MaxSpeed = 95,
+		Accel = 45,
+		Turn = 2.0,
+		Size = Vector3.new(7, 1.6, 14),
+		Spoiler = false,
+	},
+	MirageGT = {
+		DisplayName = "Mirage GT",
+		Price = 12000,
+		MaxSpeed = 130,
+		Accel = 65,
+		Turn = 2.4,
+		Size = Vector3.new(6.5, 1.1, 13),
+		Spoiler = true,
+	},
+	Fantome = {
+		DisplayName = "Fantome",
+		Price = 40000,
+		MaxSpeed = 170,
+		Accel = 90,
+		Turn = 2.6,
+		Size = Vector3.new(6.8, 1, 13.5),
+		Spoiler = true,
+	},
+}
+
+Config.StreetCars = { "Moineau", "Moineau", "Moineau", "Baroudeur" }
+Config.DealerOrder = { "Baroudeur", "MirageGT", "Fantome" }
+Config.StreetCarCount = 16
+
+Config.CarColors = {
+	Color3.fromRGB(196, 40, 28),
+	Color3.fromRGB(13, 105, 172),
+	Color3.fromRGB(245, 205, 48),
+	Color3.fromRGB(240, 240, 240),
+	Color3.fromRGB(40, 40, 46),
+	Color3.fromRGB(39, 140, 90),
+	Color3.fromRGB(226, 110, 30),
+	Color3.fromRGB(140, 70, 190),
+}
+
+-- Avis de recherche
+Config.Wanted = {
+	MaxStars = 5,
+	MaxCops = 4,
+	EvadeRadius = 90, -- aucun policier dans ce rayon = on est en train de semer la police
+	EvadeSeconds = 15, -- temps pour perdre une etoile
+	ArrestDistance = 7,
+	FinePerStar = 150,
+	CarTheftChance = 0.35,
+}
+
+-- Braquages
+Config.Robbery = {
+	HoldSeconds = 4,
+	CooldownSeconds = 120,
+	MinReward = 500,
+	MaxReward = 1000,
+	Stars = 2,
+}
+
+-- Livraisons
+Config.Delivery = {
+	BaseReward = 150,
+	RewardPerStud = 0.45,
+	FastBonus = 0.3, -- +30 % si la livraison est rapide
+}
+
+-- Billets a ramasser dans la ville
+Config.Pickup = {
+	Count = 40,
+	Value = 50,
+	RespawnSeconds = 60,
+}
+
+return Config
+]]></ProtectedString></Properties></Item>
+</Item>
+</Item>
+<Item class="ServerScriptService" referent="RBX13"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX12"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX6"><Properties><string name="Name">CityBuilder</string><ProtectedString name="Source"><![CDATA[-- Construit toute la ville par script : sol, routes, immeubles, plage, lieux speciaux.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local CityBuilder = {}
+
+local GRID = Config.Grid
+local N = GRID.Blocks
+local PITCH = GRID.Pitch
+local BLOCK = GRID.BlockSize
+local ROAD = GRID.RoadWidth
+local HALF = N * PITCH / 2 -- demi-largeur de la ville
+local SIDEWALK_Y = 0.7
+
+local BUILDING_COLORS = {
+	Color3.fromRGB(214, 196, 170),
+	Color3.fromRGB(180, 188, 196),
+	Color3.fromRGB(226, 214, 200),
+	Color3.fromRGB(150, 160, 172),
+	Color3.fromRGB(200, 170, 150),
+	Color3.fromRGB(120, 132, 148),
+	Color3.fromRGB(235, 228, 215),
+	Color3.fromRGB(170, 150, 135),
+}
+
+local NEON_COLORS = {
+	Color3.fromRGB(255, 170, 60),
+	Color3.fromRGB(80, 220, 200),
+	Color3.fromRGB(255, 90, 120),
+	Color3.fromRGB(120, 160, 255),
+	Color3.fromRGB(190, 255, 110),
+}
+
+local rng = Random.new(20261114)
+local root
+
+local function newPart(props)
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic
+	for key, value in pairs(props) do
+		if key ~= "Parent" then
+			p[key] = value
+		end
+	end
+	p.Parent = props.Parent or root
+	return p
+end
+
+local function addSign(part, face, text, textColor)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 20
+	gui.LightInfluence = 0
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBlack
+	label.TextColor3 = textColor or Color3.new(1, 1, 1)
+	label.Parent = gui
+	gui.Parent = part
+	return gui
+end
+
+local function blockCenter(i, j)
+	local x = (i - (N - 1) / 2) * PITCH
+	local z = (j - (N - 1) / 2) * PITCH
+	return x, z
+end
+
+local function buildGround()
+	-- Terre ferme
+	newPart({
+		Name = "Sol",
+		Size = Vector3.new(HALF * 2 + 400, 8, HALF * 2 + 400),
+		Position = Vector3.new(0, -4, 0),
+		Color = Color3.fromRGB(196, 178, 128),
+		Material = Enum.Material.Sand,
+	})
+	-- Plage et ocean au sud
+	newPart({
+		Name = "Plage",
+		Size = Vector3.new(HALF * 2 + 400, 8, 260),
+		Position = Vector3.new(0, -4.4, HALF + 200 + 130),
+		Color = Color3.fromRGB(236, 220, 170),
+		Material = Enum.Material.Sand,
+	})
+	newPart({
+		Name = "Ocean",
+		Size = Vector3.new(2048, 6, 1400),
+		Position = Vector3.new(0, -5, HALF + 200 + 700),
+		Color = Color3.fromRGB(30, 130, 190),
+		Material = Enum.Material.Glass,
+		Transparency = 0.25,
+		Reflectance = 0.2,
+		CanCollide = false,
+	})
+	newPart({
+		Name = "FondMarin",
+		Size = Vector3.new(2048, 4, 1400),
+		Position = Vector3.new(0, -5.5, HALF + 200 + 700), -- eau peu profonde : on peut ressortir en sautant
+		Color = Color3.fromRGB(200, 190, 140),
+		Material = Enum.Material.Sand,
+	})
+
+	-- Murs invisibles autour de la carte
+	local limit = HALF + 200
+	local wallHeight = 400
+	local walls = {
+		{ Vector3.new(4, wallHeight, limit * 2 + 600), Vector3.new(-limit, wallHeight / 2 - 20, 300) },
+		{ Vector3.new(4, wallHeight, limit * 2 + 600), Vector3.new(limit, wallHeight / 2 - 20, 300) },
+		{ Vector3.new(limit * 2, wallHeight, 4), Vector3.new(0, wallHeight / 2 - 20, -limit) },
+		{ Vector3.new(limit * 2, wallHeight, 4), Vector3.new(0, wallHeight / 2 - 20, limit + 600) },
+	}
+	for _, wall in ipairs(walls) do
+		newPart({
+			Name = "Limite",
+			Size = wall[1],
+			Position = wall[2],
+			Transparency = 1,
+			CastShadow = false,
+		})
+	end
+end
+
+local function buildRoads()
+	local roads = Instance.new("Folder")
+	roads.Name = "Routes"
+	roads.Parent = root
+	local asphalt = Color3.fromRGB(52, 54, 60)
+	local length = N * PITCH + ROAD
+
+	for k = 0, N do
+		local offset = (k - N / 2) * PITCH
+		-- Route nord-sud
+		newPart({
+			Name = "Route",
+			Parent = roads,
+			Size = Vector3.new(ROAD, 0.4, length),
+			Position = Vector3.new(offset, 0, 0),
+			Color = asphalt,
+			Material = Enum.Material.Asphalt,
+		})
+		-- Route est-ouest (1 cm plus bas pour eviter le scintillement aux croisements)
+		newPart({
+			Name = "Route",
+			Parent = roads,
+			Size = Vector3.new(length, 0.4, ROAD),
+			Position = Vector3.new(0, -0.01, offset),
+			Color = asphalt,
+			Material = Enum.Material.Asphalt,
+		})
+	end
+
+	-- Lignes pointillees entre les croisements
+	local lineColor = Color3.fromRGB(240, 220, 120)
+	for k = 0, N do
+		local offset = (k - N / 2) * PITCH
+		for b = 0, N - 1 do
+			local center = (b - (N - 1) / 2) * PITCH
+			local d = -BLOCK / 2 + 12
+			while d <= BLOCK / 2 - 12 do
+				newPart({
+					Name = "Ligne",
+					Parent = roads,
+					Size = Vector3.new(0.8, 0.05, 9),
+					Position = Vector3.new(offset, 0.2, center + d),
+					Color = lineColor,
+					CanCollide = false,
+					CastShadow = false,
+				})
+				newPart({
+					Name = "Ligne",
+					Parent = roads,
+					Size = Vector3.new(9, 0.05, 0.8),
+					Position = Vector3.new(center + d, 0.2, offset),
+					Color = lineColor,
+					CanCollide = false,
+					CastShadow = false,
+				})
+				d = d + 24
+			end
+		end
+	end
+end
+
+local function buildSidewalk(cx, cz, color, material)
+	return newPart({
+		Name = "Trottoir",
+		Size = Vector3.new(BLOCK, SIDEWALK_Y + 1, BLOCK),
+		Position = Vector3.new(cx, SIDEWALK_Y - (SIDEWALK_Y + 1) / 2, cz),
+		Color = color or Color3.fromRGB(170, 170, 172),
+		Material = material or Enum.Material.Concrete,
+	})
+end
+
+local function buildTower(x, z, width, depth, height, folder)
+	local color = BUILDING_COLORS[rng:NextInteger(1, #BUILDING_COLORS)]
+	newPart({
+		Name = "Immeuble",
+		Parent = folder,
+		Size = Vector3.new(width, height, depth),
+		Position = Vector3.new(x, SIDEWALK_Y + height / 2, z),
+		Color = color,
+		Material = Enum.Material.Concrete,
+	})
+	-- Bandes de fenetres ; certaines sont allumees
+	local step = math.max(14, height / 8)
+	local y = 10
+	while y < height - 6 do
+		local lit = rng:NextNumber() < 0.25
+		newPart({
+			Name = "Fenetres",
+			Parent = folder,
+			Size = Vector3.new(width + 0.4, 5, depth + 0.4),
+			Position = Vector3.new(x, SIDEWALK_Y + y, z),
+			Color = lit and Color3.fromRGB(255, 214, 140) or Color3.fromRGB(40, 60, 84),
+			Material = lit and Enum.Material.Neon or Enum.Material.SmoothPlastic,
+			Reflectance = lit and 0 or 0.25,
+			CanCollide = false,
+			CastShadow = false,
+		})
+		y = y + step
+	end
+	-- Lisere lumineux sur le toit des grandes tours
+	if height > 110 then
+		newPart({
+			Name = "Neon",
+			Parent = folder,
+			Size = Vector3.new(width + 1, 1.2, depth + 1),
+			Position = Vector3.new(x, SIDEWALK_Y + height + 0.6, z),
+			Color = NEON_COLORS[rng:NextInteger(1, #NEON_COLORS)],
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+			CastShadow = false,
+		})
+	end
+end
+
+-- Remplit un pave avec 4 immeubles ; skip = { [numero de lot] = true } pour laisser un lot libre
+local function buildLots(cx, cz, skip)
+	local folder = Instance.new("Folder")
+	folder.Name = "Immeubles"
+	folder.Parent = root
+	local lot = BLOCK / 2
+	local centrality = 1 - math.clamp(math.sqrt(cx * cx + cz * cz) / HALF, 0, 1)
+	local index = 0
+	for a = 0, 1 do
+		for b = 0, 1 do
+			index = index + 1
+			if not (skip and skip[index]) then
+				local lx = cx + (a - 0.5) * lot
+				local lz = cz + (b - 0.5) * lot
+				local width = rng:NextInteger(50, 64)
+				local depth = rng:NextInteger(50, 64)
+				local height = rng:NextInteger(36, 90) + math.floor(centrality * rng:NextInteger(20, 150))
+				buildTower(lx, lz, width, depth, height, folder)
+			end
+		end
+	end
+end
+
+local function buildPalm(x, z, baseY)
+	local height = rng:NextNumber(18, 26)
+	local trunk = newPart({
+		Name = "Palmier",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(height, 1.8, 1.8),
+		CFrame = CFrame.new(x, baseY + height / 2, z) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(124, 92, 70),
+		Material = Enum.Material.Wood,
+	})
+	for k = 0, 5 do
+		newPart({
+			Name = "Palme",
+			Size = Vector3.new(11, 0.4, 2.6),
+			CFrame = CFrame.new(x, baseY + height, z)
+				* CFrame.Angles(0, math.rad(k * 60 + rng:NextInteger(-10, 10)), 0)
+				* CFrame.Angles(0, 0, math.rad(-22))
+				* CFrame.new(5, 0, 0),
+			Color = Color3.fromRGB(58, 140, 66),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+		})
+	end
+	return trunk
+end
+
+local function buildLamp(x, z)
+	newPart({
+		Name = "Lampadaire",
+		Size = Vector3.new(0.7, 20, 0.7),
+		Position = Vector3.new(x, SIDEWALK_Y + 10, z),
+		Color = Color3.fromRGB(60, 60, 66),
+		Material = Enum.Material.Metal,
+	})
+	local head = newPart({
+		Name = "Lampe",
+		Size = Vector3.new(2.4, 0.6, 2.4),
+		Position = Vector3.new(x, SIDEWALK_Y + 20.3, z),
+		Color = Color3.fromRGB(255, 226, 170),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+		CastShadow = false,
+	})
+	local light = Instance.new("PointLight")
+	light.Range = 46
+	light.Brightness = 1.4
+	light.Color = Color3.fromRGB(255, 220, 170)
+	light.Shadows = false
+	light.Parent = head
+end
+
+local function buildPlaza(cx, cz)
+	buildSidewalk(cx, cz, Color3.fromRGB(205, 196, 180), Enum.Material.Cobblestone)
+	-- Fontaine centrale
+	newPart({
+		Name = "Bassin",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(2, 40, 40),
+		CFrame = CFrame.new(cx, SIDEWALK_Y + 1, cz) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(150, 150, 156),
+		Material = Enum.Material.Marble,
+	})
+	newPart({
+		Name = "Eau",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.4, 35, 35),
+		CFrame = CFrame.new(cx, SIDEWALK_Y + 2.1, cz) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(70, 170, 220),
+		Material = Enum.Material.Neon,
+		Transparency = 0.3,
+		CanCollide = false,
+	})
+	local sign = newPart({
+		Name = "Panneau",
+		Size = Vector3.new(44, 9, 1.5),
+		Position = Vector3.new(cx, SIDEWALK_Y + 14, cz - BLOCK / 2 + 14),
+		Color = Color3.fromRGB(24, 28, 40),
+	})
+	addSign(sign, Enum.NormalId.Front, "PORT MIRAGE", Color3.fromRGB(255, 190, 80))
+	addSign(sign, Enum.NormalId.Back, "PORT MIRAGE", Color3.fromRGB(255, 190, 80))
+	for _, sx in ipairs({ -19, 19 }) do
+		newPart({
+			Name = "Poteau",
+			Size = Vector3.new(1.4, 10, 1.4),
+			Position = Vector3.new(cx + sx, SIDEWALK_Y + 5, cz - BLOCK / 2 + 14),
+			Color = Color3.fromRGB(60, 60, 66),
+			Material = Enum.Material.Metal,
+		})
+	end
+	for _, corner in ipairs({ { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }) do
+		buildPalm(cx + corner[1] * 60, cz + corner[2] * 60, SIDEWALK_Y)
+	end
+	-- Points d'apparition des joueurs
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "Apparition"
+	spawn.Anchored = true
+	spawn.Size = Vector3.new(16, 1, 16)
+	spawn.Position = Vector3.new(cx, SIDEWALK_Y + 0.5, cz + 45)
+	spawn.Color = Color3.fromRGB(255, 190, 80)
+	spawn.Material = Enum.Material.Neon
+	spawn.Transparency = 0.4
+	spawn.TopSurface = Enum.SurfaceType.Smooth
+	spawn.Neutral = true
+	spawn.Duration = 3
+	spawn.Parent = root
+end
+
+local function buildPark(cx, cz)
+	buildSidewalk(cx, cz, Color3.fromRGB(86, 150, 78), Enum.Material.Grass)
+	for _ = 1, 14 do
+		buildPalm(
+			cx + rng:NextNumber(-BLOCK / 2 + 12, BLOCK / 2 - 12),
+			cz + rng:NextNumber(-BLOCK / 2 + 12, BLOCK / 2 - 12),
+			SIDEWALK_Y
+		)
+	end
+	newPart({
+		Name = "Allee",
+		Size = Vector3.new(BLOCK, 0.1, 10),
+		Position = Vector3.new(cx, SIDEWALK_Y + 0.05, cz),
+		Color = Color3.fromRGB(200, 186, 150),
+		Material = Enum.Material.Pebble,
+		CanCollide = false,
+	})
+	newPart({
+		Name = "Allee",
+		Size = Vector3.new(10, 0.1, BLOCK),
+		Position = Vector3.new(cx, SIDEWALK_Y + 0.04, cz),
+		Color = Color3.fromRGB(200, 186, 150),
+		Material = Enum.Material.Pebble,
+		CanCollide = false,
+	})
+end
+
+-- Batiment simple avec enseigne tournee vers +Z (le sud)
+local function buildHall(cx, cz, width, depth, height, color, text, textColor)
+	local hall = newPart({
+		Name = "Batiment",
+		Size = Vector3.new(width, height, depth),
+		Position = Vector3.new(cx, SIDEWALK_Y + height / 2, cz),
+		Color = color,
+		Material = Enum.Material.Concrete,
+	})
+	local sign = newPart({
+		Name = "Enseigne",
+		Size = Vector3.new(width * 0.8, 8, 1),
+		CFrame = CFrame.new(cx, SIDEWALK_Y + height - 6, cz + depth / 2 + 0.5) * CFrame.Angles(0, math.rad(180), 0),
+		Color = Color3.fromRGB(20, 24, 34),
+		CanCollide = false,
+	})
+	addSign(sign, Enum.NormalId.Front, text, textColor)
+	return hall
+end
+
+local function buildPolice(cx, cz, info)
+	buildSidewalk(cx, cz)
+	buildHall(cx, cz - 25, 120, 80, 40, Color3.fromRGB(70, 100, 160), "POLICE", Color3.fromRGB(120, 190, 255))
+	newPart({
+		Name = "Gyrophare",
+		Size = Vector3.new(120, 1.2, 1.2),
+		Position = Vector3.new(cx, SIDEWALK_Y + 40.6, cz + 15),
+		Color = Color3.fromRGB(80, 150, 255),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+	})
+	info.PoliceCFrame = CFrame.new(cx, SIDEWALK_Y + 4, cz + 55)
+end
+
+local function buildDealer(cx, cz, info)
+	buildSidewalk(cx, cz, Color3.fromRGB(190, 190, 196))
+	buildHall(cx, cz - 40, 130, 60, 28, Color3.fromRGB(230, 230, 236), "MIRAGE MOTORS", Color3.fromRGB(255, 110, 140))
+	info.DealerPads = {}
+	for k = -1, 1 do
+		local px = cx + k * 44
+		local pz = cz + 35
+		newPart({
+			Name = "Podium",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.6, 26, 26),
+			CFrame = CFrame.new(px, SIDEWALK_Y + 0.3, pz) * CFrame.Angles(0, 0, math.rad(90)),
+			Color = Color3.fromRGB(40, 40, 48),
+			Material = Enum.Material.Metal,
+		})
+		table.insert(info.DealerPads, CFrame.new(px, SIDEWALK_Y + 0.6, pz) * CFrame.Angles(0, math.rad(200), 0))
+	end
+end
+
+local function buildDepot(cx, cz, info)
+	buildSidewalk(cx, cz, Color3.fromRGB(150, 150, 150))
+	buildHall(cx, cz - 30, 130, 80, 34, Color3.fromRGB(190, 130, 70), "MIRAGE EXPRESS", Color3.fromRGB(255, 220, 120))
+	-- Quelques caisses
+	for k = 1, 8 do
+		local size = rng:NextInteger(5, 9)
+		newPart({
+			Name = "Caisse",
+			Size = Vector3.new(size, size, size),
+			Position = Vector3.new(
+				cx + rng:NextNumber(-70, 70),
+				SIDEWALK_Y + size / 2,
+				cz + rng:NextNumber(20, 40) + (k % 2) * 6
+			),
+			Color = Color3.fromRGB(160, 120, 80),
+			Material = Enum.Material.WoodPlanks,
+		})
+	end
+	local board = newPart({
+		Name = "TableauLivraisons",
+		Size = Vector3.new(12, 9, 1),
+		CFrame = CFrame.new(cx, SIDEWALK_Y + 6, cz + 62) * CFrame.Angles(0, math.rad(180), 0),
+		Color = Color3.fromRGB(30, 34, 46),
+	})
+	addSign(board, Enum.NormalId.Front, "LIVRAISONS", Color3.fromRGB(255, 220, 120))
+	newPart({
+		Name = "Pied",
+		Size = Vector3.new(1, 3, 1),
+		Position = Vector3.new(cx, SIDEWALK_Y + 1.5, cz + 62),
+		Color = Color3.fromRGB(60, 60, 66),
+	})
+	info.DepotBoard = board
+end
+
+-- Superette ouverte sur la rue, avec une caisse a braquer
+local function buildStore(cx, cz, info, index)
+	local lot = BLOCK / 2
+	local sx = cx - lot / 2
+	local sz = cz + lot / 2
+	local wall = Color3.fromRGB(240, 232, 214)
+	-- Mur du fond, cotes, toit
+	newPart({ Name = "Mur", Size = Vector3.new(60, 18, 2), Position = Vector3.new(sx, SIDEWALK_Y + 9, sz - 24), Color = wall })
+	newPart({ Name = "Mur", Size = Vector3.new(2, 18, 40), Position = Vector3.new(sx - 29, SIDEWALK_Y + 9, sz - 4), Color = wall })
+	newPart({ Name = "Mur", Size = Vector3.new(2, 18, 40), Position = Vector3.new(sx + 29, SIDEWALK_Y + 9, sz - 4), Color = wall })
+	newPart({
+		Name = "Toit",
+		Size = Vector3.new(64, 2, 46),
+		Position = Vector3.new(sx, SIDEWALK_Y + 19, sz - 3),
+		Color = Color3.fromRGB(200, 60, 60),
+	})
+	local sign = newPart({
+		Name = "Enseigne",
+		Size = Vector3.new(44, 6, 1),
+		CFrame = CFrame.new(sx, SIDEWALK_Y + 23, sz + 19) * CFrame.Angles(0, math.rad(180), 0),
+		Color = Color3.fromRGB(20, 24, 34),
+		CanCollide = false,
+	})
+	addSign(sign, Enum.NormalId.Front, "SUPERETTE 24/7", Color3.fromRGB(120, 255, 170))
+	-- Rayons
+	for k = -1, 1, 2 do
+		newPart({
+			Name = "Rayon",
+			Size = Vector3.new(4, 8, 22),
+			Position = Vector3.new(sx + k * 18, SIDEWALK_Y + 4, sz - 6),
+			Color = Color3.fromRGB(120, 130, 150),
+		})
+	end
+	-- Comptoir et caisse
+	newPart({
+		Name = "Comptoir",
+		Size = Vector3.new(16, 4, 4),
+		Position = Vector3.new(sx, SIDEWALK_Y + 2, sz - 16),
+		Color = Color3.fromRGB(110, 80, 60),
+		Material = Enum.Material.Wood,
+	})
+	local register = newPart({
+		Name = "Caisse",
+		Size = Vector3.new(3, 2, 2.5),
+		Position = Vector3.new(sx, SIDEWALK_Y + 5, sz - 16),
+		Color = Color3.fromRGB(60, 220, 120),
+		Material = Enum.Material.Neon,
+	})
+	local alarm = newPart({
+		Name = "Alarme",
+		Size = Vector3.new(2, 2, 2),
+		Shape = Enum.PartType.Ball,
+		Position = Vector3.new(sx, SIDEWALK_Y + 21, sz + 21),
+		Color = Color3.fromRGB(90, 20, 20),
+		CanCollide = false,
+	})
+	table.insert(info.Stores, { Register = register, Alarm = alarm, Name = "Superette " .. index })
+end
+
+function CityBuilder.build()
+	root = Instance.new("Folder")
+	root.Name = "Ville"
+	root.Parent = workspace
+
+	local info = {
+		Stores = {},
+		DeliveryPoints = {},
+		ParkingSpots = {},
+		Intersections = {},
+		PickupPoints = {},
+		DealerPads = {},
+	}
+
+	buildGround()
+	buildRoads()
+
+	local special = {
+		["2,3"] = "plaza",
+		["3,3"] = "police",
+		["2,2"] = "dealer",
+		["3,2"] = "depot",
+		["1,4"] = "park",
+		["4,1"] = "park",
+		["0,2"] = "store",
+		["5,3"] = "store",
+		["2,5"] = "store",
+		["4,4"] = "store",
+	}
+
+	local storeIndex = 0
+	for i = 0, N - 1 do
+		for j = 0, N - 1 do
+			local cx, cz = blockCenter(i, j)
+			local kind = special[i .. "," .. j]
+			if kind == "plaza" then
+				buildPlaza(cx, cz)
+				info.SpawnCFrame = CFrame.new(cx, SIDEWALK_Y + 4, cz + 45)
+			elseif kind == "police" then
+				buildPolice(cx, cz, info)
+			elseif kind == "dealer" then
+				buildDealer(cx, cz, info)
+			elseif kind == "depot" then
+				buildDepot(cx, cz, info)
+			elseif kind == "park" then
+				buildPark(cx, cz)
+			elseif kind == "store" then
+				storeIndex = storeIndex + 1
+				buildSidewalk(cx, cz)
+				buildLots(cx, cz, { [2] = true }) -- lot 2 = coin sud-ouest, reserve a la superette
+				buildStore(cx, cz, info, storeIndex)
+			else
+				buildSidewalk(cx, cz)
+				buildLots(cx, cz)
+				-- Adresses de livraison : milieu des trottoirs nord et sud
+				table.insert(info.DeliveryPoints, Vector3.new(cx, SIDEWALK_Y, cz + BLOCK / 2 - 5))
+				table.insert(info.DeliveryPoints, Vector3.new(cx, SIDEWALK_Y, cz - BLOCK / 2 + 5))
+			end
+
+			-- Lampadaires a deux coins de chaque pave
+			buildLamp(cx + BLOCK / 2 - 3, cz + BLOCK / 2 - 3)
+			buildLamp(cx - BLOCK / 2 + 3, cz - BLOCK / 2 + 3)
+
+			-- Places de stationnement le long du trottoir est (voiture orientee nord-sud)
+			table.insert(
+				info.ParkingSpots,
+				CFrame.new(cx + BLOCK / 2 + 6, 0.2, cz + rng:NextNumber(-50, 50))
+					* CFrame.Angles(0, rng:NextInteger(0, 1) * math.pi, 0)
+			)
+			-- Billets : sur le trottoir ouest
+			table.insert(info.PickupPoints, Vector3.new(cx - BLOCK / 2 + 4, SIDEWALK_Y + 3, cz + rng:NextNumber(-70, 70)))
+		end
+	end
+
+	-- Croisements (points d'arrivee de la police) et billets au milieu des routes
+	for a = 0, N do
+		for b = 0, N do
+			local x = (a - N / 2) * PITCH
+			local z = (b - N / 2) * PITCH
+			table.insert(info.Intersections, Vector3.new(x, 0.2, z))
+			if (a + b) % 3 == 0 then
+				table.insert(info.PickupPoints, Vector3.new(x, 3.2, z))
+			end
+		end
+	end
+
+	-- Palmiers et billets sur la plage
+	for k = -6, 6 do
+		buildPalm(k * 95 + rng:NextNumber(-20, 20), HALF + 230 + rng:NextNumber(0, 60), -0.4)
+		table.insert(info.PickupPoints, Vector3.new(k * 90, 2.6, HALF + 300 + rng:NextNumber(-20, 40)))
+	end
+
+	return info
+end
+
+return CityBuilder
+]]></ProtectedString></Properties></Item>
+<Item class="ModuleScript" referent="RBX7"><Properties><string name="Name">EconomyService</string><ProtectedString name="Source"><![CDATA[-- Argent, vehicules possedes et sauvegarde.
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local EconomyService = {}
+
+local data = {} -- [Player] = { Cash = number, Cars = { [nom] = true }, Loaded = bool }
+local store = nil
+
+-- La sauvegarde ne fonctionne que si le jeu est publie et que l'acces API est active dans Studio.
+pcall(function()
+	store = DataStoreService:GetDataStore("PortMirage_v1")
+end)
+
+local function carsToString(owned)
+	local names = {}
+	for name in pairs(owned) do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	return table.concat(names, ",")
+end
+
+local function sync(player)
+	local entry = data[player]
+	if not entry then
+		return
+	end
+	local stats = player:FindFirstChild("leaderstats")
+	local cash = stats and stats:FindFirstChild("Cash")
+	if cash then
+		cash.Value = entry.Cash
+	end
+	player:SetAttribute("OwnedCars", carsToString(entry.Cars))
+end
+
+local function load(player)
+	local entry = { Cash = Config.StartCash, Cars = {}, Loaded = false }
+	if store then
+		local ok, saved = pcall(function()
+			return store:GetAsync("joueur_" .. player.UserId)
+		end)
+		if ok then
+			entry.Loaded = true
+			if type(saved) == "table" then
+				if type(saved.Cash) == "number" then
+					entry.Cash = math.max(0, math.floor(saved.Cash))
+				end
+				if type(saved.Cars) == "table" then
+					for _, name in ipairs(saved.Cars) do
+						if Config.Cars[name] then
+							entry.Cars[name] = true
+						end
+					end
+				end
+			end
+		end
+	end
+	return entry
+end
+
+local function save(player)
+	local entry = data[player]
+	-- On ne sauvegarde jamais par-dessus des donnees qu'on n'a pas reussi a charger
+	if not entry or not store or not entry.Loaded then
+		return
+	end
+	local owned = {}
+	for name in pairs(entry.Cars) do
+		table.insert(owned, name)
+	end
+	pcall(function()
+		store:SetAsync("joueur_" .. player.UserId, { Cash = entry.Cash, Cars = owned })
+	end)
+end
+
+local function onPlayerAdded(player)
+	local stats = Instance.new("Folder")
+	stats.Name = "leaderstats"
+	local cash = Instance.new("IntValue")
+	cash.Name = "Cash"
+	cash.Value = Config.StartCash
+	cash.Parent = stats
+	stats.Parent = player
+
+	local entry = load(player)
+	if player.Parent then
+		data[player] = entry
+		sync(player)
+	end
+end
+
+function EconomyService.get(player)
+	local entry = data[player]
+	return entry and entry.Cash or 0
+end
+
+-- Ajoute (ou retire si negatif) de l'argent. Le solde ne descend jamais sous zero.
+function EconomyService.add(player, amount)
+	local entry = data[player]
+	if not entry then
+		return
+	end
+	entry.Cash = math.max(0, math.floor(entry.Cash + amount))
+	sync(player)
+end
+
+function EconomyService.owns(player, carName)
+	local entry = data[player]
+	return entry ~= nil and entry.Cars[carName] == true
+end
+
+-- Achat d'un vehicule. Renvoie succes, message.
+function EconomyService.buyCar(player, carName)
+	local entry = data[player]
+	local spec = Config.Cars[carName]
+	if not entry or not spec then
+		return false, "Achat impossible."
+	end
+	if entry.Cars[carName] then
+		return false, "Tu possedes deja ce vehicule. Ouvre le Garage pour le faire venir."
+	end
+	if entry.Cash < spec.Price then
+		return false, "Il te manque $" .. (spec.Price - entry.Cash) .. "."
+	end
+	entry.Cash = entry.Cash - spec.Price
+	entry.Cars[carName] = true
+	sync(player)
+	return true, spec.DisplayName .. " achete ! Ouvre le Garage pour le faire venir."
+end
+
+function EconomyService.init()
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, player in ipairs(Players:GetPlayers()) do
+		task.spawn(onPlayerAdded, player)
+	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		save(player)
+		data[player] = nil
+	end)
+
+	game:BindToClose(function()
+		for _, player in ipairs(Players:GetPlayers()) do
+			save(player)
+		end
+	end)
+
+	-- Sauvegarde automatique
+	task.spawn(function()
+		while true do
+			task.wait(120)
+			for _, player in ipairs(Players:GetPlayers()) do
+				save(player)
+			end
+		end
+	end)
+end
+
+return EconomyService
+]]></ProtectedString></Properties></Item>
+<Item class="Script" referent="RBX8"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[-- Port Mirage : script principal du serveur. Construit la ville et relie tous les systemes.
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local CityBuilder = require(script.Parent.CityBuilder)
+local VehicleService = require(script.Parent.VehicleService)
+local EconomyService = require(script.Parent.EconomyService)
+local WantedService = require(script.Parent.WantedService)
+local MissionService = require(script.Parent.MissionService)
+
+---------------------------------------------------------------------
+-- Communication serveur <-> joueurs
+---------------------------------------------------------------------
+local remotes = Instance.new("Folder")
+remotes.Name = "Remotes"
+
+local notifyRemote = Instance.new("RemoteEvent")
+notifyRemote.Name = "Notify"
+notifyRemote.Parent = remotes
+
+local missionRemote = Instance.new("RemoteEvent")
+missionRemote.Name = "Mission"
+missionRemote.Parent = remotes
+
+local spawnVehicleRemote = Instance.new("RemoteEvent")
+spawnVehicleRemote.Name = "SpawnVehicle"
+spawnVehicleRemote.Parent = remotes
+
+remotes.Parent = ReplicatedStorage
+
+local function notify(player, text, kind)
+	notifyRemote:FireClient(player, text, kind or "info")
+end
+
+---------------------------------------------------------------------
+-- Ambiance
+---------------------------------------------------------------------
+-- Le sol de depart de Studio n'est pas utile : la ville a son propre sol.
+local baseplate = workspace:FindFirstChild("Baseplate")
+if baseplate then
+	baseplate:Destroy()
+end
+
+Lighting.ClockTime = 16.5
+Lighting.Brightness = 2.4
+Lighting.GlobalShadows = true
+Lighting.OutdoorAmbient = Color3.fromRGB(120, 116, 128)
+Lighting.Ambient = Color3.fromRGB(60, 58, 70)
+
+local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
+atmosphere.Density = 0.28
+atmosphere.Haze = 1.4
+atmosphere.Color = Color3.fromRGB(255, 214, 178)
+atmosphere.Decay = Color3.fromRGB(255, 150, 110)
+atmosphere.Parent = Lighting
+
+local bloom = Lighting:FindFirstChildOfClass("BloomEffect") or Instance.new("BloomEffect")
+bloom.Intensity = 0.6
+bloom.Size = 24
+bloom.Threshold = 1.1
+bloom.Parent = Lighting
+
+-- Cycle jour / nuit
+local hoursPerSecond = 24 / (Config.DayLengthMinutes * 60)
+RunService.Heartbeat:Connect(function(dt)
+	Lighting.ClockTime = (Lighting.ClockTime + dt * hoursPerSecond) % 24
+end)
+
+---------------------------------------------------------------------
+-- Ville et systemes
+---------------------------------------------------------------------
+local city = CityBuilder.build()
+
+EconomyService.init()
+VehicleService.init()
+WantedService.init({
+	Economy = EconomyService,
+	Notify = notify,
+	Intersections = city.Intersections,
+	PoliceCFrame = city.PoliceCFrame,
+})
+MissionService.init({
+	Economy = EconomyService,
+	Notify = notify,
+	MissionRemote = missionRemote,
+	DeliveryPoints = city.DeliveryPoints,
+	Board = city.DepotBoard,
+})
+
+---------------------------------------------------------------------
+-- Voitures garees dans la rue
+---------------------------------------------------------------------
+do
+	local spots = city.ParkingSpots
+	-- Melange des places
+	for index = #spots, 2, -1 do
+		local other = math.random(1, index)
+		spots[index], spots[other] = spots[other], spots[index]
+	end
+	for index = 1, math.min(Config.StreetCarCount, #spots) do
+		local specName = Config.StreetCars[math.random(1, #Config.StreetCars)]
+		VehicleService.spawnStreetCar(specName, spots[index])
+	end
+end
+
+-- Prendre une voiture de la rue peut alerter la police
+VehicleService.OnEnter = function(player, model)
+	if model:GetAttribute("Street") and not model:GetAttribute("Taken") then
+		model:SetAttribute("Taken", true)
+		if math.random() < Config.Wanted.CarTheftChance then
+			WantedService.add(player, 1)
+			notify(player, "Un temoin t'a vu prendre cette voiture ! La police arrive.", "bad")
+		end
+	end
+end
+
+---------------------------------------------------------------------
+-- Concessionnaire
+---------------------------------------------------------------------
+for index, carName in ipairs(Config.DealerOrder) do
+	local pad = city.DealerPads[index]
+	local spec = Config.Cars[carName]
+	if pad and spec then
+		local display = VehicleService.spawnDisplay(carName, pad, Config.CarColors[index])
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText = "Acheter ($" .. spec.Price .. ")"
+		prompt.ObjectText = spec.DisplayName
+		prompt.HoldDuration = 1
+		prompt.MaxActivationDistance = 16
+		prompt.RequiresLineOfSight = false
+		prompt.Parent = display.PrimaryPart
+		prompt.Triggered:Connect(function(player)
+			local ok, message = EconomyService.buyCar(player, carName)
+			notify(player, message, ok and "good" or "bad")
+		end)
+	end
+end
+
+spawnVehicleRemote.OnServerEvent:Connect(function(player, carName)
+	if type(carName) ~= "string" or not Config.Cars[carName] then
+		return
+	end
+	if not EconomyService.owns(player, carName) then
+		notify(player, "Tu ne possedes pas ce vehicule.", "bad")
+		return
+	end
+	local ok, message = VehicleService.spawnPersonal(player, carName)
+	if ok then
+		notify(player, Config.Cars[carName].DisplayName .. " livre devant toi.", "good")
+	else
+		notify(player, message, "bad")
+	end
+end)
+
+---------------------------------------------------------------------
+-- Braquages de superettes
+---------------------------------------------------------------------
+for _, shop in ipairs(city.Stores) do
+	local register = shop.Register
+	local alarm = shop.Alarm
+	local openColor = register.Color
+	local ready = true
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Braquer la caisse"
+	prompt.ObjectText = shop.Name
+	prompt.HoldDuration = Config.Robbery.HoldSeconds
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = register
+
+	prompt.Triggered:Connect(function(player)
+		if not ready then
+			return
+		end
+		ready = false
+		prompt.Enabled = false
+
+		local reward = math.random(Config.Robbery.MinReward, Config.Robbery.MaxReward)
+		EconomyService.add(player, reward)
+		WantedService.add(player, Config.Robbery.Stars)
+		notify(player, "Braquage reussi : +$" .. reward .. ". File avant l'arrivee de la police !", "good")
+
+		-- Alarme clignotante pendant le temps de recharge
+		register.Color = Color3.fromRGB(70, 70, 76)
+		register.Material = Enum.Material.SmoothPlastic
+		local finish = os.clock() + Config.Robbery.CooldownSeconds
+		local on = false
+		while os.clock() < finish do
+			on = not on
+			if os.clock() < finish - Config.Robbery.CooldownSeconds + 30 then
+				alarm.Material = on and Enum.Material.Neon or Enum.Material.SmoothPlastic
+				alarm.Color = on and Color3.fromRGB(255, 40, 40) or Color3.fromRGB(90, 20, 20)
+			else
+				alarm.Material = Enum.Material.SmoothPlastic
+				alarm.Color = Color3.fromRGB(90, 20, 20)
+			end
+			task.wait(0.4)
+		end
+
+		register.Color = openColor
+		register.Material = Enum.Material.Neon
+		prompt.Enabled = true
+		ready = true
+	end)
+end
+
+---------------------------------------------------------------------
+-- Billets a ramasser
+---------------------------------------------------------------------
+do
+	local pickupFolder = Instance.new("Folder")
+	pickupFolder.Name = "Billets"
+	pickupFolder.Parent = workspace
+
+	local points = city.PickupPoints
+	for index = #points, 2, -1 do
+		local other = math.random(1, index)
+		points[index], points[other] = points[other], points[index]
+	end
+
+	for index = 1, math.min(Config.Pickup.Count, #points) do
+		local bill = Instance.new("Part")
+		bill.Name = "Billet"
+		bill.Anchored = true
+		bill.CanCollide = false
+		bill.Size = Vector3.new(2.6, 1.4, 0.3)
+		bill.Color = Color3.fromRGB(90, 230, 120)
+		bill.Material = Enum.Material.Neon
+		bill.CFrame = CFrame.new(points[index]) * CFrame.Angles(0, math.rad(math.random(0, 180)), 0)
+		bill.Parent = pickupFolder
+
+		local available = true
+		bill.Touched:Connect(function(hit)
+			if not available then
+				return
+			end
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if not player then
+				return
+			end
+			available = false
+			bill.Transparency = 1
+			EconomyService.add(player, Config.Pickup.Value)
+			notify(player, "+$" .. Config.Pickup.Value, "good")
+			task.wait(Config.Pickup.RespawnSeconds)
+			bill.Transparency = 0
+			available = true
+		end)
+	end
+end
+
+---------------------------------------------------------------------
+-- Accueil
+---------------------------------------------------------------------
+local function welcome(player)
+	task.wait(4)
+	if player.Parent then
+		notify(player, "Bienvenue a " .. Config.GameName .. " ! Monte dans une voiture, livre des colis ou tente un braquage.", "info")
+	end
+end
+Players.PlayerAdded:Connect(welcome)
+for _, player in ipairs(Players:GetPlayers()) do
+	task.spawn(welcome, player)
+end
+]]></ProtectedString></Properties></Item>
+<Item class="ModuleScript" referent="RBX9"><Properties><string name="Name">MissionService</string><ProtectedString name="Source"><![CDATA[-- Missions de livraison : prendre un colis au depot et le deposer a l'adresse indiquee.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local MissionService = {}
+
+local DELIVERY = Config.Delivery
+
+local active = {} -- [Player] = { Dest = Vector3, Reward = number, Deadline = number }
+local economy, notify, missionRemote, deliveryPoints
+
+local function rootOf(player)
+	local character = player.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+function MissionService.start(player)
+	if active[player] then
+		notify(player, "Tu as deja une livraison en cours.", "info")
+		return
+	end
+	local rootPart = rootOf(player)
+	if not rootPart then
+		return
+	end
+
+	-- Adresse au hasard, assez loin du joueur
+	local dest = nil
+	for _ = 1, 20 do
+		local candidate = deliveryPoints[math.random(1, #deliveryPoints)]
+		if (candidate - rootPart.Position).Magnitude > 300 then
+			dest = candidate
+			break
+		end
+	end
+	if not dest then
+		dest = deliveryPoints[math.random(1, #deliveryPoints)]
+	end
+
+	local distance = (dest - rootPart.Position).Magnitude
+	local reward = math.floor((DELIVERY.BaseReward + distance * DELIVERY.RewardPerStud) / 10) * 10
+	local allowed = math.floor(distance / 35) + 20 -- secondes pour toucher le bonus de rapidite
+	active[player] = { Dest = dest, Reward = reward, Deadline = os.clock() + allowed }
+	missionRemote:FireClient(player, "start", dest, reward, allowed)
+	notify(player, "Colis charge ! Suis la balise jaune. Bonus si tu livres en moins de " .. allowed .. " s.", "info")
+end
+
+local function complete(player, mission)
+	active[player] = nil
+	local reward = mission.Reward
+	local text = "Livraison terminee : +$" .. reward
+	if os.clock() <= mission.Deadline then
+		local bonus = math.floor(reward * DELIVERY.FastBonus)
+		reward = reward + bonus
+		text = "Livraison express : +$" .. reward .. " (bonus rapidite inclus)"
+	end
+	economy.add(player, reward)
+	missionRemote:FireClient(player, "done")
+	notify(player, text, "good")
+end
+
+-- deps = { Economy, Notify, MissionRemote, DeliveryPoints, Board }
+function MissionService.init(deps)
+	economy = deps.Economy
+	notify = deps.Notify
+	missionRemote = deps.MissionRemote
+	deliveryPoints = deps.DeliveryPoints
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Prendre une livraison"
+	prompt.ObjectText = "Mirage Express"
+	prompt.HoldDuration = 0.5
+	prompt.MaxActivationDistance = 14
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = deps.Board
+	prompt.Triggered:Connect(function(player)
+		MissionService.start(player)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		active[player] = nil
+	end)
+
+	task.spawn(function()
+		while true do
+			task.wait(0.3)
+			for player, mission in pairs(active) do
+				local rootPart = rootOf(player)
+				if rootPart then
+					local offset = rootPart.Position - mission.Dest
+					local flatDistance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+					if flatDistance < 16 then
+						complete(player, mission)
+					end
+				end
+			end
+		end
+	end)
+end
+
+return MissionService
+]]></ProtectedString></Properties></Item>
+<Item class="ModuleScript" referent="RBX10"><Properties><string name="Name">VehicleService</string><ProtectedString name="Source"><![CDATA[-- Voitures construites par script, conduite "arcade" (pas de suspension, tres stable).
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local VehicleService = {}
+
+local cars = {} -- [Model] = etat de la voiture
+local personal = {} -- [Player] = Model
+local lastSpawn = {} -- [Player] = os.clock()
+local folder
+
+VehicleService.OnEnter = nil -- fonction(player, model), definie par le script principal
+
+local SLIPPERY = PhysicalProperties.new(1, 0, 0, 100, 1)
+local WHEEL_RADIUS = 1.3
+local RIDE_HEIGHT = WHEEL_RADIUS + 0.3 -- hauteur du centre du chassis au-dessus du sol
+
+local function addPart(model, chassis, props, offset)
+	local p = Instance.new("Part")
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic
+	p.Massless = true
+	p.CanCollide = false
+	for key, value in pairs(props) do
+		p[key] = value
+	end
+	p.CFrame = chassis.CFrame * offset
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = chassis
+	weld.Part1 = p
+	weld.Parent = p
+	p.Parent = model
+	return p
+end
+
+-- Construit le modele. display = true : voiture d'exposition (fixe, sans siege).
+local function buildModel(specName, cf, color, display)
+	local spec = Config.Cars[specName]
+	local size = spec.Size
+	local w, h, l = size.X, size.Y, size.Z
+
+	local model = Instance.new("Model")
+	model.Name = spec.DisplayName
+
+	local chassis = Instance.new("Part")
+	chassis.Name = "Chassis"
+	chassis.Size = size
+	chassis.Color = color
+	chassis.Material = Enum.Material.SmoothPlastic
+	chassis.Reflectance = 0.15
+	chassis.TopSurface = Enum.SurfaceType.Smooth
+	chassis.BottomSurface = Enum.SurfaceType.Smooth
+	chassis.CustomPhysicalProperties = SLIPPERY
+	chassis.CFrame = cf * CFrame.new(0, RIDE_HEIGHT, 0)
+	chassis.Parent = model
+	model.PrimaryPart = chassis
+
+	local top = h / 2
+
+	-- Habitacle vitre + toit
+	addPart(model, chassis, {
+		Name = "Vitres",
+		Size = Vector3.new(w - 0.6, 3.6, l * 0.42),
+		Color = Color3.fromRGB(30, 40, 56),
+		Material = Enum.Material.Glass,
+		Transparency = 0.5,
+	}, CFrame.new(0, top + 1.8, l * 0.06))
+	addPart(model, chassis, {
+		Name = "Toit",
+		Size = Vector3.new(w - 0.4, 0.4, l * 0.44),
+		Color = color,
+		Reflectance = 0.15,
+	}, CFrame.new(0, top + 3.8, l * 0.06))
+	-- Capot et coffre
+	addPart(model, chassis, {
+		Name = "Capot",
+		Size = Vector3.new(w - 0.2, 0.8, l * 0.26),
+		Color = color,
+		Reflectance = 0.15,
+	}, CFrame.new(0, top + 0.4, -l * 0.36))
+	addPart(model, chassis, {
+		Name = "Coffre",
+		Size = Vector3.new(w - 0.2, 0.9, l * 0.2),
+		Color = color,
+		Reflectance = 0.15,
+	}, CFrame.new(0, top + 0.45, l * 0.39))
+	if spec.Spoiler then
+		addPart(model, chassis, {
+			Name = "Aileron",
+			Size = Vector3.new(w, 0.3, 1.4),
+			Color = Color3.fromRGB(24, 24, 28),
+		}, CFrame.new(0, top + 2, l * 0.46))
+		for _, sx in ipairs({ -1, 1 }) do
+			addPart(model, chassis, {
+				Name = "SupportAileron",
+				Size = Vector3.new(0.3, 1.2, 0.6),
+				Color = Color3.fromRGB(24, 24, 28),
+			}, CFrame.new(sx * (w / 2 - 0.8), top + 1.3, l * 0.46))
+		end
+	end
+
+	-- Roues (decor) + billes invisibles qui portent la voiture
+	for _, sx in ipairs({ -1, 1 }) do
+		for _, sz in ipairs({ -1, 1 }) do
+			addPart(model, chassis, {
+				Name = "Roue",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.9, WHEEL_RADIUS * 2, WHEEL_RADIUS * 2),
+				Color = Color3.fromRGB(20, 20, 22),
+			}, CFrame.new(sx * (w / 2), -0.3, sz * l * 0.32))
+			addPart(model, chassis, {
+				Name = "Appui",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(WHEEL_RADIUS * 2, WHEEL_RADIUS * 2, WHEEL_RADIUS * 2),
+				Transparency = 1,
+				CanCollide = not display,
+				Massless = false,
+				CustomPhysicalProperties = SLIPPERY,
+			}, CFrame.new(sx * (w / 2 - 1), -0.3, sz * l * 0.32))
+		end
+	end
+
+	-- Phares et feux arriere
+	for _, sx in ipairs({ -1, 1 }) do
+		local head = addPart(model, chassis, {
+			Name = "Phare",
+			Size = Vector3.new(1.3, 0.5, 0.2),
+			Color = Color3.fromRGB(255, 244, 214),
+			Material = Enum.Material.Neon,
+		}, CFrame.new(sx * (w / 2 - 1.1), 0.1, -l / 2 - 0.05))
+		if not display then
+			local light = Instance.new("SpotLight")
+			light.Face = Enum.NormalId.Front
+			light.Range = 60
+			light.Angle = 70
+			light.Brightness = 2
+			light.Shadows = false
+			light.Parent = head
+		end
+		addPart(model, chassis, {
+			Name = "FeuArriere",
+			Size = Vector3.new(1.3, 0.5, 0.2),
+			Color = Color3.fromRGB(255, 40, 40),
+			Material = Enum.Material.Neon,
+		}, CFrame.new(sx * (w / 2 - 1.1), 0.1, l / 2 + 0.05))
+	end
+
+	if display then
+		for _, d in ipairs(model:GetDescendants()) do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+			end
+		end
+		return model, chassis
+	end
+
+	-- Sieges
+	local seat = Instance.new("VehicleSeat")
+	seat.Name = "Conducteur"
+	seat.Size = Vector3.new(2, 0.5, 2)
+	seat.Transparency = 1
+	seat.HeadsUpDisplay = false
+	seat.Massless = true
+	seat.CanCollide = false
+	seat.CFrame = chassis.CFrame * CFrame.new(-w / 4, top - 0.2, l * 0.02)
+	local seatWeld = Instance.new("WeldConstraint")
+	seatWeld.Part0 = chassis
+	seatWeld.Part1 = seat
+	seatWeld.Parent = seat
+	seat.Parent = model
+
+	local passenger = Instance.new("Seat")
+	passenger.Name = "Passager"
+	passenger.Size = Vector3.new(2, 0.5, 2)
+	passenger.Transparency = 1
+	passenger.Massless = true
+	passenger.CanCollide = false
+	passenger.CFrame = chassis.CFrame * CFrame.new(w / 4, top - 0.2, l * 0.02)
+	local passengerWeld = Instance.new("WeldConstraint")
+	passengerWeld.Part0 = chassis
+	passengerWeld.Part1 = passenger
+	passengerWeld.Parent = passenger
+	passenger.Parent = model
+
+	return model, chassis, seat, passenger
+end
+
+local function register(model, chassis, seat, passenger, specName, home)
+	local spec = Config.Cars[specName]
+
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "Moteur"
+	attachment.Parent = chassis
+
+	model.Parent = folder
+	local mass = chassis.AssemblyMass
+
+	-- Vitesse dans le plan horizontal (la gravite reste libre)
+	local lv = Instance.new("LinearVelocity")
+	lv.Attachment0 = attachment
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Plane
+	lv.PrimaryTangentAxis = Vector3.new(1, 0, 0)
+	lv.SecondaryTangentAxis = Vector3.new(0, 0, 1)
+	lv.PlaneVelocity = Vector2.new(0, 0)
+	lv.MaxForce = mass * 90
+	lv.Parent = chassis
+
+	-- Rotation : seul le lacet est autorise, la voiture ne peut pas se retourner
+	local av = Instance.new("AngularVelocity")
+	av.Attachment0 = attachment
+	av.RelativeTo = Enum.ActuatorRelativeTo.World
+	av.AngularVelocity = Vector3.new(0, 0, 0)
+	av.MaxTorque = mass * 4000
+	av.Parent = chassis
+
+	local state = {
+		Model = model,
+		Chassis = chassis,
+		Seat = seat,
+		Passenger = passenger,
+		Spec = spec,
+		LV = lv,
+		AV = av,
+		Speed = 0,
+		Home = home,
+		Idle = 0,
+	}
+	cars[model] = state
+
+	-- Monter en voiture avec la touche d'interaction (E sur clavier) ; sauter pour descendre
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Monter"
+	prompt.ObjectText = spec.DisplayName
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 12
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = chassis
+	prompt.Triggered:Connect(function(player)
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not humanoid or humanoid.Health <= 0 or humanoid.SeatPart then
+			return
+		end
+		if seat.Occupant == nil then
+			seat:Sit(humanoid)
+		elseif passenger.Occupant == nil then
+			passenger:Sit(humanoid)
+		end
+	end)
+
+	seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+		local humanoid = seat.Occupant
+		if humanoid and VehicleService.OnEnter then
+			local player = Players:GetPlayerFromCharacter(humanoid.Parent)
+			if player then
+				VehicleService.OnEnter(player, model)
+			end
+		end
+	end)
+
+	return state
+end
+
+local function randomColor()
+	return Config.CarColors[math.random(1, #Config.CarColors)]
+end
+
+-- Voiture garee dans la rue ; elle revient a sa place si on l'abandonne.
+function VehicleService.spawnStreetCar(specName, cf)
+	local model, chassis, seat, passenger = buildModel(specName, cf, randomColor(), false)
+	model:SetAttribute("Street", true)
+	register(model, chassis, seat, passenger, specName, cf)
+	return model
+end
+
+-- Voiture d'exposition du concessionnaire (decor uniquement).
+function VehicleService.spawnDisplay(specName, cf, color)
+	local model = buildModel(specName, cf, color or randomColor(), true)
+	model.Parent = folder
+	return model
+end
+
+-- Fait apparaitre la voiture personnelle du joueur devant lui.
+function VehicleService.spawnPersonal(player, specName)
+	if not Config.Cars[specName] then
+		return false, "Vehicule inconnu."
+	end
+	local now = os.clock()
+	if lastSpawn[player] and now - lastSpawn[player] < 5 then
+		return false, "Patiente quelques secondes."
+	end
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not rootPart or not humanoid or humanoid.Health <= 0 then
+		return false, "Impossible pour le moment."
+	end
+	if humanoid.SeatPart then
+		return false, "Descends d'abord de ton vehicule."
+	end
+	lastSpawn[player] = now
+
+	VehicleService.removePersonal(player)
+
+	local _, yaw = rootPart.CFrame:ToOrientation()
+	local flat = CFrame.new(rootPart.Position) * CFrame.Angles(0, yaw, 0)
+	local cf = flat * CFrame.new(0, -1, -14)
+	local model, chassis, seat, passenger = buildModel(specName, cf, randomColor(), false)
+	model:SetAttribute("Owner", player.UserId)
+	register(model, chassis, seat, passenger, specName, nil)
+	personal[player] = model
+	return true
+end
+
+function VehicleService.removePersonal(player)
+	local model = personal[player]
+	if model then
+		cars[model] = nil
+		model:Destroy()
+		personal[player] = nil
+	end
+end
+
+local function approach(current, target, maxDelta)
+	if current < target then
+		return math.min(current + maxDelta, target)
+	end
+	return math.max(current - maxDelta, target)
+end
+
+local function update(dt)
+	for model, st in pairs(cars) do
+		local chassis = st.Chassis
+		if not model.Parent or not chassis.Parent then
+			cars[model] = nil
+		else
+			local seat = st.Seat
+			local spec = st.Spec
+			local occupied = seat.Occupant ~= nil
+			local throttle, steer = 0, 0
+			if occupied then
+				throttle = seat.ThrottleFloat
+				steer = seat.SteerFloat
+			end
+
+			-- Acceleration / freinage
+			local speed = st.Speed
+			local target = 0
+			if throttle > 0.05 then
+				target = spec.MaxSpeed * throttle
+			elseif throttle < -0.05 then
+				target = spec.MaxSpeed * 0.35 * throttle
+			end
+			local rate
+			if target == 0 then
+				rate = occupied and 28 or 70 -- roue libre, ou frein a main quand la voiture est vide
+			elseif speed ~= 0 and (speed > 0) ~= (target > 0) then
+				rate = 110 -- freinage
+			else
+				rate = spec.Accel
+			end
+			speed = approach(speed, target, rate * dt)
+
+			local look = chassis.CFrame.LookVector
+			local flat = Vector3.new(look.X, 0, look.Z)
+			if flat.Magnitude > 0.01 then
+				flat = flat.Unit
+			else
+				flat = Vector3.new(0, 0, -1)
+			end
+
+			-- Si la voiture est bloquee par un mur, la vitesse voulue retombe
+			local actual = chassis.AssemblyLinearVelocity:Dot(flat)
+			if math.abs(speed) > math.abs(actual) + 25 then
+				speed = actual + (speed > 0 and 25 or -25)
+			end
+			st.Speed = speed
+
+			st.LV.PlaneVelocity = Vector2.new(flat.X * speed, flat.Z * speed)
+			local turn = -steer * spec.Turn * math.clamp(speed / 25, -1, 1)
+			st.AV.AngularVelocity = Vector3.new(0, turn, 0)
+
+			-- Remise en place des voitures abandonnees ou tombees a l'eau
+			local empty = not occupied and st.Passenger.Occupant == nil
+			if empty and st.Home then
+				local away = (chassis.Position - st.Home.Position).Magnitude > 25
+				if away then
+					st.Idle = st.Idle + dt
+				else
+					st.Idle = 0
+				end
+				if st.Idle > 90 or chassis.Position.Y < -30 then
+					st.Idle = 0
+					st.Speed = 0
+					chassis.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+					chassis.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+					model:PivotTo(st.Home * CFrame.new(0, RIDE_HEIGHT + 0.5, 0))
+					model:SetAttribute("Taken", nil)
+				end
+			else
+				st.Idle = 0
+			end
+		end
+	end
+end
+
+function VehicleService.init()
+	folder = Instance.new("Folder")
+	folder.Name = "Vehicules"
+	folder.Parent = workspace
+
+	RunService.Heartbeat:Connect(update)
+
+	Players.PlayerRemoving:Connect(function(player)
+		VehicleService.removePersonal(player)
+		lastSpawn[player] = nil
+	end)
+end
+
+return VehicleService
+]]></ProtectedString></Properties></Item>
+<Item class="ModuleScript" referent="RBX11"><Properties><string name="Name">WantedService</string><ProtectedString name="Source"><![CDATA[-- Avis de recherche : etoiles, policiers qui poursuivent le joueur, arrestation.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local WantedService = {}
+
+local WANTED = Config.Wanted
+
+local states = {} -- [Player] = { Cops = {}, Evade = number, NextSpawn = number }
+local template = nil
+local copFolder
+local economy, notify, intersections, policeCFrame
+
+local function getState(player)
+	local st = states[player]
+	if not st then
+		st = { Cops = {}, Evade = 0, NextSpawn = 0 }
+		states[player] = st
+	end
+	return st
+end
+
+local function clearCops(st)
+	for _, cop in ipairs(st.Cops) do
+		cop:Destroy()
+	end
+	st.Cops = {}
+end
+
+function WantedService.get(player)
+	return player:GetAttribute("Wanted") or 0
+end
+
+function WantedService.set(player, stars)
+	stars = math.clamp(math.floor(stars), 0, WANTED.MaxStars)
+	player:SetAttribute("Wanted", stars)
+	local st = getState(player)
+	st.Evade = 0
+	if stars == 0 then
+		clearCops(st)
+	end
+end
+
+function WantedService.add(player, stars)
+	WantedService.set(player, WantedService.get(player) + stars)
+end
+
+local function makeTemplate()
+	local description = Instance.new("HumanoidDescription")
+	local uniform = Color3.fromRGB(28, 46, 92)
+	description.HeadColor = Color3.fromRGB(226, 178, 140)
+	description.TorsoColor = uniform
+	description.LeftArmColor = uniform
+	description.RightArmColor = uniform
+	description.LeftLegColor = Color3.fromRGB(20, 22, 30)
+	description.RightLegColor = Color3.fromRGB(20, 22, 30)
+	local ok, model = pcall(function()
+		return Players:CreateHumanoidModelFromDescription(description, Enum.HumanoidRigType.R15)
+	end)
+	if ok and model then
+		model.Name = "Policier"
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.DisplayName = "Policier"
+		end
+		template = model
+	else
+		warn("[Port Mirage] Impossible de creer les policiers : " .. tostring(model))
+	end
+end
+
+local function spawnCop(st, targetPosition)
+	if not template then
+		return
+	end
+	-- Croisement a bonne distance du joueur : ni trop pres, ni trop loin
+	local best, bestScore = nil, math.huge
+	for _, point in ipairs(intersections) do
+		local distance = (point - targetPosition).Magnitude
+		local score = math.abs(distance - 190) + math.random() * 60
+		if distance > 120 and score < bestScore then
+			best = point
+			bestScore = score
+		end
+	end
+	if not best then
+		return
+	end
+	local cop = template:Clone()
+	cop:PivotTo(CFrame.new(best + Vector3.new(math.random(-8, 8), 5, math.random(-8, 8))))
+	cop.Parent = copFolder
+	local rootPart = cop:FindFirstChild("HumanoidRootPart")
+	if rootPart then
+		pcall(function()
+			rootPart:SetNetworkOwner(nil)
+		end)
+	end
+	table.insert(st.Cops, cop)
+end
+
+local function arrest(player, st, stars)
+	local fine = math.min(economy.get(player), WANTED.FinePerStar * stars)
+	economy.add(player, -fine)
+	WantedService.set(player, 0)
+	notify(player, "ARRETE ! Amende : $" .. fine, "bad")
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.Sit = false
+		task.wait(0.15)
+		if character.Parent then
+			character:PivotTo(policeCFrame)
+		end
+	end
+end
+
+local function step(player, dt)
+	local stars = WantedService.get(player)
+	if stars <= 0 then
+		return
+	end
+	local st = getState(player)
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not rootPart or not humanoid or humanoid.Health <= 0 then
+		return
+	end
+	local position = rootPart.Position
+
+	-- Renforts
+	local wantedCops = math.min(stars, WANTED.MaxCops)
+	local now = os.clock()
+	if #st.Cops < wantedCops and now >= st.NextSpawn then
+		st.NextSpawn = now + 2.5
+		spawnCop(st, position)
+	end
+
+	-- Poursuite
+	local nearest = math.huge
+	for index = #st.Cops, 1, -1 do
+		local cop = st.Cops[index]
+		local copRoot = cop:FindFirstChild("HumanoidRootPart")
+		local copHumanoid = cop:FindFirstChildOfClass("Humanoid")
+		if not copRoot or not copHumanoid or copHumanoid.Health <= 0 or copRoot.Position.Y < -40 then
+			cop:Destroy()
+			table.remove(st.Cops, index)
+		else
+			local distance = (copRoot.Position - position).Magnitude
+			if distance > 380 then
+				-- Seme : il reviendra par un autre croisement
+				cop:Destroy()
+				table.remove(st.Cops, index)
+			else
+				nearest = math.min(nearest, distance)
+				copHumanoid.WalkSpeed = 17 + stars
+				copHumanoid:MoveTo(position)
+			end
+		end
+	end
+
+	-- Arrestation : le policier doit etre tout pres, et le joueur a pied ou presque a l'arret
+	local slow = humanoid.SeatPart == nil or rootPart.AssemblyLinearVelocity.Magnitude < 10
+	if nearest < WANTED.ArrestDistance and slow then
+		arrest(player, st, stars)
+		return
+	end
+
+	-- Fuite : sans policier a proximite, les etoiles tombent une a une
+	if nearest > WANTED.EvadeRadius then
+		st.Evade = st.Evade + dt
+		if st.Evade >= WANTED.EvadeSeconds then
+			WantedService.set(player, stars - 1)
+			if stars - 1 == 0 then
+				notify(player, "Tu as seme la police.", "good")
+			end
+		end
+	else
+		st.Evade = 0
+	end
+end
+
+-- deps = { Economy, Notify = fonction(player, texte, type), Intersections, PoliceCFrame }
+function WantedService.init(deps)
+	economy = deps.Economy
+	notify = deps.Notify
+	intersections = deps.Intersections
+	policeCFrame = deps.PoliceCFrame
+
+	copFolder = Instance.new("Folder")
+	copFolder.Name = "Police"
+	copFolder.Parent = workspace
+
+	task.spawn(makeTemplate)
+
+	local function onPlayerAdded(player)
+		player:SetAttribute("Wanted", 0)
+		player.CharacterAdded:Connect(function(character)
+			local humanoid = character:WaitForChild("Humanoid", 10)
+			if humanoid then
+				humanoid.Died:Connect(function()
+					-- Mourir efface l'avis de recherche
+					WantedService.set(player, 0)
+				end)
+			end
+		end)
+	end
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, player in ipairs(Players:GetPlayers()) do
+		onPlayerAdded(player)
+	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		local st = states[player]
+		if st then
+			clearCops(st)
+			states[player] = nil
+		end
+	end)
+
+	task.spawn(function()
+		local interval = 0.3
+		while true do
+			task.wait(interval)
+			for _, player in ipairs(Players:GetPlayers()) do
+				local ok, err = pcall(step, player, interval)
+				if not ok then
+					warn("[Port Mirage] Police : " .. tostring(err))
+				end
+			end
+		end
+	end)
+end
+
+return WantedService
+]]></ProtectedString></Properties></Item>
+</Item>
+</Item>
+<Item class="StarterPlayer" referent="RBX17"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX16"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX15"><Properties><string name="Name">Client</string></Properties><Item class="LocalScript" referent="RBX14"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[-- Port Mirage : interface du joueur (argent, etoiles, mission, compteur, garage, messages).
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local notifyRemote = remotes:WaitForChild("Notify")
+local missionRemote = remotes:WaitForChild("Mission")
+local spawnVehicleRemote = remotes:WaitForChild("SpawnVehicle")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local DARK = Color3.fromRGB(16, 18, 26)
+local GOLD = Color3.fromRGB(255, 190, 80)
+local GREEN = Color3.fromRGB(110, 235, 140)
+local RED = Color3.fromRGB(255, 90, 90)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PortMirageHud"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = false
+gui.Parent = playerGui
+
+local function round(instance, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	corner.Parent = instance
+end
+
+local function makeLabel(props)
+	local label = Instance.new("TextLabel")
+	label.BackgroundColor3 = DARK
+	label.BackgroundTransparency = 0.25
+	label.BorderSizePixel = 0
+	label.Font = Enum.Font.GothamBold
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextSize = 20
+	for key, value in pairs(props) do
+		label[key] = value
+	end
+	round(label, 10)
+	label.Parent = props.Parent or gui
+	return label
+end
+
+local function formatCash(amount)
+	local text = tostring(math.floor(amount))
+	local result = ""
+	while #text > 3 do
+		result = " " .. string.sub(text, -3) .. result
+		text = string.sub(text, 1, -4)
+	end
+	return "$ " .. text .. result
+end
+
+---------------------------------------------------------------------
+-- Argent et etoiles (en haut a droite)
+---------------------------------------------------------------------
+local cashLabel = makeLabel({
+	Name = "Argent",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -16, 0, 16),
+	Size = UDim2.fromOffset(190, 44),
+	TextColor3 = GREEN,
+	TextSize = 26,
+	Text = "$ 0",
+})
+
+local starsLabel = makeLabel({
+	Name = "Etoiles",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -16, 0, 66),
+	Size = UDim2.fromOffset(190, 38),
+	TextColor3 = GOLD,
+	TextSize = 26,
+	Text = "",
+	Visible = false,
+})
+
+local function refreshCash(value)
+	cashLabel.Text = formatCash(value)
+end
+
+task.spawn(function()
+	local stats = player:WaitForChild("leaderstats")
+	local cash = stats:WaitForChild("Cash")
+	refreshCash(cash.Value)
+	cash.Changed:Connect(refreshCash)
+end)
+
+local function refreshStars()
+	local stars = player:GetAttribute("Wanted") or 0
+	if stars <= 0 then
+		starsLabel.Visible = false
+		return
+	end
+	local maxStars = Config.Wanted.MaxStars
+	starsLabel.Text = string.rep("★", stars) .. string.rep("☆", maxStars - stars)
+	starsLabel.Visible = true
+end
+player:GetAttributeChangedSignal("Wanted"):Connect(refreshStars)
+refreshStars()
+
+---------------------------------------------------------------------
+-- Mission (en haut au centre) + balise dans le monde
+---------------------------------------------------------------------
+local missionLabel = makeLabel({
+	Name = "Mission",
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 16),
+	Size = UDim2.fromOffset(420, 44),
+	TextColor3 = GOLD,
+	Text = "",
+	Visible = false,
+})
+
+local beacon = nil
+local missionDest = nil
+local missionReward = 0
+local missionDeadline = 0
+
+local function clearMission()
+	missionDest = nil
+	missionLabel.Visible = false
+	if beacon then
+		beacon:Destroy()
+		beacon = nil
+	end
+end
+
+local function startMission(dest, reward, allowed)
+	clearMission()
+	missionDest = dest
+	missionReward = reward
+	missionDeadline = os.clock() + allowed
+
+	beacon = Instance.new("Part")
+	beacon.Name = "BaliseLivraison"
+	beacon.Anchored = true
+	beacon.CanCollide = false
+	beacon.CanQuery = false
+	beacon.CastShadow = false
+	beacon.Shape = Enum.PartType.Cylinder
+	beacon.Size = Vector3.new(400, 14, 14)
+	beacon.CFrame = CFrame.new(dest + Vector3.new(0, 200, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	beacon.Color = GOLD
+	beacon.Material = Enum.Material.Neon
+	beacon.Transparency = 0.6
+	beacon.Parent = workspace
+
+	-- Repere visible a travers les immeubles
+	local anchor = Instance.new("Attachment")
+	anchor.Parent = beacon
+	anchor.WorldPosition = dest + Vector3.new(0, 12, 0)
+	local marker = Instance.new("BillboardGui")
+	marker.Adornee = anchor
+	marker.AlwaysOnTop = true
+	marker.Size = UDim2.fromOffset(150, 34)
+	marker.MaxDistance = 100000
+	marker.Parent = beacon
+	local markerText = Instance.new("TextLabel")
+	markerText.Size = UDim2.fromScale(1, 1)
+	markerText.BackgroundColor3 = DARK
+	markerText.BackgroundTransparency = 0.2
+	markerText.Font = Enum.Font.GothamBold
+	markerText.TextSize = 18
+	markerText.TextColor3 = GOLD
+	markerText.Text = "LIVRAISON"
+	round(markerText, 8)
+	markerText.Parent = marker
+
+	missionLabel.Visible = true
+end
+
+missionRemote.OnClientEvent:Connect(function(action, dest, reward, allowed)
+	if action == "start" then
+		startMission(dest, reward, allowed)
+	else
+		clearMission()
+	end
+end)
+
+---------------------------------------------------------------------
+-- Compteur de vitesse (en bas a droite)
+---------------------------------------------------------------------
+local speedLabel = makeLabel({
+	Name = "Vitesse",
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -16, 1, -16),
+	Size = UDim2.fromOffset(170, 54),
+	TextSize = 30,
+	Text = "0 km/h",
+	Visible = false,
+})
+
+---------------------------------------------------------------------
+-- Messages (en bas au centre)
+---------------------------------------------------------------------
+local toastHolder = Instance.new("Frame")
+toastHolder.Name = "Messages"
+toastHolder.AnchorPoint = Vector2.new(0.5, 1)
+toastHolder.Position = UDim2.new(0.5, 0, 1, -110)
+toastHolder.Size = UDim2.fromOffset(560, 200)
+toastHolder.BackgroundTransparency = 1
+toastHolder.Parent = gui
+
+local toastLayout = Instance.new("UIListLayout")
+toastLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+toastLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+toastLayout.Padding = UDim.new(0, 6)
+toastLayout.SortOrder = Enum.SortOrder.LayoutOrder
+toastLayout.Parent = toastHolder
+
+local toastCount = 0
+
+local function showToast(text, kind)
+	toastCount = toastCount + 1
+	local color = Color3.new(1, 1, 1)
+	if kind == "good" then
+		color = GREEN
+	elseif kind == "bad" then
+		color = RED
+	end
+	local toast = makeLabel({
+		Parent = toastHolder,
+		Size = UDim2.new(1, 0, 0, 40),
+		LayoutOrder = toastCount,
+		TextColor3 = color,
+		TextSize = 18,
+		TextWrapped = true,
+		Text = text,
+	})
+	task.delay(5, function()
+		local tween = TweenService:Create(toast, TweenInfo.new(0.5), { TextTransparency = 1, BackgroundTransparency = 1 })
+		tween:Play()
+		tween.Completed:Wait()
+		toast:Destroy()
+	end)
+end
+
+notifyRemote.OnClientEvent:Connect(showToast)
+
+---------------------------------------------------------------------
+-- Garage (a gauche) : faire venir un vehicule achete
+---------------------------------------------------------------------
+local garageButton = Instance.new("TextButton")
+garageButton.Name = "Garage"
+garageButton.AnchorPoint = Vector2.new(0, 0.5)
+garageButton.Position = UDim2.new(0, 16, 0.5, 0)
+garageButton.Size = UDim2.fromOffset(120, 44)
+garageButton.BackgroundColor3 = DARK
+garageButton.BackgroundTransparency = 0.2
+garageButton.BorderSizePixel = 0
+garageButton.Font = Enum.Font.GothamBold
+garageButton.TextSize = 20
+garageButton.TextColor3 = GOLD
+garageButton.Text = "Garage"
+round(garageButton, 10)
+garageButton.Parent = gui
+
+local garagePanel = Instance.new("Frame")
+garagePanel.Name = "ListeGarage"
+garagePanel.AnchorPoint = Vector2.new(0, 0)
+garagePanel.Position = UDim2.new(0, 16, 0.5, 30)
+garagePanel.Size = UDim2.fromOffset(220, 0)
+garagePanel.AutomaticSize = Enum.AutomaticSize.Y
+garagePanel.BackgroundColor3 = DARK
+garagePanel.BackgroundTransparency = 0.15
+garagePanel.BorderSizePixel = 0
+garagePanel.Visible = false
+round(garagePanel, 10)
+garagePanel.Parent = gui
+
+local garageLayout = Instance.new("UIListLayout")
+garageLayout.Padding = UDim.new(0, 6)
+garageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+garageLayout.Parent = garagePanel
+
+local garagePadding = Instance.new("UIPadding")
+garagePadding.PaddingTop = UDim.new(0, 8)
+garagePadding.PaddingBottom = UDim.new(0, 8)
+garagePadding.PaddingLeft = UDim.new(0, 8)
+garagePadding.PaddingRight = UDim.new(0, 8)
+garagePadding.Parent = garagePanel
+
+local function rebuildGarage()
+	for _, child in ipairs(garagePanel:GetChildren()) do
+		if child:IsA("TextButton") or child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+	local owned = player:GetAttribute("OwnedCars") or ""
+	local count = 0
+	for name in string.gmatch(owned, "[^,]+") do
+		local spec = Config.Cars[name]
+		if spec then
+			count = count + 1
+			local button = Instance.new("TextButton")
+			button.Size = UDim2.new(1, 0, 0, 38)
+			button.LayoutOrder = count
+			button.BackgroundColor3 = Color3.fromRGB(40, 44, 60)
+			button.BorderSizePixel = 0
+			button.Font = Enum.Font.GothamBold
+			button.TextSize = 18
+			button.TextColor3 = Color3.new(1, 1, 1)
+			button.Text = spec.DisplayName
+			round(button, 8)
+			button.Parent = garagePanel
+			button.Activated:Connect(function()
+				spawnVehicleRemote:FireServer(name)
+				garagePanel.Visible = false
+			end)
+		end
+	end
+	if count == 0 then
+		local empty = Instance.new("TextLabel")
+		empty.Size = UDim2.new(1, 0, 0, 60)
+		empty.BackgroundTransparency = 1
+		empty.Font = Enum.Font.Gotham
+		empty.TextSize = 16
+		empty.TextWrapped = true
+		empty.TextColor3 = Color3.fromRGB(200, 200, 210)
+		empty.Text = "Aucun vehicule. Va chez Mirage Motors pour en acheter un."
+		empty.Parent = garagePanel
+	end
+end
+
+garageButton.Activated:Connect(function()
+	garagePanel.Visible = not garagePanel.Visible
+	if garagePanel.Visible then
+		rebuildGarage()
+	end
+end)
+player:GetAttributeChangedSignal("OwnedCars"):Connect(function()
+	if garagePanel.Visible then
+		rebuildGarage()
+	end
+end)
+
+---------------------------------------------------------------------
+-- Mise a jour continue : compteur, distance de la mission, etoiles clignotantes
+---------------------------------------------------------------------
+RunService.RenderStepped:Connect(function()
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	local seat = humanoid and humanoid.SeatPart
+	if seat and seat:IsA("VehicleSeat") and rootPart then
+		local speed = rootPart.AssemblyLinearVelocity.Magnitude
+		speedLabel.Text = math.floor(speed * 1.1) .. " km/h"
+		speedLabel.Visible = true
+	else
+		speedLabel.Visible = false
+	end
+
+	if missionDest and rootPart then
+		local distance = math.floor((missionDest - rootPart.Position).Magnitude / 3.5)
+		local remaining = math.ceil(missionDeadline - os.clock())
+		local text = "Livraison : " .. distance .. " m   |   $" .. missionReward
+		if remaining > 0 then
+			text = text .. "   |   bonus " .. remaining .. " s"
+		end
+		missionLabel.Text = text
+	end
+
+	if starsLabel.Visible then
+		local pulse = (math.sin(os.clock() * 6) + 1) / 2
+		starsLabel.TextColor3 = GOLD:Lerp(RED, pulse)
+	end
+end)
+]]></ProtectedString></Properties></Item>
+</Item>
+</Item>
+</Item>
+</roblox>
